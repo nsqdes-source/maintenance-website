@@ -28,7 +28,7 @@ export default function Home() {
             مع استقبال طلبك ومتابعته بطريقة منظمة.
           </p>
           <div className="actions">
-            <a className="button primary" href="#request">طلب خدمة</a>
+            <a className="button primary" href="/request">طلب خدمة</a>
             <a className="button secondary" href="#contact">تواصل معنا</a>
           </div>
         </div>
@@ -62,8 +62,8 @@ export default function Home() {
       <section id="request" className="section">
         <div className="container">
           <h2>طلب خدمة</h2>
-          <p className="sectionIntro">سنحوّل هذا القسم في الخطوة التالية إلى نموذج مرتبط مباشرة بـ Supabase.</p>
-          <a className="button primary" href="#contact">ابدأ الطلب</a>
+          <p className="sectionIntro">أرسل تفاصيل طلبك من خلال النموذج المخصص وسنتواصل معك لتأكيد الخدمة.</p>
+          <a className="button primary" href="/request">ابدأ الطلب</a>
         </div>
       </section>
 
