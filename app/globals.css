@@ -62,6 +62,99 @@ button, input, textarea, select { font: inherit; }
 
 .footer { padding: 32px 0; border-top: 1px solid #e2e8f0; color: #64748b; background: white; }
 
+.request-page {
+  min-height: 100vh;
+  padding: 60px 20px;
+  background: #f7f7f7;
+}
+
+.request-section { width: 100%; }
+
+.request-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.request-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.request-header h1 {
+  margin: 8px 0 12px;
+  font-size: 36px;
+}
+
+.request-header p {
+  color: #666;
+  line-height: 1.8;
+}
+
+.eyebrow {
+  font-weight: 700;
+  color: #555;
+}
+
+.request-form {
+  background: #fff;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #555;
+}
+
+.form-group textarea { resize: vertical; }
+
+.form-error {
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #a00000;
+}
+
+.request-success {
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.request-success h2 { margin-bottom: 12px; }
+.request-success p { margin-bottom: 24px; }
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
 @media (max-width: 800px) {
   .navLinks { display: none; }
   .grid { grid-template-columns: repeat(2, 1fr); }
@@ -70,4 +163,7 @@ button, input, textarea, select { font: inherit; }
 @media (max-width: 520px) {
   .grid { grid-template-columns: 1fr; }
   .hero { padding: 64px 0; }
+  .request-page { padding: 40px 16px; }
+  .request-form { padding: 22px; }
+  .request-header h1 { font-size: 30px; }
 }
