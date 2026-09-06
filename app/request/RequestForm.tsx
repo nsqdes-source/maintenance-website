@@ -17,10 +17,12 @@ export default function RequestForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
+
     setPending(true);
     setStatus({ success: false, message: "" });
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
 
     const customerName = String(formData.get("customer_name") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
@@ -73,7 +75,7 @@ export default function RequestForm() {
       message: "تم استلام طلبك بنجاح. سنتواصل معك قريبًا.",
     });
     setPending(false);
-    event.currentTarget.reset();
+    form.reset();
   }
 
   if (status.success) {
