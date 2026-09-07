@@ -13,6 +13,12 @@ const benefits = [
   ["طلب سهل", "أرسل تفاصيل المشكلة والعنوان من نموذج واحد دون تعقيد."],
 ];
 
+const works = [
+  ["أعمال كهربائية", "إصلاح وتجهيزات كهربائية"],
+  ["صيانة تكييف", "فحص وتنظيف وصيانة"],
+  ["أعمال سباكة", "إصلاح التسريبات والأعطال"],
+];
+
 export default function Home() {
   return (
     <main>
@@ -84,6 +90,7 @@ export default function Home() {
               </article>
             ))}
           </div>
+          <div className="sectionAction"><a className="button secondary" href="/services">عرض جميع الخدمات</a></div>
         </div>
       </section>
 
@@ -98,10 +105,7 @@ export default function Home() {
             {benefits.map(([title, description], index) => (
               <article className="benefit" key={title}>
                 <div className="benefitIcon">{index + 1}</div>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{description}</p>
-                </div>
+                <div><h3>{title}</h3><p>{description}</p></div>
               </article>
             ))}
           </div>
@@ -111,18 +115,16 @@ export default function Home() {
       <section id="works" className="section worksSection">
         <div className="container">
           <div className="sectionHeading">
-            <div>
-              <p className="eyebrow">أعمالنا</p>
-              <h2>نستعد لعرض أعمالنا المنفذة</h2>
-            </div>
-            <p className="sectionIntro">سيتم إضافة صور مختارة من الأعمال المنفذة مع وصف مختصر لكل مشروع.</p>
+            <div><p className="eyebrow">أعمالنا</p><h2>نماذج من الأعمال المنفذة</h2></div>
+            <p className="sectionIntro">سيتم استبدال المساحات التالية بصور حقيقية من مشاريعكم عند توفرها.</p>
           </div>
-          <div className="workPlaceholder">
-            <div className="workPlaceholderIcon">＋</div>
-            <div>
-              <h3>معرض الأعمال قيد التجهيز</h3>
-              <p>يمكن إضافة صور المشاريع لاحقًا دون تغيير بنية الموقع.</p>
-            </div>
+          <div className="worksGrid">
+            {works.map(([title, description], index) => (
+              <article className="workCard" key={title}>
+                <div className="workImagePlaceholder"><span>صورة العمل {index + 1}</span></div>
+                <div className="workCardBody"><h3>{title}</h3><p>{description}</p></div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -143,7 +145,7 @@ export default function Home() {
           <div>
             <p className="eyebrow">تواصل معنا</p>
             <h2>نحن هنا لخدمتك</h2>
-            <p className="sectionIntro">سيتم إضافة بيانات الهاتف وواتساب وقنوات التواصل عند استكمال بيانات التشغيل.</p>
+            <p className="sectionIntro">يمكنك إرسال طلب الصيانة مباشرة من الموقع، وستتم متابعة الطلب والتواصل معك.</p>
           </div>
           <div className="contactCard">
             <span>لديك طلب صيانة؟</span>
