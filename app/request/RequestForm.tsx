@@ -50,6 +50,9 @@ export default function RequestForm() {
     }
 
     const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const { error } = await supabase.from("service_requests").insert({
       customer_name: customerName,
@@ -58,6 +61,7 @@ export default function RequestForm() {
       problem_description: problemDescription,
       city,
       address,
+      customer_id: user?.id ?? null,
     });
 
     if (error) {
