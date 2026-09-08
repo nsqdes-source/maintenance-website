@@ -12,15 +12,9 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "ملغي" },
 ];
 
-type RequestStatusControlProps = {
-  requestId: string;
-  initialStatus: string;
-};
+type RequestStatusControlProps = { requestId: string; initialStatus: string };
 
-export default function RequestStatusControl({
-  requestId,
-  initialStatus,
-}: RequestStatusControlProps) {
+export default function RequestStatusControl({ requestId, initialStatus }: RequestStatusControlProps) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,6 +49,7 @@ export default function RequestStatusControl({
         <label htmlFor={`status-${requestId}`}>حالة الطلب</label>
         <select
           id={`status-${requestId}`}
+          className={`statusSelect status-${status}`}
           value={status}
           onChange={(event) => {
             setStatus(event.target.value);
@@ -63,11 +58,7 @@ export default function RequestStatusControl({
           }}
           disabled={isSaving}
         >
-          {STATUS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
         <button className="button primary statusSaveButton" type="button" onClick={handleSave} disabled={isSaving}>
           {isSaving ? "جارٍ الحفظ..." : "حفظ الحالة"}
