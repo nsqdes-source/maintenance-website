@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-
 const ADMIN_ROLES = new Set(["maintenance_manager", "admin_manager", "super_admin"]);
 
 export default async function AdminPage() {
@@ -20,16 +19,18 @@ export default async function AdminPage() {
   ]);
 
   const cards = [
-    { href: "/admin/requests", label: "إدارة الطلبات", value: requestsCount ?? 0, detail: `${newRequestsCount ?? 0} طلب جديد`, icon: "01" },
-    { href: "/admin/technicians", label: "إدارة الفنيين", value: techniciansCount ?? 0, detail: "فني مسجل", icon: "02" },
-    { href: "/admin/users", label: "إدارة المستخدمين", value: usersCount ?? 0, detail: "مستخدم مسجل", icon: "03" },
+    { href: "/admin/requests", label: "إدارة الطلبات", value: requestsCount ?? 0, detail: `${newRequestsCount ?? 0} طلب جديد` },
+    { href: "/admin/technicians", label: "إدارة الفنيين", value: techniciansCount ?? 0, detail: "فني مسجل" },
+    { href: "/admin/users", label: "إدارة المستخدمين", value: usersCount ?? 0, detail: "مستخدم مسجل" },
   ];
 
   return (
     <main className="adminPage"><div className="container adminContainer">
-      <div className="adminTopbar"><div><p className="eyebrow">لوحة الإدارة</p><h1>مرحبًا {profile.full_name || "بك"}</h1></div><div className="adminActions"><a className="button secondary" href="/">الموقع الرئيسي</a><a className="button secondary" href="/account">حسابي</a></div></div>
-      <div className="adminDashboardGrid">{cards.map((card) => <a className="adminDashboardCard" href={card.href} key={card.href}><span className="adminDashboardNumber">{card.icon}</span><div><h2>{card.label}</h2><p>{card.detail}</p></div><strong>{card.value}</strong></a>)}</div>
-      <section className="adminWelcomeCard"><p className="eyebrow">إدارة التشغيل</p><h2>ابدأ من القسم المناسب</h2><p>من هنا تدير الطلبات والفنيين والمستخدمين، مع الحفاظ على صلاحيات الوصول الحالية.</p><a className="button primary" href="/admin/requests">فتح إدارة الطلبات</a></section>
+      <div className="adminTopbar"><div><p className="eyebrow">لوحة الإدارة</p><h1>مرحبًا {profile.full_name || "بك"}</h1></div><div><a className="button secondary" href="/">الموقع الرئيسي</a> <a className="button secondary" href="/account">حسابي</a></div></div>
+      <div className="grid">
+        {cards.map((card) => <a className="card" href={card.href} key={card.href}><p className="serviceNumber">{card.value}</p><h3>{card.label}</h3><p>{card.detail}</p></a>)}
+      </div>
+      <section className="ctaSection"><div className="ctaBox"><div><p className="eyebrow">إدارة التشغيل</p><h2>ابدأ من القسم المناسب</h2><p>إدارة الطلبات والفنيين والمستخدمين من مكان واحد.</p></div><a className="button lightButton" href="/admin/requests">فتح إدارة الطلبات</a></div></section>
     </div></main>
   );
 }
