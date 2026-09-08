@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import RequestStatusControl from "./RequestStatusControl";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,9 @@ export default async function AdminPage() {
                   <div className="requestAdminDetails">
                     <a href={`tel:${request.phone}`}><strong>الجوال</strong><span>{request.phone}</span></a>
                     <div><strong>العنوان</strong><span>{request.address}</span></div>
+                  </div>
+                  <div className="adminStatusForm">
+                    <RequestStatusControl requestId={request.id} initialStatus={request.status} />
                   </div>
                 </article>
               ))}
