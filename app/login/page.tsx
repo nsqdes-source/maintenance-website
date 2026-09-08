@@ -26,6 +26,21 @@ export default function LoginPage() {
       return;
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .maybeSingle();
+
+    if (profile?.role === "technician") {
+      window.location.href = "/technician";
+      return;
+    }
+
+    if (["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role ?? "")) {
+      window.location.href = "/admin";
+      return;
+    }
+
     window.location.href = "/account";
   }
 
@@ -33,9 +48,9 @@ export default function LoginPage() {
     <main className="adminPage">
       <div className="adminLoginCard">
         <a className="backLink" href="/">← العودة للرئيسية</a>
-        <p className="eyebrow">حساب العميل</p>
+        <p className="eyebrow">حساب المستخدم</p>
         <h1>تسجيل الدخول</h1>
-        <p className="adminIntro">سجّل الدخول لمتابعة طلبات الصيانة المرتبطة بحسابك.</p>
+        <p className="adminIntro">سجّل الدخول للوصول إلى حسابك ولوحة العمل المناسبة لدورك.</p>
 
         <form className="request-form" onSubmit={handleSubmit}>
           <div className="form-group">
