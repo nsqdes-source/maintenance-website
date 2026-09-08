@@ -48,7 +48,7 @@ export default function UserRoleControl({ userId, initialRole, isCurrentUser, in
     });
 
     if (updateError) {
-      setError(updateError.message.includes("active_assignments")
+      setError(updateError.message.includes("technician_has_active_assignments")
         ? "لا يمكن تغيير دور الفني قبل إنهاء الطلبات المسندة إليه."
         : "تعذر تحديث دور المستخدم.");
       setIsSaving(false);
@@ -64,7 +64,6 @@ export default function UserRoleControl({ userId, initialRole, isCurrentUser, in
     setRole(value);
     setMessage("");
     setError("");
-    if (value === "technician" && serviceTypes.length === 0) setServiceTypes(["خدمات أخرى"]);
   }
 
   return (
@@ -76,12 +75,7 @@ export default function UserRoleControl({ userId, initialRole, isCurrentUser, in
         <div className="userRoleServices">
           {SERVICE_OPTIONS.map((service) => (
             <label key={service}>
-              <input
-                type="checkbox"
-                checked={serviceTypes.includes(service)}
-                onChange={() => setServiceTypes((current) => current.includes(service) ? current.filter((item) => item !== service) : [...current, service])}
-                disabled={isSaving}
-              />
+              <input type="checkbox" checked={serviceTypes.includes(service)} onChange={() => setServiceTypes((current) => current.includes(service) ? current.filter((item) => item !== service) : [...current, service])} disabled={isSaving} />
               {service}
             </label>
           ))}
