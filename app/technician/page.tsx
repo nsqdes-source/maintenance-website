@@ -87,7 +87,7 @@ export default async function TechnicianPage() {
                     <div className="requestAdminMain">
                       <div className="requestAdminTitle">
                         <h2>{request?.service_type || "طلب صيانة"}</h2>
-                        <span className={`statusBadge status-${assignment.status}`}>{ASSIGNMENT_LABELS[assignment.status] ?? assignment.status}</span>
+                        <span className={`statusBadge assignment-${assignment.status}`}>{ASSIGNMENT_LABELS[assignment.status] ?? assignment.status}</span>
                       </div>
                       <p className="requestMeta">
                         {request?.customer_name || "العميل"} · {request?.city || "—"} · {request?.created_at ? new Date(request.created_at).toLocaleString("ar-SA") : "—"}
