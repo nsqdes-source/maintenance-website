@@ -16,14 +16,17 @@ export default async function AdminTechniciansPage() {
   const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (profileError || !profile || !ADMIN_ROLES.has(profile.role)) redirect("/account");
 
-  const [{ data: technicians, error }, { data: technicianLinks }, { data: profiles, error: profilesError }] = await Promise.all([
+  const [{ data: technicians, error }, { data: technicianLinks }, { data: profiles, error: profilesError }, { data: assignments }] = await Promise.all([
     supabase.from("technicians").select("id, profile_id, service_types, is_active, notes, created_at, profile:profiles(full_name, phone)").order("created_at", { ascending: false }),
     supabase.from("technicians").select("profile_id"),
     supabase.from("profiles").select("id, full_name, phone, role").in("role", ["customer", "technician"]).order("created_at", { ascending: false }),
+    supabase.from("service_request_assignments").select("technician_id, status").in("status", ["pending", "accepted"]),
   ]);
 
   const existingTechnicianIds = new Set((technicianLinks ?? []).map((item) => item.profile_id));
   const availableUsers: ProfileOption[] = (profiles ?? []).filter((item) => !existingTechnicianIds.has(item.id));
+  const assignmentCounts = new Map<string, number>();
+  for (const assignment of assignments ?? []) assignmentCounts.set(assignment.technician_id, (assignmentCounts.get(assignment.technician_id) ?? 0) + 1);
 
   return (
     <main className="adminPage"><div className="container adminContainer">
@@ -40,7 +43,7 @@ export default async function AdminTechniciansPage() {
       ) : (
         <div className="adminTableWrap">
           <table className="adminTable">
-            <thead><tr><th>الفني</th><th>الجوال</th><th>الخدمات</th><th>الحالة</th><th>الملاحظات</th><th>تاريخ الإضافة</th><th>الإجراء</th></tr></thead>
+            <thead><tr><th>الفني</th><th>الجوال</th><th>الخدمات</th><th>الحالة</th><th>عدد الطلبات</th><th>الملاحظات</th><th>تاريخ الإضافة</th><th>الإجراء</th></tr></thead>
             <tbody>{technicians.map((technician) => {
               const p = Array.isArray(technician.profile) ? technician.profile[0] : technician.profile;
               return <tr key={technician.id}>
@@ -48,6 +51,7 @@ export default async function AdminTechniciansPage() {
                 <td>{p?.phone || "—"}</td>
                 <td>{technician.service_types?.length ? technician.service_types.join(" · ") : "—"}</td>
                 <td><span className={`statusBadge ${technician.is_active ? "status-active" : "status-inactive"}`}>{technician.is_active ? "نشط" : "غير نشط"}</span></td>
+                <td>{assignmentCounts.get(technician.id) ?? 0}</td>
                 <td className="descriptionCell">{technician.notes || "—"}</td>
                 <td>{new Date(technician.created_at).toLocaleString("ar-SA")}</td>
                 <td><TechnicianEditControl technicianId={technician.id} initialServices={technician.service_types ?? []} initialActive={technician.is_active} initialNotes={technician.notes} /></td>
