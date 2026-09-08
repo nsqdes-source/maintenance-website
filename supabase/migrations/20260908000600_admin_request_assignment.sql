@@ -17,8 +17,7 @@ DECLARE
   request_exists boolean;
   current_assignment_exists boolean;
 BEGIN
-  SELECT role
-    INTO actor_role
+  SELECT role INTO actor_role
   FROM public.profiles
   WHERE id = auth.uid();
 
@@ -30,19 +29,21 @@ BEGIN
     RAISE EXCEPTION 'insufficient_privilege';
   END IF;
 
+  -- Serialize assignment changes for the same request so concurrent administrators
+  -- cannot create two active assignments at the same time.
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended(target_service_request_id::text, 0)
+  );
+
   SELECT EXISTS (
-    SELECT 1
-    FROM public.service_requests
-    WHERE id = target_service_request_id
-  )
-  INTO request_exists;
+    SELECT 1 FROM public.service_requests WHERE id = target_service_request_id
+  ) INTO request_exists;
 
   IF NOT request_exists THEN
     RAISE EXCEPTION 'service_request_not_found';
   END IF;
 
-  SELECT is_active
-    INTO technician_active
+  SELECT is_active INTO technician_active
   FROM public.technicians
   WHERE id = target_technician_id;
 
@@ -60,8 +61,7 @@ BEGIN
     WHERE service_request_id = target_service_request_id
       AND technician_id = target_technician_id
       AND status IN ('pending', 'accepted')
-  )
-  INTO current_assignment_exists;
+  ) INTO current_assignment_exists;
 
   IF current_assignment_exists THEN
     RETURN;
