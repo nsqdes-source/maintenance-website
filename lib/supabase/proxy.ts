@@ -15,22 +15,25 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet, headers) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            supabaseResponse.cookies.set(name, value, options);
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+
+          supabaseResponse = NextResponse.next({
+            request,
           });
 
-          if (headers) {
-            Object.entries(headers).forEach(([key, value]) => {
-              supabaseResponse.headers.set(key, value);
-            });
-          }
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+
+          Object.entries(headers).forEach(([key, value]) =>
+            supabaseResponse.headers.set(key, value)
+          );
         },
       },
     }
   );
 
-  await supabase.auth.getClaims();
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 }
