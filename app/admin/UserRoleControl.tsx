@@ -12,12 +12,9 @@ const ROLE_OPTIONS = [
   { value: "super_admin", label: "مدير عام" },
 ];
 
-type UserRoleControlProps = {
-  userId: string;
-  initialRole: string;
-};
+type UserRoleControlProps = { userId: string; initialRole: string; isCurrentUser: boolean };
 
-export default function UserRoleControl({ userId, initialRole }: UserRoleControlProps) {
+export default function UserRoleControl({ userId, initialRole, isCurrentUser }: UserRoleControlProps) {
   const router = useRouter();
   const [role, setRole] = useState(initialRole);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,7 +22,7 @@ export default function UserRoleControl({ userId, initialRole }: UserRoleControl
   const [error, setError] = useState("");
 
   async function handleSave() {
-    if (role === initialRole) return;
+    if (isCurrentUser || role === initialRole) return;
 
     setIsSaving(true);
     setMessage("");
@@ -57,18 +54,15 @@ export default function UserRoleControl({ userId, initialRole }: UserRoleControl
           setMessage("");
           setError("");
         }}
-        disabled={isSaving}
+        disabled={isSaving || isCurrentUser}
         aria-label="دور المستخدم"
       >
-        {ROLE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+        {ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
-      <button className="button primary compactButton" type="button" onClick={handleSave} disabled={isSaving || role === initialRole}>
+      <button className="button primary compactButton" type="button" onClick={handleSave} disabled={isSaving || isCurrentUser || role === initialRole}>
         {isSaving ? "جارٍ الحفظ..." : "حفظ"}
       </button>
+      {isCurrentUser ? <span className="inlineHint">حسابك الحالي</span> : null}
       {message ? <span className="inlineSuccess">{message}</span> : null}
       {error ? <span className="inlineError">{error}</span> : null}
     </div>
