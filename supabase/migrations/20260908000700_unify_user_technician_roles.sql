@@ -62,7 +62,8 @@ BEGIN
     RAISE EXCEPTION 'invalid_role';
   END IF;
 
-  IF actor_role <> 'super_admin'::public.app_role AND target_rank >= actor_rank THEN
+  IF actor_role <> 'super_admin'::public.app_role
+     AND (target_rank >= actor_rank OR new_rank >= actor_rank) THEN
     RAISE EXCEPTION 'insufficient_privilege';
   END IF;
 
@@ -136,6 +137,8 @@ DECLARE
   actor_role public.app_role;
   target_profile_id uuid;
   current_target_role public.app_role;
+  actor_rank integer;
+  target_rank integer;
 BEGIN
   SELECT role INTO actor_role FROM public.profiles WHERE id = auth.uid();
 
@@ -161,8 +164,29 @@ BEGIN
     RAISE EXCEPTION 'technician_not_found';
   END IF;
 
+  actor_rank := CASE actor_role
+    WHEN 'maintenance_manager'::public.app_role THEN 30
+    WHEN 'admin_manager'::public.app_role THEN 40
+    WHEN 'super_admin'::public.app_role THEN 50
+    ELSE 0
+  END;
+
+  target_rank := CASE current_target_role
+    WHEN 'customer'::public.app_role THEN 10
+    WHEN 'technician'::public.app_role THEN 20
+    WHEN 'maintenance_manager'::public.app_role THEN 30
+    WHEN 'admin_manager'::public.app_role THEN 40
+    WHEN 'super_admin'::public.app_role THEN 50
+    ELSE 0
+  END;
+
   IF target_is_active = true AND current_target_role <> 'technician'::public.app_role THEN
-    UPDATE public.profiles SET role = 'technician'::public.app_role, updated_at = now()
+    IF target_rank >= actor_rank THEN
+      RAISE EXCEPTION 'insufficient_privilege';
+    END IF;
+    UPDATE public.profiles
+    SET role = 'technician'::public.app_role,
+        updated_at = now()
     WHERE id = target_profile_id;
   END IF;
 
