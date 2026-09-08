@@ -13,10 +13,7 @@ AS $function$
 DECLARE
   actor_role public.app_role;
 BEGIN
-  SELECT role
-    INTO actor_role
-  FROM public.profiles
-  WHERE id = auth.uid();
+  SELECT role INTO actor_role FROM public.profiles WHERE id = auth.uid();
 
   IF actor_role IS NULL OR actor_role NOT IN (
     'maintenance_manager'::public.app_role,
