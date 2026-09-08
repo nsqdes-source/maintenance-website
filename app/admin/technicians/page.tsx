@@ -32,7 +32,7 @@ export default async function AdminTechniciansPage() {
     <main className="adminPage"><div className="container adminContainer">
       <div className="adminTopbar">
         <div><p className="eyebrow">إدارة الفنيين</p><h1>الفنيون</h1></div>
-        <div className="adminTopbarActions"><a className="button primary" href="#add-technician">إضافة فني جديد</a><a className="button secondary" href="/admin">لوحة الإدارة</a></div>
+        <a className="button secondary" href="/admin">لوحة الإدارة</a>
       </div>
 
       <AddTechnicianForm users={availableUsers} />
