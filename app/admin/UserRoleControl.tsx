@@ -23,7 +23,6 @@ export default function UserRoleControl({ userId, initialRole, isCurrentUser }: 
 
   async function handleSave() {
     if (isCurrentUser || role === initialRole) return;
-
     setIsSaving(true);
     setMessage("");
     setError("");
@@ -47,16 +46,7 @@ export default function UserRoleControl({ userId, initialRole, isCurrentUser }: 
 
   return (
     <div className="roleControl">
-      <select
-        value={role}
-        onChange={(event) => {
-          setRole(event.target.value);
-          setMessage("");
-          setError("");
-        }}
-        disabled={isSaving || isCurrentUser}
-        aria-label="دور المستخدم"
-      >
+      <select value={role} onChange={(event) => { setRole(event.target.value); setMessage(""); setError(""); }} disabled={isSaving || isCurrentUser} aria-label="دور المستخدم">
         {ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
       <button className="button primary compactButton" type="button" onClick={handleSave} disabled={isSaving || isCurrentUser || role === initialRole}>
