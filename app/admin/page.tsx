@@ -64,13 +64,11 @@ export default async function AdminPage() {
                     <div className="requestAdminTitle"><h2>{request.customer_name}</h2><span className="statusBadge">{request.status}</span></div>
                     <p className="requestMeta">{request.service_type} · {request.city} · {new Date(request.created_at).toLocaleString("ar-SA")}</p>
                     <p>{request.problem_description}</p>
+                    <RequestStatusControl requestId={request.id} initialStatus={request.status} />
                   </div>
                   <div className="requestAdminDetails">
                     <a href={`tel:${request.phone}`}><strong>الجوال</strong><span>{request.phone}</span></a>
                     <div><strong>العنوان</strong><span>{request.address}</span></div>
-                  </div>
-                  <div className="adminStatusForm">
-                    <RequestStatusControl requestId={request.id} initialStatus={request.status} />
                   </div>
                 </article>
               ))}
