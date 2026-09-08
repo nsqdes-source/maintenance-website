@@ -2,6 +2,8 @@
 -- Role changes are hierarchical: only a strictly higher role may change another user's role.
 -- Technician transitions are handled in the same transaction as the profile change.
 
+DROP FUNCTION IF EXISTS public.admin_update_user_role(uuid, public.app_role);
+
 CREATE OR REPLACE FUNCTION public.admin_update_user_role(
   target_user_id uuid,
   new_role public.app_role,
@@ -21,13 +23,8 @@ DECLARE
   new_rank integer;
   active_assignment_exists boolean;
 BEGIN
-  SELECT role INTO actor_role
-  FROM public.profiles
-  WHERE id = auth.uid();
-
-  SELECT role INTO target_role
-  FROM public.profiles
-  WHERE id = target_user_id;
+  SELECT role INTO actor_role FROM public.profiles WHERE id = auth.uid();
+  SELECT role INTO target_role FROM public.profiles WHERE id = target_user_id;
 
   IF actor_role IS NULL OR target_role IS NULL THEN
     RAISE EXCEPTION 'user_not_found';
@@ -124,7 +121,6 @@ $function$;
 REVOKE ALL ON FUNCTION public.admin_update_user_role(uuid, public.app_role, text[]) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.admin_update_user_role(uuid, public.app_role, text[]) TO authenticated;
 
--- Prevent the technician editor from reviving a profile whose application role is not technician.
 CREATE OR REPLACE FUNCTION public.admin_update_technician(
   target_technician_id uuid,
   target_service_types text[],
@@ -141,9 +137,7 @@ DECLARE
   target_profile_id uuid;
   current_target_role public.app_role;
 BEGIN
-  SELECT role INTO actor_role
-  FROM public.profiles
-  WHERE id = auth.uid();
+  SELECT role INTO actor_role FROM public.profiles WHERE id = auth.uid();
 
   IF actor_role IS NULL OR actor_role NOT IN (
     'maintenance_manager'::public.app_role,
@@ -168,9 +162,7 @@ BEGIN
   END IF;
 
   IF target_is_active = true AND current_target_role <> 'technician'::public.app_role THEN
-    UPDATE public.profiles
-    SET role = 'technician'::public.app_role,
-        updated_at = now()
+    UPDATE public.profiles SET role = 'technician'::public.app_role, updated_at = now()
     WHERE id = target_profile_id;
   END IF;
 
