@@ -15,29 +15,33 @@ alter table public.service_requests drop constraint if exists service_requests_v
 alter table public.service_requests add constraint service_requests_visit_outcome_check
 check (visit_outcome is null or visit_outcome in ('completed','needs_followup','customer_rejected'));
 
+-- Preserve the meaning of requests created before this workflow existed.
+update public.service_requests
+set workflow_stage = case
+  when status = 'completed' then 'completed'
+  when status = 'cancelled' then 'cancelled'
+  else 'awaiting_assignment'
+end
+where workflow_stage = 'awaiting_assignment';
+
 create or replace function public.sync_service_request_workflow(target_request_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 declare
   current_stage text;
-  current_status text;
   accepted_count integer;
   pending_count integer;
   outcome text;
   derived_stage text;
   legacy_status text;
 begin
-  select workflow_stage, status, visit_outcome into current_stage, current_status, outcome
+  select workflow_stage, visit_outcome into current_stage, outcome
   from public.service_requests where id = target_request_id;
   if not found then return; end if;
 
-  -- Preserve already closed legacy requests during the one-time migration.
-  if current_stage = 'cancelled' or (current_stage = 'awaiting_assignment' and current_status = 'cancelled' and outcome is null) then
-    derived_stage := 'cancelled';
-  elsif current_stage = 'customer_rejected' then
-    derived_stage := 'customer_rejected';
-  elsif current_stage = 'completed' or (current_stage = 'awaiting_assignment' and current_status = 'completed' and outcome is null) then
-    derived_stage := 'completed';
-  elsif outcome = 'completed' then
+  -- Closed workflow stages are terminal until a separate future reopen action exists.
+  if current_stage in ('completed','cancelled','customer_rejected') then return; end if;
+
+  if outcome = 'completed' then
     derived_stage := 'completed';
   elsif outcome = 'needs_followup' then
     derived_stage := 'needs_followup';
@@ -100,18 +104,18 @@ create trigger service_request_initial_workflow_trigger
 after insert on public.service_requests
 for each row execute function public.trg_sync_new_service_request_workflow();
 
--- Prevent direct/manual status changes from becoming a second workflow mechanism.
+-- If an old UI or API still attempts to change status manually, immediately derive
+-- the operational state again from workflow events instead of accepting that edit.
 drop trigger if exists service_request_status_workflow_trigger on public.service_requests;
 create trigger service_request_status_workflow_trigger
 after update of status, workflow_stage, visit_outcome on public.service_requests
 for each row execute function public.trg_sync_new_service_request_workflow();
 
--- Backfill existing requests from their current assignment state while preserving
--- requests that were already completed/cancelled before this migration.
+-- Backfill requests that were active before the migration from their assignment state.
 do $$
 declare request_row record;
 begin
-  for request_row in select id from public.service_requests loop
+  for request_row in select id from public.service_requests where workflow_stage not in ('completed','cancelled') loop
     perform public.sync_service_request_workflow(request_row.id);
   end loop;
 end;
