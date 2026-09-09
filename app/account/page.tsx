@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import AccountSignOut from "./AccountSignOut";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,7 @@ export default async function AccountPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile, error: profileError }, { data: requests, error: requestsError }] = await Promise.all([
-    supabase.from("profiles").select("full_name, phone, role").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle(),
     supabase.from("service_requests").select("id, customer_name, phone, service_type, problem_description, city, address, workflow_stage, created_at").eq("customer_id", user.id).order("created_at", { ascending: false }),
   ]);
 
@@ -29,8 +28,7 @@ export default async function AccountPage() {
   }
 
   return <main className="adminPage"><div className="container adminContainer">
-    <div className="adminTopbar"><div><p className="eyebrow">حساب العميل</p><h1>مرحبًا {profile?.full_name || user.email}</h1></div><div><a className="button secondary" href="/request">طلب خدمة جديدة</a><AccountSignOut /></div></div>
-    <div className="emptyState"><h2>بيانات الحساب</h2><p>البريد الإلكتروني: {user.email}</p>{profile?.phone && <p>رقم الجوال: {profile.phone}</p>}</div>
+    <div className="adminTopbar"><div><p className="eyebrow">حساب المستخدم</p><h1>مرحبًا {profile?.full_name || user.email}</h1></div></div>
     <section className="requestTableWrap">
       <div className="requestTableHeader"><span>{requests?.length ?? 0} طلب</span><span>طلباتك فقط</span></div>
       {!requests?.length ? <div className="emptyState"><h2>لا توجد طلبات</h2><p>يمكنك إرسال أول طلب خدمة من نموذج طلب الخدمة.</p></div> : (
