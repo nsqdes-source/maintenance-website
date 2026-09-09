@@ -80,8 +80,13 @@ $$;
 create or replace function public.trg_sync_service_request_workflow()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  perform public.sync_service_request_workflow(coalesce(new.service_request_id, old.service_request_id));
-  return coalesce(new, old);
+  if TG_OP = 'DELETE' then
+    perform public.sync_service_request_workflow(old.service_request_id);
+    return old;
+  end if;
+
+  perform public.sync_service_request_workflow(new.service_request_id);
+  return new;
 end;
 $$;
 
