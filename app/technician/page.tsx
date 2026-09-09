@@ -112,7 +112,7 @@ export default async function TechnicianPage() {
                     <div className="requestAdminDetails">
                       <div><strong>الجوال</strong><span>{request?.phone || "—"}</span></div>
                       <div><strong>العنوان</strong><span>{request?.address || "—"}</span></div>
-                      <div><strong>حالة الطلب</strong><span>{REQUEST_STATUS_LABELS[requestStatus] ?? requestStatus || "—"}</span></div>
+                      <div><strong>حالة الطلب</strong><span>{REQUEST_STATUS_LABELS[requestStatus] ?? (requestStatus || "—")}</span></div>
                       <div><strong>وقت الإسناد</strong><span>{new Date(assignment.assigned_at).toLocaleString("ar-SA")}</span></div>
                     </div>
                   </article>
