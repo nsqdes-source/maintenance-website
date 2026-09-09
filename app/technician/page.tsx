@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TechnicianSignOut from "@/app/account/AccountSignOut";
 import AssignmentResponseControl from "./AssignmentResponseControl";
+import RequestCompletionControl from "./RequestCompletionControl";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,14 @@ const ASSIGNMENT_LABELS: Record<string, string> = {
   pending: "قيد الانتظار",
   accepted: "مقبول",
   rejected: "مرفوض",
+  cancelled: "ملغي",
+};
+
+const REQUEST_STATUS_LABELS: Record<string, string> = {
+  new: "جديد",
+  contacted: "تم التواصل",
+  scheduled: "مجدول",
+  completed: "منتهي",
   cancelled: "ملغي",
 };
 
@@ -82,6 +91,7 @@ export default async function TechnicianPage() {
             <div className="requestList">
               {assignments.map((assignment) => {
                 const request = Array.isArray(assignment.service_request) ? assignment.service_request[0] : assignment.service_request;
+                const requestStatus = request?.status || "";
                 return (
                   <article className="requestAdminCard" key={assignment.id}>
                     <div className="requestAdminMain">
@@ -94,12 +104,15 @@ export default async function TechnicianPage() {
                       </p>
                       <p>{request?.problem_description || "—"}</p>
                       {assignment.status === "pending" ? <AssignmentResponseControl assignmentId={assignment.id} /> : null}
+                      {assignment.status === "accepted" && !["completed", "cancelled"].includes(requestStatus) ? (
+                        <RequestCompletionControl requestId={assignment.service_request_id} />
+                      ) : null}
                       {assignment.notes ? <p className="requestMeta">ملاحظات الإسناد: {assignment.notes}</p> : null}
                     </div>
                     <div className="requestAdminDetails">
                       <div><strong>الجوال</strong><span>{request?.phone || "—"}</span></div>
                       <div><strong>العنوان</strong><span>{request?.address || "—"}</span></div>
-                      <div><strong>حالة الطلب</strong><span>{request?.status || "—"}</span></div>
+                      <div><strong>حالة الطلب</strong><span>{REQUEST_STATUS_LABELS[requestStatus] ?? requestStatus || "—"}</span></div>
                       <div><strong>وقت الإسناد</strong><span>{new Date(assignment.assigned_at).toLocaleString("ar-SA")}</span></div>
                     </div>
                   </article>
