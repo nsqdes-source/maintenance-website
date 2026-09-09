@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/service-request
+      - feature/admin-console
       - main
   pull_request:
     branches:
