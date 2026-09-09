@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import TechnicianSignOut from "@/app/account/AccountSignOut";
 import AssignmentResponseControl from "./AssignmentResponseControl";
 import VisitOutcomeControl from "./VisitOutcomeControl";
 
@@ -44,7 +43,7 @@ export default async function TechnicianPage() {
 
   return (
     <main className="adminPage"><div className="container adminContainer">
-      <div className="adminTopbar"><div><p className="eyebrow">لوحة الفني</p><h1>مرحبًا {profile.full_name || user.email}</h1></div><div><a className="button secondary" href="/account">حسابي</a><TechnicianSignOut /></div></div>
+      <div className="adminTopbar"><div><p className="eyebrow">لوحة الفني</p><h1>مرحبًا {profile.full_name || user.email}</h1></div></div>
       <div className="grid">
         <div className="card"><p className="serviceNumber">{technician.service_types?.length ?? 0}</p><h3>الخدمات</h3><p>{technician.service_types?.join(" · ") || "—"}</p></div>
         <div className="card"><p className="serviceNumber">{assignments?.filter((item) => ["pending", "accepted"].includes(item.status)).length ?? 0}</p><h3>الطلبات الحالية</h3><p>طلبات قيد المعالجة</p></div>
