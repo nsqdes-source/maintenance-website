@@ -150,29 +150,29 @@ export default function HeaderAccountControl() {
         <div
           role="menu"
           style={{
-            position: "fixed",
-            top: 76,
-            right: 24,
-            width: "min(320px, calc(100vw - 32px))",
-            padding: 14,
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            right: 0,
+            width: "min(256px, calc(100vw - 32px))",
+            padding: 12,
             border: "1px solid #dbe3ee",
-            borderRadius: 16,
+            borderRadius: 14,
             background: "#fff",
-            boxShadow: "0 18px 50px rgba(15,23,42,.18)",
+            boxShadow: "0 16px 42px rgba(15,23,42,.18)",
             zIndex: 1000,
             direction: "rtl",
           }}
         >
-          <div style={{ padding: "4px 6px 12px", borderBottom: "1px solid #e2e8f0" }}>
-            <strong style={{ display: "block", marginBottom: 10, fontSize: "1rem", color: "#0f172a" }}>بيانات الحساب</strong>
-            <div style={{ display: "grid", gap: 7, color: "#475569", fontSize: ".86rem", lineHeight: 1.6 }}>
+          <div style={{ padding: "3px 5px 10px", borderBottom: "1px solid #e2e8f0" }}>
+            <strong style={{ display: "block", marginBottom: 8, fontSize: ".95rem", color: "#0f172a" }}>بيانات الحساب</strong>
+            <div style={{ display: "grid", gap: 6, color: "#475569", fontSize: ".82rem", lineHeight: 1.55 }}>
               <span>الاسم: {profile?.full_name || "—"}</span>
               <span style={{ overflowWrap: "anywhere" }}>البريد الإلكتروني: {email || "—"}</span>
               <span>رقم الجوال: {profile?.phone || "—"}</span>
               <span>نوع الحساب: {ROLE_LABELS[profile?.role ?? ""] ?? profile?.role ?? "—"}</span>
             </div>
           </div>
-          <button type="button" role="menuitem" onClick={handleSignOut} disabled={pending} style={{ width: "100%", display: "block", marginTop: 10, padding: "11px 12px", border: 0, borderRadius: 9, background: "#f8fafc", color: "#0f172a", fontSize: ".9rem", fontWeight: 700, textAlign: "right", cursor: pending ? "wait" : "pointer" }}>
+          <button type="button" role="menuitem" onClick={handleSignOut} disabled={pending} style={{ width: "100%", display: "block", marginTop: 9, padding: "10px 11px", border: 0, borderRadius: 8, background: "#f8fafc", color: "#0f172a", fontSize: ".85rem", fontWeight: 700, textAlign: "right", cursor: pending ? "wait" : "pointer" }}>
             {pending ? "جاري تسجيل الخروج..." : "تسجيل الخروج"}
           </button>
         </div>
