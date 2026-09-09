@@ -3,6 +3,8 @@
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+const phonePattern = /^0\d{9}$/;
+
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -18,15 +20,43 @@ export default function RegisterPage() {
     setMessage("");
     setError("");
 
+    const normalizedPhone = phone.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = fullName.trim();
+
+    if (!normalizedName) {
+      setError("يرجى إدخال الاسم.");
+      setPending(false);
+      return;
+    }
+
+    if (!phonePattern.test(normalizedPhone)) {
+      setError("رقم الجوال يجب أن يتكون من 10 أرقام ويبدأ بـ 0.");
+      setPending(false);
+      return;
+    }
+
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setError("يرجى إدخال بريد إلكتروني صحيح.");
+      setPending(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("كلمة المرور يجب ألا تقل عن 8 أحرف.");
+      setPending(false);
+      return;
+    }
+
     const supabase = createClient();
     const { error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: normalizedEmail,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/account`,
         data: {
-          full_name: fullName.trim(),
-          phone: phone.trim(),
+          full_name: normalizedName,
+          phone: normalizedPhone,
         },
       },
     });
@@ -56,7 +86,7 @@ export default function RegisterPage() {
           </div>
           <div className="form-group">
             <label htmlFor="phone">رقم الجوال</label>
-            <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" dir="ltr" />
+            <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} required autoComplete="tel" dir="ltr" inputMode="numeric" maxLength={10} placeholder="05xxxxxxxx" />
           </div>
           <div className="form-group">
             <label htmlFor="email">البريد الإلكتروني</label>
