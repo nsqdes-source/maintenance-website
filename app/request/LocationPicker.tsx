@@ -33,7 +33,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
     setError(""); navigator.geolocation.getCurrentPosition(({ coords }) => { const position = { lat: coords.latitude, lng: coords.longitude }; onChange({ latitude: coords.latitude, longitude: coords.longitude }); if (mapRef.current) { mapRef.current.setCenter(position); mapRef.current.setZoom(16); if (markerRef.current) markerRef.current.setPosition(position); else markerRef.current = new (window as any).google.maps.Marker({ position, map: mapRef.current }); } }, () => setError("تعذر تحديد موقعك الحالي. يمكنك اختيار الموقع يدويًا على الخريطة."), { enableHighAccuracy: true, timeout: 10000 });
   }
   return <div className={styles.locationPicker}>
-    <input type="hidden" name="latitude" value={value?.latitude ?? ""} required /><input type="hidden" name="longitude" value={value?.longitude ?? ""} required />
+    <input type="hidden" name="latitude" value={value?.latitude ?? ""} /><input type="hidden" name="longitude" value={value?.longitude ?? ""} />
     <div className={styles.actions}><button type="button" className="button secondary" onClick={useCurrentLocation} disabled={loading}>استخدام موقعي الحالي</button><span className={styles.hint}>اضغط على الخريطة لتحديد موقع الخدمة.</span></div>
     <div ref={mapElement} className={styles.map} aria-label="خريطة تحديد موقع الخدمة" />
     {value && <p className={styles.hint} dir="ltr">{value.latitude.toFixed(6)}, {value.longitude.toFixed(6)}</p>}{loading && <p className={styles.hint}>جاري تحميل الخريطة...</p>}{error && <p className={styles.error} role="alert">{error}</p>}
