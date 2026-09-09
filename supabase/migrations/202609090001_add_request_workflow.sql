@@ -19,29 +19,33 @@ create or replace function public.sync_service_request_workflow(target_request_i
 returns void language plpgsql security definer set search_path = public as $$
 declare
   current_stage text;
+  current_status text;
   accepted_count integer;
   pending_count integer;
-  rejected_count integer;
   outcome text;
   derived_stage text;
   legacy_status text;
 begin
-  select workflow_stage, visit_outcome into current_stage, outcome
+  select workflow_stage, status, visit_outcome into current_stage, current_status, outcome
   from public.service_requests where id = target_request_id;
   if not found then return; end if;
-  if current_stage = 'cancelled' then return; end if;
 
-  if outcome = 'completed' then
+  -- Preserve already closed legacy requests during the one-time migration.
+  if current_stage = 'cancelled' or (current_stage = 'awaiting_assignment' and current_status = 'cancelled' and outcome is null) then
+    derived_stage := 'cancelled';
+  elsif current_stage = 'customer_rejected' then
+    derived_stage := 'customer_rejected';
+  elsif current_stage = 'completed' or (current_stage = 'awaiting_assignment' and current_status = 'completed' and outcome is null) then
+    derived_stage := 'completed';
+  elsif outcome = 'completed' then
     derived_stage := 'completed';
   elsif outcome = 'needs_followup' then
     derived_stage := 'needs_followup';
   elsif outcome = 'customer_rejected' then
     derived_stage := 'customer_rejected';
   else
-    select count(*) filter (where status = 'accepted'),
-           count(*) filter (where status = 'pending'),
-           count(*) filter (where status = 'rejected')
-      into accepted_count, pending_count, rejected_count
+    select count(*) filter (where status = 'accepted'), count(*) filter (where status = 'pending')
+      into accepted_count, pending_count
     from public.service_request_assignments
     where service_request_id = target_request_id;
 
@@ -96,7 +100,14 @@ create trigger service_request_initial_workflow_trigger
 after insert on public.service_requests
 for each row execute function public.trg_sync_new_service_request_workflow();
 
--- Backfill existing requests from their current assignment state.
+-- Prevent direct/manual status changes from becoming a second workflow mechanism.
+drop trigger if exists service_request_status_workflow_trigger on public.service_requests;
+create trigger service_request_status_workflow_trigger
+after update of status, workflow_stage, visit_outcome on public.service_requests
+for each row execute function public.trg_sync_new_service_request_workflow();
+
+-- Backfill existing requests from their current assignment state while preserving
+-- requests that were already completed/cancelled before this migration.
 do $$
 declare request_row record;
 begin
