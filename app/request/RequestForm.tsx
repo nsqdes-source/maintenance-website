@@ -30,19 +30,31 @@ export default function RequestForm() {
 
     async function loadUser() {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (!active) return;
+
+      if (userError) {
+        console.error("Auth user lookup error:", userError);
+        setUserId(null);
+        setUserEmail("");
+        setLoadingUser(false);
+        return;
+      }
 
       setUserId(user?.id ?? null);
       setUserEmail(user?.email ?? "");
 
       if (user) {
-        const { data } = await supabase
+        const { data, error: profileError } = await supabase
           .from("profiles")
           .select("full_name, phone")
           .eq("id", user.id)
           .maybeSingle();
+
+        if (profileError) {
+          console.error("Customer profile lookup error:", profileError);
+        }
 
         if (active && data) setProfile(data);
       }
@@ -74,6 +86,12 @@ export default function RequestForm() {
 
     if (!customerName || !phone || !email || !serviceType || !problemDescription || !city || !address) {
       setStatus({ success: false, message: "يرجى تعبئة جميع الحقول المطلوبة." });
+      setPending(false);
+      return;
+    }
+
+    if (userId && (!profile.full_name?.trim() || !phonePattern.test(profile.phone ?? "") || !emailPattern.test(email))) {
+      setStatus({ success: false, message: "بيانات حسابك غير مكتملة أو غير صحيحة. حدّث بيانات الحساب أولًا ثم أعد إرسال الطلب." });
       setPending(false);
       return;
     }
@@ -150,17 +168,46 @@ export default function RequestForm() {
       )}
 
       {userId && !loadingUser && (
-        <div className="form-group">
-          <label>بيانات العميل</label>
-          <div className="accountSummary">
-            <strong>{profile.full_name || "الاسم غير مسجل"}</strong>
-            <span dir="ltr">{profile.phone || "رقم الجوال غير مسجل"}</span>
-            <span dir="ltr">{userEmail}</span>
+        <fieldset className="form-group" disabled={pending}>
+          <legend>بيانات العميل</legend>
+          <div className="form-group">
+            <label htmlFor="account_customer_name">الاسم</label>
+            <input
+              id="account_customer_name"
+              type="text"
+              value={profile.full_name ?? ""}
+              readOnly
+              aria-readonly="true"
+            />
           </div>
-          {!profile.full_name || !phonePattern.test(profile.phone ?? "") ? (
-            <p className="form-hint">حدّث بيانات حسابك أولًا إذا كان الاسم أو الجوال غير مكتمل.</p>
-          ) : null}
-        </div>
+          <div className="form-group">
+            <label htmlFor="account_phone">رقم الجوال</label>
+            <input
+              id="account_phone"
+              type="tel"
+              value={profile.phone ?? ""}
+              readOnly
+              aria-readonly="true"
+              dir="ltr"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="account_email">البريد الإلكتروني</label>
+            <input
+              id="account_email"
+              type="email"
+              value={userEmail}
+              readOnly
+              aria-readonly="true"
+              dir="ltr"
+            />
+          </div>
+          {!profile.full_name || !phonePattern.test(profile.phone ?? "") || !emailPattern.test(userEmail) ? (
+            <p className="form-hint">بيانات الحساب غير مكتملة. حدّث بيانات الحساب أولًا قبل إرسال الطلب.</p>
+          ) : (
+            <p className="form-hint">هذه البيانات مأخوذة من حسابك ولا يمكن تعديلها داخل طلب الخدمة.</p>
+          )}
+        </fieldset>
       )}
 
       <div className="form-group">
