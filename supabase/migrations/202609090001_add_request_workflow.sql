@@ -38,7 +38,6 @@ begin
   from public.service_requests where id = target_request_id;
   if not found then return; end if;
 
-  -- Closed workflow stages are terminal until a separate future reopen action exists.
   if current_stage in ('completed','cancelled','customer_rejected') then return; end if;
 
   if outcome = 'completed' then
@@ -111,7 +110,7 @@ create trigger service_request_status_workflow_trigger
 after update of status, workflow_stage, visit_outcome on public.service_requests
 for each row execute function public.trg_sync_new_service_request_workflow();
 
--- Backfill requests that were active before the migration from their assignment state.
+-- Backfill active requests from their assignment state.
 do $$
 declare request_row record;
 begin
@@ -156,6 +155,8 @@ begin
 end;
 $$;
 
+-- The previous one-click completion endpoint is no longer part of the workflow.
+revoke all on function public.technician_complete_service_request(uuid) from authenticated;
 revoke all on function public.sync_service_request_workflow(uuid) from public;
 revoke all on function public.trg_sync_service_request_workflow() from public;
 revoke all on function public.trg_sync_new_service_request_workflow() from public;
