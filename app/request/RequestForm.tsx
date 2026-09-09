@@ -193,7 +193,7 @@ export default function RequestForm() {
         <textarea id="address" name="address" required rows={3} placeholder="الحي، الشارع، رقم المبنى..." />
       </div>
 
-      {status.message && <div className="form-error" role="alert">{status.message}</div>}
+      {status.message && <div className={status.success ? "form-success" : "form-error"} role="alert">{status.message}</div>}
 
       <button type="submit" className="button primary" disabled={pending || loadingUser}>
         {loadingUser ? "جاري تحميل بيانات الحساب..." : pending ? "جاري إرسال الطلب..." : "إرسال طلب الخدمة"}
