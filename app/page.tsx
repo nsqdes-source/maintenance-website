@@ -1,3 +1,5 @@
+import HeaderAccountControl from "./components/HeaderAccountControl";
+
 const services = [
   ["الكهرباء", "تمديدات، إصلاح أعطال، وتركيب وتجهيزات كهربائية."],
   ["التكييف", "صيانة وتنظيف وإصلاح أجهزة التكييف للحفاظ على كفاءتها."],
@@ -34,7 +36,7 @@ export default function Home() {
             <a href="#works">الأعمال</a>
             <a href="#contact">تواصل معنا</a>
           </nav>
-          <a className="button primary navCta" href="/request">اطلب خدمة</a>
+          <HeaderAccountControl />
         </div>
       </header>
 
