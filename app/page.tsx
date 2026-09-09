@@ -24,22 +24,6 @@ const works = [
 export default function Home() {
   return (
     <main>
-      <header className="header">
-        <div className="container nav">
-          <a className="logo" href="#top" aria-label="خدمات الصيانة العامة">
-            <span className="logoMark">ص</span>
-            <span>خدمات الصيانة</span>
-          </a>
-          <nav className="navLinks" aria-label="التنقل الرئيسي">
-            <a href="#services">الخدمات</a>
-            <a href="#why-us">لماذا نحن</a>
-            <a href="#works">الأعمال</a>
-            <a href="#contact">تواصل معنا</a>
-          </nav>
-          <HeaderAccountControl />
-        </div>
-      </header>
-
       <section id="top" className="hero">
         <div className="container heroGrid">
           <div className="heroContent">
