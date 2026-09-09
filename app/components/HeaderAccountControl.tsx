@@ -107,7 +107,30 @@ export default function HeaderAccountControl() {
   return (
     <div ref={menuRef} style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", flex: "0 0 auto" }}>
       {pathname !== "/" ? (
-        <a className="button secondary" href="/" aria-label="العودة إلى الصفحة الرئيسية">الرئيسية</a>
+        <a
+          href="/"
+          aria-label="العودة إلى الصفحة الرئيسية"
+          title="العودة إلى الرئيسية"
+          style={{
+            width: 44,
+            height: 44,
+            display: "grid",
+            placeItems: "center",
+            padding: 0,
+            border: "1px solid #cbd5e1",
+            borderRadius: "50%",
+            background: "#fff",
+            color: "#0f172a",
+            textDecoration: "none",
+            flex: "0 0 auto",
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 21, height: 21, fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" }}>
+            <path d="M3.5 10.5 12 3.8l8.5 6.7" />
+            <path d="M5.5 9.5V20h13V9.5" />
+            <path d="M9.5 20v-6h5v6" />
+          </svg>
+        </a>
       ) : null}
 
       <button
@@ -115,7 +138,7 @@ export default function HeaderAccountControl() {
         aria-label="حساب المستخدم"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        style={{ width: 44, height: 44, display: "grid", placeItems: "center", padding: 0, border: "1px solid #cbd5e1", borderRadius: "50%", background: "#fff", color: "#0f172a", cursor: "pointer" }}
+        style={{ width: 44, height: 44, display: "grid", placeItems: "center", padding: 0, border: "1px solid #cbd5e1", borderRadius: "50%", background: "#fff", color: "#0f172a", cursor: "pointer", flex: "0 0 auto" }}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 22, height: 22, fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" }}>
           <circle cx="12" cy="8" r="3.5" />
@@ -124,17 +147,32 @@ export default function HeaderAccountControl() {
       </button>
 
       {open && (
-        <div role="menu" style={{ position: "absolute", top: "calc(100% + 10px)", right: 0, minWidth: 250, padding: 12, border: "1px solid #e2e8f0", borderRadius: 13, background: "#fff", boxShadow: "0 16px 40px rgba(15,23,42,.12)" }}>
-          <div style={{ padding: "4px 5px 10px", borderBottom: "1px solid #e2e8f0" }}>
-            <strong style={{ display: "block", marginBottom: 8, fontSize: ".95rem" }}>بيانات الحساب</strong>
-            <div style={{ display: "grid", gap: 5, color: "#475569", fontSize: ".84rem" }}>
+        <div
+          role="menu"
+          style={{
+            position: "fixed",
+            top: 76,
+            right: 24,
+            width: "min(320px, calc(100vw - 32px))",
+            padding: 14,
+            border: "1px solid #dbe3ee",
+            borderRadius: 16,
+            background: "#fff",
+            boxShadow: "0 18px 50px rgba(15,23,42,.18)",
+            zIndex: 1000,
+            direction: "rtl",
+          }}
+        >
+          <div style={{ padding: "4px 6px 12px", borderBottom: "1px solid #e2e8f0" }}>
+            <strong style={{ display: "block", marginBottom: 10, fontSize: "1rem", color: "#0f172a" }}>بيانات الحساب</strong>
+            <div style={{ display: "grid", gap: 7, color: "#475569", fontSize: ".86rem", lineHeight: 1.6 }}>
               <span>الاسم: {profile?.full_name || "—"}</span>
-              <span>البريد الإلكتروني: {email || "—"}</span>
+              <span style={{ overflowWrap: "anywhere" }}>البريد الإلكتروني: {email || "—"}</span>
               <span>رقم الجوال: {profile?.phone || "—"}</span>
               <span>نوع الحساب: {ROLE_LABELS[profile?.role ?? ""] ?? profile?.role ?? "—"}</span>
             </div>
           </div>
-          <button type="button" role="menuitem" onClick={handleSignOut} disabled={pending} style={{ width: "100%", display: "block", marginTop: 8, padding: "11px 12px", border: 0, borderRadius: 9, background: "transparent", color: "#0f172a", fontSize: ".9rem", fontWeight: 700, textAlign: "right", cursor: pending ? "wait" : "pointer" }}>
+          <button type="button" role="menuitem" onClick={handleSignOut} disabled={pending} style={{ width: "100%", display: "block", marginTop: 10, padding: "11px 12px", border: 0, borderRadius: 9, background: "#f8fafc", color: "#0f172a", fontSize: ".9rem", fontWeight: 700, textAlign: "right", cursor: pending ? "wait" : "pointer" }}>
             {pending ? "جاري تسجيل الخروج..." : "تسجيل الخروج"}
           </button>
         </div>
