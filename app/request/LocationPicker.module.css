@@ -1,0 +1,5 @@
+.locationPicker { width: 100%; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.map { width: 100%; min-height: 360px; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; background: #f1f5f9; }
+.error { margin-top: 10px; color: #b91c1c; }
+.hint { margin: 8px 0 0; color: #64748b; font-size: .9rem; }
