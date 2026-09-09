@@ -100,6 +100,18 @@ export default function HeaderAccountControl() {
     window.location.href = "/";
   }
 
+  const role = profile?.role ?? "";
+  const roleDestination = role === "customer"
+    ? "/account"
+    : role === "technician"
+      ? "/technician"
+      : role === "maintenance_manager" || role === "admin_manager" || role === "super_admin"
+        ? "/admin"
+        : null;
+  const roleDestinationLabel = role === "maintenance_manager" || role === "admin_manager" || role === "super_admin"
+    ? "الإدارة"
+    : "حسابي";
+
   if (!ready || !authenticated) {
     return <a className="button primary navCta" href="/login">تسجيل الدخول</a>;
   }
@@ -152,7 +164,7 @@ export default function HeaderAccountControl() {
           style={{
             position: "absolute",
             top: "calc(100% + 10px)",
-            right: 0,
+            left: 0,
             width: "min(256px, calc(100vw - 32px))",
             padding: 12,
             border: "1px solid #dbe3ee",
@@ -169,9 +181,21 @@ export default function HeaderAccountControl() {
               <span>الاسم: {profile?.full_name || "—"}</span>
               <span style={{ overflowWrap: "anywhere" }}>البريد الإلكتروني: {email || "—"}</span>
               <span>رقم الجوال: {profile?.phone || "—"}</span>
-              <span>نوع الحساب: {ROLE_LABELS[profile?.role ?? ""] ?? profile?.role ?? "—"}</span>
+              <span>نوع الحساب: {ROLE_LABELS[role] ?? role ?? "—"}</span>
             </div>
           </div>
+
+          {roleDestination ? (
+            <a
+              href={roleDestination}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              style={{ width: "100%", display: "block", marginTop: 9, padding: "10px 11px", border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", color: "#0f172a", fontSize: ".85rem", fontWeight: 700, textAlign: "right", textDecoration: "none", boxSizing: "border-box" }}
+            >
+              {roleDestinationLabel}
+            </a>
+          ) : null}
+
           <button type="button" role="menuitem" onClick={handleSignOut} disabled={pending} style={{ width: "100%", display: "block", marginTop: 9, padding: "10px 11px", border: 0, borderRadius: 8, background: "#f8fafc", color: "#0f172a", fontSize: ".85rem", fontWeight: 700, textAlign: "right", cursor: pending ? "wait" : "pointer" }}>
             {pending ? "جاري تسجيل الخروج..." : "تسجيل الخروج"}
           </button>
