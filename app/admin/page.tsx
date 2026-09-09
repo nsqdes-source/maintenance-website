@@ -26,7 +26,7 @@ export default async function AdminPage() {
 
   return (
     <main className="adminPage"><div className="container adminContainer">
-      <div className="adminTopbar"><div><p className="eyebrow">لوحة الإدارة</p><h1>مرحبًا {profile.full_name || "بك"}</h1></div><div><a className="button secondary" href="/">الموقع الرئيسي</a> <a className="button secondary" href="/account">حسابي</a></div></div>
+      <div className="adminTopbar"><div><p className="eyebrow">لوحة الإدارة</p><h1>مرحبًا {profile.full_name || "بك"}</h1></div></div>
       <div className="grid">
         {cards.map((card) => <a className="card" href={card.href} key={card.href}><p className="serviceNumber">{card.value}</p><h3>{card.label}</h3><p>{card.detail}</p></a>)}
       </div>
