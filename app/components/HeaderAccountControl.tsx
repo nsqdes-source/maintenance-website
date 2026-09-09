@@ -5,20 +5,44 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function HeaderAccountControl() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
+    let mounted = true;
 
-    supabase.auth.getUser().then(({ data }) => setAuthenticated(Boolean(data.user)));
+    async function loadAuthState() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!mounted) return;
+
+      if (sessionData.session?.user) {
+        setAuthenticated(true);
+        setReady(true);
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      if (!mounted) return;
+
+      setAuthenticated(Boolean(userData.user));
+      setReady(true);
+    }
+
+    loadAuthState();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
       setAuthenticated(Boolean(session?.user));
+      setReady(true);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -36,7 +60,7 @@ export default function HeaderAccountControl() {
     window.location.href = "/";
   }
 
-  if (!authenticated) {
+  if (!ready || !authenticated) {
     return <a className="button primary navCta" href="/login">تسجيل الدخول</a>;
   }
 
