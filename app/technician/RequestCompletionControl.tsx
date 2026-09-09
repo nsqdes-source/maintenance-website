@@ -16,6 +16,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default function RequestCompletionControl({ requestId }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const [error, setError] = useState("");
 
   async function completeRequest() {
@@ -35,6 +36,8 @@ export default function RequestCompletionControl({ requestId }: Props) {
       return;
     }
 
+    setCompleted(true);
+    setSaving(false);
     router.refresh();
   }
 
@@ -44,9 +47,9 @@ export default function RequestCompletionControl({ requestId }: Props) {
         className="button primary compactButton"
         type="button"
         onClick={completeRequest}
-        disabled={saving}
+        disabled={saving || completed}
       >
-        {saving ? "جارٍ الحفظ..." : "تم الانتهاء من الطلب"}
+        {saving ? "جارٍ الحفظ..." : completed ? "تم إنهاء الطلب" : "تم الانتهاء من الطلب"}
       </button>
       {error ? <span className="inlineError" role="alert">{error}</span> : null}
     </div>
