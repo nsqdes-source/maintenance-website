@@ -69,6 +69,7 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <p className="adminIntro"><a href="/forgot-password">نسيت كلمة المرور؟</a></p>
         <p className="adminIntro">ليس لديك حساب؟ <a href="/register">إنشاء حساب</a></p>
       </div>
     </main>
