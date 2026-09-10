@@ -11,6 +11,7 @@ const CUSTOMER_STATUS_LABELS: Record<string, string> = {
   completed: "تم التنفيذ",
   needs_followup: "بحاجة إلى متابعة / قطعة",
   customer_rejected: "رفض العميل الإصلاح",
+  customer_cancelled: "ألغاه العميل",
   cancelled: "تم إلغاء الطلب",
 };
 
