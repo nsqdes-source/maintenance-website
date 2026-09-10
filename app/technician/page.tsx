@@ -38,7 +38,7 @@ export default async function TechnicianPage() {
 
   const { data: assignments, error: assignmentsError } = await supabase
     .from("service_request_assignments")
-    .select("id, service_request_id, status, assigned_at, responded_at, notes, service_request:service_requests(customer_name, phone, service_type, problem_description, city, address, workflow_stage, visit_notes, created_at)")
+    .select("id, service_request_id, status, assigned_at, responded_at, notes, service_request:service_requests(customer_name, phone, service_type, problem_description, city, address, latitude, longitude, workflow_stage, visit_notes, created_at)")
     .eq("technician_id", technician.id)
     .order("assigned_at", { ascending: false });
 
@@ -57,6 +57,10 @@ export default async function TechnicianPage() {
             const request = Array.isArray(assignment.service_request) ? assignment.service_request[0] : assignment.service_request;
             const workflowStage = request?.workflow_stage || "";
             const canRecordOutcome = assignment.status === "accepted" && ["technician_accepted", "needs_followup"].includes(workflowStage);
+            const hasCoordinates = typeof request?.latitude === "number" && typeof request?.longitude === "number" && (request.latitude !== 0 || request.longitude !== 0);
+            const mapsUrl = hasCoordinates
+              ? `https://www.google.com/maps/search/?api=1&query=${request.latitude},${request.longitude}`
+              : null;
             return <article className="requestAdminCard" key={assignment.id}>
               <div className="requestAdminMain">
                 <div className="requestAdminTitle"><h2>{request?.service_type || "طلب صيانة"}</h2><span className={`statusBadge assignment-${assignment.status}`}>{ASSIGNMENT_LABELS[assignment.status] ?? assignment.status}</span></div>
@@ -64,6 +68,7 @@ export default async function TechnicianPage() {
                 <p>{request?.problem_description || "—"}</p>
                 {assignment.status === "pending" ? <AssignmentResponseControl assignmentId={assignment.id} /> : null}
                 {canRecordOutcome ? <VisitOutcomeControl requestId={assignment.service_request_id} /> : null}
+                {mapsUrl ? <a href={mapsUrl} target="_blank" rel="noreferrer" className="mapLink">فتح الموقع في خرائط Google</a> : null}
                 {assignment.notes ? <p className="requestMeta">ملاحظات الإسناد: {assignment.notes}</p> : null}
                 {request?.visit_notes ? <p className="requestMeta">ملاحظات الزيارة: {request.visit_notes}</p> : null}
               </div>
