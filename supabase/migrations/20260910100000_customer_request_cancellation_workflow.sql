@@ -1,59 +1,45 @@
 -- Customer-controlled cancellation/rejection workflow.
--- Cancellation is for requests before repair completion; rejection is only for a
--- technician-reported follow-up (part/modification) decision.
+-- This migration is intentionally additive; previous migrations remain unchanged.
 
-create or replace function public.customer_cancel_service_request(target_service_request_id uuid)
+create or replace function public.sync_service_request_workflow(target_request_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
-declare current_stage text;
+declare
+  current_stage text;
+  accepted_count integer;
+  pending_count integer;
+  outcome text;
+  derived_stage text;
+  legacy_status text;
 begin
-  select workflow_stage into current_stage
-  from public.service_requests
-  where id = target_service_request_id and customer_id = auth.uid();
-
-  if not found then raise exception 'request_not_found'; end if;
-  if current_stage not in ('awaiting_assignment','assigned','technician_accepted') then
-    raise exception 'request_cannot_be_cancelled';
+  select workflow_stage, visit_outcome into current_stage, outcome
+  from public.service_requests where id = target_request_id;
+  if not found then return; end if;
+  if current_stage in ('completed','cancelled','customer_rejected','customer_cancelled') then return; end if;
+  if outcome = 'completed' then derived_stage := 'completed';
+  elsif outcome = 'needs_followup' then derived_stage := 'needs_followup';
+  elsif outcome = 'customer_rejected' then derived_stage := 'customer_rejected';
+  else
+    select count(*) filter (where status = 'accepted'), count(*) filter (where status = 'pending')
+      into accepted_count, pending_count
+    from public.service_request_assignments where service_request_id = target_request_id;
+    if accepted_count > 0 then derived_stage := 'technician_accepted';
+    elsif pending_count > 0 then derived_stage := 'assigned';
+    else derived_stage := 'awaiting_assignment'; end if;
   end if;
-
-  update public.service_requests
-  set workflow_stage = 'cancelled', status = 'cancelled', workflow_updated_at = now()
-  where id = target_service_request_id and customer_id = auth.uid();
-
-  update public.service_request_assignments
-  set status = 'cancelled'
-  where service_request_id = target_service_request_id
-    and status in ('pending','accepted');
+  legacy_status := case derived_stage
+    when 'completed' then 'completed'
+    when 'cancelled' then 'cancelled'
+    when 'customer_rejected' then 'cancelled'
+    when 'customer_cancelled' then 'cancelled'
+    when 'assigned' then 'scheduled'
+    when 'technician_accepted' then 'scheduled'
+    when 'needs_followup' then 'scheduled'
+    else 'new' end;
+  update public.service_requests set workflow_stage = derived_stage, status = legacy_status, workflow_updated_at = now()
+  where id = target_request_id and (workflow_stage is distinct from derived_stage or status is distinct from legacy_status);
 end;
 $$;
 
-create or replace function public.customer_reject_repair(target_service_request_id uuid, rejection_notes text default null)
-returns void language plpgsql security definer set search_path = public as $$
-declare current_stage text;
-begin
-  select workflow_stage into current_stage
-  from public.service_requests
-  where id = target_service_request_id and customer_id = auth.uid();
-
-  if not found then raise exception 'request_not_found'; end if;
-  if current_stage <> 'needs_followup' then
-    raise exception 'repair_rejection_not_available';
-  end if;
-
-  update public.service_requests
-  set workflow_stage = 'customer_rejected',
-      status = 'cancelled',
-      visit_outcome = 'customer_rejected',
-      visit_notes = case
-        when nullif(trim(rejection_notes), '') is null then visit_notes
-        when visit_notes is null then 'رفض العميل: ' || trim(rejection_notes)
-        else visit_notes || E'\nرفض العميل: ' || trim(rejection_notes)
-      end,
-      workflow_updated_at = now()
-  where id = target_service_request_id and customer_id = auth.uid();
-end;
-$$;
-
-revoke all on function public.customer_cancel_service_request(uuid) from public;
-revoke all on function public.customer_reject_repair(uuid,text) from public;
-grant execute on function public.customer_cancel_service_request(uuid) to authenticated;
+drop function if exists public.customer_cancel_service_request(uuid);
+grant execute on function public.customer_cancel_service_request(uuid,text) to authenticated;
 grant execute on function public.customer_reject_repair(uuid,text) to authenticated;
