@@ -1,4 +1,5 @@
 import HeaderAccountControl from "./components/HeaderAccountControl";
+import { createClient } from "@/lib/supabase/server";
 
 const services = [
   ["الكهرباء", "تمديدات، إصلاح أعطال، وتركيب وتجهيزات كهربائية."],
@@ -21,7 +22,23 @@ const works = [
   ["أعمال سباكة", "إصلاح التسريبات والأعطال"],
 ];
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: footerContent } = await supabase
+    .from("site_footer_content")
+    .select("company_name, description, phone, email, address, copyright_text")
+    .eq("id", true)
+    .maybeSingle();
+
+  const footer = {
+    companyName: footerContent?.company_name ?? "خدمات الصيانة العامة",
+    description: footerContent?.description ?? "خدمات صيانة عامة موثوقة وسريعة.",
+    phone: footerContent?.phone ?? "",
+    email: footerContent?.email ?? "",
+    address: footerContent?.address ?? "",
+    copyright: footerContent?.copyright_text ?? "© 2026 جميع الحقوق محفوظة",
+  };
+
   return (
     <main>
       <section id="top" className="hero">
@@ -143,8 +160,14 @@ export default function Home() {
 
       <footer className="footer">
         <div className="container footerInner">
-          <div className="logo"><span className="logoMark">ص</span><span>خدمات الصيانة العامة</span></div>
-          <span>© 2026 جميع الحقوق محفوظة</span>
+          <div>
+            <div className="logo"><span className="logoMark">ص</span><span>{footer.companyName}</span></div>
+            <p className="footerDescription">{footer.description}</p>
+            {footer.address ? <span className="footerContact">{footer.address}</span> : null}
+            {footer.phone ? <a className="footerContact" href={`tel:${footer.phone}`}>{footer.phone}</a> : null}
+            {footer.email ? <a className="footerContact" href={`mailto:${footer.email}`}>{footer.email}</a> : null}
+          </div>
+          <span>{footer.copyright}</span>
         </div>
       </footer>
     </main>
