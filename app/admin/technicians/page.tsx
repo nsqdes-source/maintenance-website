@@ -41,23 +41,38 @@ export default async function AdminTechniciansPage() {
       {error ? <div className="form-error">تعذر تحميل الفنيين.</div> : !technicians?.length ? (
         <div className="emptyState"><h2>لا يوجد فنيون حتى الآن</h2><p>أضف فنيًا من مستخدم مسجل، وستظهر بياناته هنا.</p></div>
       ) : (
-        <div className="adminTableWrap">
-          <table className="adminTable">
-            <thead><tr><th>الفني</th><th>الجوال</th><th>الخدمات</th><th>الحالة</th><th>عدد الطلبات</th><th>الملاحظات</th><th>تاريخ الإضافة</th><th>الإجراء</th></tr></thead>
-            <tbody>{technicians.map((technician) => {
-              const p = Array.isArray(technician.profile) ? technician.profile[0] : technician.profile;
-              return <tr key={technician.id}>
-                <td>{p?.full_name || "فني بدون اسم"}</td>
-                <td>{p?.phone || "—"}</td>
-                <td>{technician.service_types?.length ? technician.service_types.join(" · ") : "—"}</td>
-                <td><span className={`statusBadge ${technician.is_active ? "status-active" : "status-inactive"}`}>{technician.is_active ? "نشط" : "غير نشط"}</span></td>
-                <td>{assignmentCounts.get(technician.id) ?? 0}</td>
-                <td className="descriptionCell">{technician.notes || "—"}</td>
-                <td>{new Date(technician.created_at).toLocaleString("ar-SA")}</td>
-                <td><TechnicianEditControl technicianId={technician.id} initialServices={technician.service_types ?? []} initialActive={technician.is_active} initialNotes={technician.notes} /></td>
-              </tr>;
-            })}</tbody>
-          </table>
+        <div className="technicianCardGrid">
+          {technicians.map((technician) => {
+            const p = Array.isArray(technician.profile) ? technician.profile[0] : technician.profile;
+            const name = p?.full_name || "فني بدون اسم";
+            const activeAssignments = assignmentCounts.get(technician.id) ?? 0;
+            return (
+              <article className="technicianCard" key={technician.id}>
+                <div className="technicianCardHeader">
+                  <div className="technicianAvatar" aria-hidden="true">{name.trim().charAt(0) || "ف"}</div>
+                  <div className="technicianCardIdentity">
+                    <div className="technicianNameRow">
+                      <h2>{name}</h2>
+                      <span className={`statusBadge ${technician.is_active ? "status-active" : "status-inactive"}`}>{technician.is_active ? "نشط" : "غير نشط"}</span>
+                    </div>
+                    <a href={`/admin/technicians/${technician.id}`} className="technicianDetailsLink">عرض تفاصيل الفني ←</a>
+                  </div>
+                </div>
+                <div className="technicianCardMeta">
+                  <div><span>الجوال</span><strong>{p?.phone || "—"}</strong></div>
+                  <div><span>الطلبات النشطة</span><strong>{activeAssignments}</strong></div>
+                </div>
+                <div className="technicianServices">
+                  {technician.service_types?.length ? technician.service_types.map((service) => <span key={service}>{service}</span>) : <span>لا توجد خدمات محددة</span>}
+                </div>
+                {technician.notes ? <p className="technicianNotes">{technician.notes}</p> : null}
+                <div className="technicianCardActions">
+                  <a className="button secondary compactButton" href={`/admin/technicians/${technician.id}`}>التفاصيل</a>
+                  <TechnicianEditControl technicianId={technician.id} initialServices={technician.service_types ?? []} initialActive={technician.is_active} initialNotes={technician.notes} />
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </div></main>
