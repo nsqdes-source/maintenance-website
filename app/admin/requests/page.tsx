@@ -12,6 +12,7 @@ const WORKFLOW_LABELS: Record<string, string> = {
   completed: "تم التنفيذ",
   needs_followup: "بحاجة إلى قطعة / تعديل",
   customer_rejected: "العميل رفض الإصلاح",
+  customer_cancelled: "ألغاه العميل",
   cancelled: "ملغي",
 };
 
