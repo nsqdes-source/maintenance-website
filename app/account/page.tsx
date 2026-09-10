@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CustomerRequestActions from "./CustomerRequestActions";
@@ -30,7 +31,10 @@ export default async function AccountPage() {
   }
 
   return <main className="adminPage"><div className="container adminContainer">
-    <div className="adminTopbar"><div><p className="eyebrow">حساب المستخدم</p><h1>مرحبًا {profile?.full_name || user.email}</h1></div></div>
+    <div className="adminTopbar">
+      <div><p className="eyebrow">حساب المستخدم</p><h1>مرحبًا {profile?.full_name || user.email}</h1></div>
+      <Link href="/request" className="button button-primary">إنشاء طلب</Link>
+    </div>
     <section className="requestTableWrap">
       <div className="requestTableHeader"><span>{requests?.length ?? 0} طلب</span><span>طلباتك فقط</span></div>
       {!requests?.length ? <div className="emptyState"><h2>لا توجد طلبات</h2><p>يمكنك إرسال أول طلب خدمة من نموذج طلب الخدمة.</p></div> : (
