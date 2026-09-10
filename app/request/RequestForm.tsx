@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import "./RequestForm.module.css";
 
 type FormStatus = {
   success: boolean;
