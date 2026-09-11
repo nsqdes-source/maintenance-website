@@ -1,19 +1,13 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 const phonePattern = /^0\d{9}$/;
 
-function getRegistrationRedirectUrl() {
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-
-  if (!configuredSiteUrl) {
-    return undefined;
-  }
-
-  return `${configuredSiteUrl.replace(/\/$/, "")}/account`;
-}
+type RegistrationResponse = {
+  ok?: boolean;
+  error?: string;
+};
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -58,34 +52,40 @@ export default function RegisterPage() {
       return;
     }
 
-    const supabase = createClient();
-    const emailRedirectTo = getRegistrationRedirectUrl();
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: normalizedEmail,
-      password,
-      options: {
-        ...(emailRedirectTo ? { emailRedirectTo } : {}),
-        data: {
-          full_name: normalizedName,
-          phone: normalizedPhone,
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      },
-    });
-
-    if (signUpError) {
-      console.error("Customer registration failed", {
-        name: signUpError.name,
-        message: signUpError.message,
-        status: signUpError.status,
-        code: signUpError.code,
+        body: JSON.stringify({
+          fullName: normalizedName,
+          phone: normalizedPhone,
+          email: normalizedEmail,
+          password,
+        }),
       });
-      setError("تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.");
-      setPending(false);
-      return;
-    }
 
-    setMessage("تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.");
-    setPending(false);
+      const result = (await response.json().catch(() => null)) as
+        | RegistrationResponse
+        | null;
+
+      if (!response.ok) {
+        setError(
+          result?.error ??
+            "تعذر إنشاء الحساب حاليًا. تحقق من البيانات وحاول مرة أخرى."
+        );
+        setPending(false);
+        return;
+      }
+
+      setPassword("");
+      setMessage("تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.");
+    } catch {
+      setError("تعذر الاتصال بخدمة التسجيل حاليًا. حاول مرة أخرى.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
