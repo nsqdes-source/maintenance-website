@@ -87,8 +87,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const callbackUrl = new URL("/auth/callback", getSiteUrl(request));
-  callbackUrl.searchParams.set("next", "/account");
+  const callbackUrl = new URL("/account", getSiteUrl(request));
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
