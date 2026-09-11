@@ -16,8 +16,33 @@ const CUSTOMER_STATUS_LABELS: Record<string, string> = {
   cancelled: "تم إلغاء الطلب",
 };
 
-export default async function AccountPage() {
+type AccountPageProps = {
+  searchParams: Promise<{
+    code?: string | string[];
+  }>;
+};
+
+export default async function AccountPage({ searchParams }: AccountPageProps) {
   const supabase = await createClient();
+  const params = await searchParams;
+  const code = Array.isArray(params.code) ? params.code[0] : params.code;
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      console.error("Account confirmation code exchange failed", {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        code: error.code,
+      });
+      redirect("/login?error=confirmation_failed");
+    }
+
+    redirect("/account");
+  }
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
