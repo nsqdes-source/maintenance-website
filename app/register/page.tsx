@@ -5,6 +5,16 @@ import { createClient } from "@/lib/supabase/client";
 
 const phonePattern = /^0\d{9}$/;
 
+function getRegistrationRedirectUrl() {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (!configuredSiteUrl) {
+    return undefined;
+  }
+
+  return `${configuredSiteUrl.replace(/\/$/, "")}/account`;
+}
+
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -49,11 +59,12 @@ export default function RegisterPage() {
     }
 
     const supabase = createClient();
+    const emailRedirectTo = getRegistrationRedirectUrl();
     const { error: signUpError } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/account`,
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
         data: {
           full_name: normalizedName,
           phone: normalizedPhone,
@@ -62,6 +73,12 @@ export default function RegisterPage() {
     });
 
     if (signUpError) {
+      console.error("Customer registration failed", {
+        name: signUpError.name,
+        message: signUpError.message,
+        status: signUpError.status,
+        code: signUpError.code,
+      });
       setError("تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.");
       setPending(false);
       return;
