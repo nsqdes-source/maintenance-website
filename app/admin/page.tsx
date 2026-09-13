@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import FooterSettingsForm from "./FooterSettingsForm";
@@ -24,6 +25,7 @@ export default async function AdminPage() {
     { href: "/admin/requests", label: "إدارة الطلبات", value: requestsCount ?? 0, detail: `${newRequestsCount ?? 0} طلب جديد` },
     { href: "/admin/technicians", label: "إدارة الفنيين", value: techniciansCount ?? 0, detail: "فني مسجل" },
     { href: "/admin/users", label: "إدارة المستخدمين", value: usersCount ?? 0, detail: "مستخدم مسجل" },
+    { href: "/admin/site", label: "محرر الموقع", value: "✦", detail: "المحتوى والألوان والأقسام" },
   ];
 
   const initialFooter = {
@@ -42,7 +44,7 @@ export default async function AdminPage() {
         {cards.map((card) => <a className="card" href={card.href} key={card.href}><p className="serviceNumber">{card.value}</p><h3>{card.label}</h3><p>{card.detail}</p></a>)}
       </div>
       <FooterSettingsForm initialContent={initialFooter} />
-      <section className="ctaSection"><div className="ctaBox"><div><p className="eyebrow">إدارة التشغيل</p><h2>ابدأ من القسم المناسب</h2><p>إدارة الطلبات والفنيين والمستخدمين من مكان واحد.</p></div><a className="button lightButton" href="/admin/requests">فتح إدارة الطلبات</a></div></section>
+      <section className="ctaSection"><div className="ctaBox"><div><p className="eyebrow">إدارة التشغيل</p><h2>ابدأ من القسم المناسب</h2><p>إدارة الطلبات والفنيين والمستخدمين من مكان واحد.</p></div><Link className="button lightButton" href="/admin/requests">فتح إدارة الطلبات</Link></div></section>
     </div></main>
   );
 }

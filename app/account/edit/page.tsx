@@ -9,6 +9,7 @@ export default function EditAccountPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -75,6 +76,18 @@ export default function EditAccountPage() {
       return;
     }
 
+    if (avatarFile) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(avatarFile.type) || avatarFile.size > 2 * 1024 * 1024) {
+        setSaving(false); setMessage("الصورة الشخصية يجب أن تكون JPEG أو PNG أو WebP بحجم أقل من 2 ميجابايت."); return;
+      }
+      const extension = avatarFile.type === "image/png" ? "png" : avatarFile.type === "image/webp" ? "webp" : "jpg";
+      const avatarPath = `${user.id}/avatar.${extension}`;
+      const { error: avatarError } = await supabase.storage.from("avatars").upload(avatarPath, avatarFile, { upsert: true, contentType: avatarFile.type });
+      if (avatarError) { setSaving(false); setMessage("تعذر رفع الصورة الشخصية."); return; }
+      const { error: pathError } = await supabase.from("profiles").update({ avatar_path: avatarPath }).eq("id", user.id);
+      if (pathError) { setSaving(false); setMessage("رُفعت الصورة لكن تعذر ربطها بالحساب."); return; }
+    }
+
     if (email.trim() !== (user.email ?? "")) {
       const { error: emailError } = await supabase.auth.updateUser({ email: email.trim() });
       if (emailError) {
@@ -100,6 +113,7 @@ export default function EditAccountPage() {
           <label>الاسم<input value={name} onChange={(e) => setName(e.target.value)} required /></label>
           <label>رقم الجوال<input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" maxLength={10} required /></label>
           <label>البريد الإلكتروني<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+          <label>الصورة الشخصية<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)} /></label>
           <label>نوع الحساب<input value={roles.has(role ?? "") ? ({ customer: "عميل", technician: "فني", maintenance_manager: "مدير صيانة", admin_manager: "مدير إدارة", super_admin: "مدير النظام" } as Record<string, string>)[role!] : "—"} readOnly /></label>
           {message && <p role="status" style={{ margin: 0, color: "#475569" }}>{message}</p>}
           <button className="button primary" type="submit" disabled={saving}>{saving ? "جاري الحفظ..." : "حفظ التغييرات"}</button>

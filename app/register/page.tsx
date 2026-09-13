@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { FormEvent, useState } from "react";
 
@@ -91,7 +92,7 @@ export default function RegisterPage() {
   return (
     <main className="adminPage">
       <div className="adminLoginCard">
-        <a className="backLink" href="/">← العودة للرئيسية</a>
+        <Link className="backLink" href="/">← العودة للرئيسية</Link>
         <p className="eyebrow">حساب العميل</p>
         <h1>إنشاء حساب</h1>
         <p className="adminIntro">أنشئ حسابًا لمتابعة طلبات الصيانة المرتبطة بك.</p>
@@ -115,15 +116,16 @@ export default function RegisterPage() {
           </div>
 
           {error && <div className="form-error" role="alert">{error}</div>}
-          {message && <div className="form-success" role="status">{message}</div>}
+
 
           <button className="button primary adminSubmit" type="submit" disabled={pending}>
             {pending ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}
           </button>
         </form>
 
-        <p className="adminIntro">لديك حساب بالفعل؟ <a href="/login">تسجيل الدخول</a></p>
+        <p className="adminIntro">لديك حساب بالفعل؟ <Link href="/login">تسجيل الدخول</Link></p>
       </div>
+      {message ? <div role="presentation" style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,.48)", display: "grid", placeItems: "center", padding: 20 }}><div role="dialog" aria-modal="true" aria-labelledby="registration-success-title" className="card" style={{ maxWidth: 440, padding: 28 }}><h2 id="registration-success-title">تم إنشاء الحساب</h2><p>{message}</p><button type="button" className="button primary" onClick={() => setMessage("")}>حسنًا</button></div></div> : null}
     </main>
   );
 }

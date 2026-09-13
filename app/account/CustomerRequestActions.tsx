@@ -12,7 +12,7 @@ export default function CustomerRequestActions({ requestId, workflowStage }: Pro
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const canCancel = ["awaiting_assignment", "assigned"].includes(workflowStage);
-  const canReject = workflowStage === "needs_followup";
+  const canReject = false;
 
   if (!canCancel && !canReject) return null;
 

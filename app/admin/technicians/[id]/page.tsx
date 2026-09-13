@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TechnicianEditControl from "@/app/admin/TechnicianEditControl";
@@ -28,7 +29,7 @@ export default async function TechnicianDetailPage({ params }: PageProps) {
   const activeCount = (assignments ?? []).filter((item) => item.status === "pending" || item.status === "accepted").length;
 
   return <main className="adminPage"><div className="container adminContainer">
-    <a className="backLink" href="/admin/technicians">← العودة إلى الفنيين</a>
+    <Link className="backLink" href="/admin/technicians">← العودة إلى الفنيين</Link>
     <div className="technicianDetailHeader"><div><p className="eyebrow">ملف الفني</p><h1>{p?.full_name || "فني بدون اسم"}</h1><p>تفاصيل بيانات الفني وسجل الطلبات المسندة إليه.</p></div><span className={`statusBadge ${technician.is_active ? "status-active" : "status-inactive"}`}>{technician.is_active ? "نشط" : "غير نشط"}</span></div>
     <section className="technicianDetailGrid"><article className="card"><h2>بيانات الفني</h2><div className="detailFacts"><div><span>الاسم</span><strong>{p?.full_name || "—"}</strong></div><div><span>الجوال</span><strong>{p?.phone || "—"}</strong></div><div><span>تاريخ الإضافة</span><strong>{new Date(technician.created_at).toLocaleString("ar-SA")}</strong></div><div><span>آخر تحديث</span><strong>{new Date(technician.updated_at).toLocaleString("ar-SA")}</strong></div></div></article><article className="card"><h2>ملخص العمل</h2><div className="technicianStats"><div><strong>{requestCount}</strong><span>إجمالي الإسنادات</span></div><div><strong>{activeCount}</strong><span>الإسنادات النشطة</span></div></div><div className="technicianServices detailServices">{(technician.service_types ?? []).map((service: string) => <span key={service}>{service}</span>)}{!technician.service_types?.length ? <span>لا توجد خدمات محددة</span> : null}</div>{technician.notes ? <p className="technicianNotes">{technician.notes}</p> : null}</article></section>
     <section className="card technicianEditSection"><div><h2>تعديل بيانات الفني</h2><p>يمكن للمشرف تحديث الخدمات والحالة والملاحظات.</p></div><TechnicianEditControl technicianId={technician.id} initialServices={technician.service_types ?? []} initialActive={technician.is_active} initialNotes={technician.notes} /></section>

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -29,7 +30,7 @@ export default function AdminLoginPage() {
   return (
     <main className="adminPage">
       <div className="adminLoginCard">
-        <a className="backLink" href="/">← العودة للرئيسية</a>
+        <Link className="backLink" href="/">← العودة للرئيسية</Link>
         <p className="eyebrow">منطقة الإدارة</p>
         <h1>تسجيل دخول الإدارة</h1>
         <p className="adminIntro">استخدم حساب Supabase المخصص للإدارة للوصول إلى طلبات الخدمة.</p>

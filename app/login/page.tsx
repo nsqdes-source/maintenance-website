@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -44,10 +45,22 @@ export default function LoginPage() {
     window.location.href = "/";
   }
 
+  async function signInWithGoogle() {
+    setPending(true);
+    setError("");
+    const { error: oauthError } = await createClient().auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (oauthError) {
+      setError("تعذر بدء تسجيل الدخول عبر Google.");
+      setPending(false);
+    }
+  }
   return (
     <main className="adminPage">
       <div className="adminLoginCard">
-        <a className="backLink" href="/">← العودة للرئيسية</a>
+        <Link className="backLink" href="/">← العودة للرئيسية</Link>
         <p className="eyebrow">حساب المستخدم</p>
         <h1>تسجيل الدخول</h1>
         <p className="adminIntro">سجّل الدخول للوصول إلى حسابك ولوحة العمل المناسبة لدورك.</p>
@@ -69,8 +82,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="adminIntro"><a href="/forgot-password">نسيت كلمة المرور؟</a></p>
-        <p className="adminIntro">ليس لديك حساب؟ <a href="/register">إنشاء حساب</a></p>
+        <button type="button" className="button secondary adminSubmit" disabled={pending} onClick={signInWithGoogle}>الدخول عبر Google</button>
+        <p className="adminIntro"><Link href="/forgot-password">نسيت كلمة المرور؟</Link></p>
+        <p className="adminIntro">ليس لديك حساب؟ <Link href="/register">إنشاء حساب</Link></p>
       </div>
     </main>
   );

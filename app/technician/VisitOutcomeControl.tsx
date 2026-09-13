@@ -4,13 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type Outcome = "completed" | "needs_followup" | "customer_rejected";
+type Outcome = "completed" | "needs_followup";
 type Props = { requestId: string };
 
 const OUTCOMES: { value: Outcome; label: string }[] = [
   { value: "completed", label: "تم التنفيذ" },
   { value: "needs_followup", label: "بحاجة إلى قطعة / تعديل" },
-  { value: "customer_rejected", label: "العميل رفض الإصلاح" },
 ];
 
 const ERROR_MESSAGES: Record<string, string> = {

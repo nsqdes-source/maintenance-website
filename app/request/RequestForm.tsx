@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import LocationPicker from "./LocationPicker";
 
@@ -27,7 +28,7 @@ export default function RequestForm() {
       const supabase = createClient();
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (!active) return;
-      if (userError) { console.error("Auth user lookup error:", userError); setUserId(null); setUserEmail(""); setLoadingUser(false); return; }
+      if (userError) { if (userError.name !== "AuthSessionMissingError") console.error("Auth user lookup error:", userError); setUserId(null); setUserEmail(""); setLoadingUser(false); return; }
       setUserId(user?.id ?? null); setUserEmail(user?.email ?? "");
       if (user) {
         const { data, error: profileError } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle();
@@ -55,7 +56,7 @@ export default function RequestForm() {
     const latitude = Number(formData.get("latitude"));
     const longitude = Number(formData.get("longitude"));
 
-    if (!customerName || !phone || !email || !serviceType || !problemDescription || !city || !address || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    if (!customerName || !phone || !email || !serviceType || !problemDescription || !city || !address || !location || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       setStatus({ success: false, message: "يرجى تعبئة جميع الحقول المطلوبة وتحديد موقع الخدمة على الخريطة." }); setPending(false); return;
     }
     if (userId && (!profile.full_name?.trim() || !phonePattern.test(profile.phone ?? "") || !emailPattern.test(email))) {
@@ -67,13 +68,40 @@ export default function RequestForm() {
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) { setStatus({ success: false, message: "إحداثيات الموقع غير صحيحة." }); setPending(false); return; }
 
     const supabase = createClient();
-    const { error } = await supabase.from("service_requests").insert({ customer_name: customerName, phone, customer_email: email, service_type: serviceType, problem_description: problemDescription, city, address, latitude, longitude, customer_id: userId });
-    if (error) { console.error("Service request error:", error); setStatus({ success: false, message: "تعذر إرسال الطلب حاليًا. يرجى المحاولة مرة أخرى." }); setPending(false); return; }
+    const photos = formData.getAll("photos").filter((item): item is File => item instanceof File && item.size > 0);
+    if (photos.length > 5 || photos.some(file => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024)) {
+      setStatus({ success: false, message: "يمكن إرفاق خمس صور كحد أقصى بصيغة JPEG أو PNG أو WebP، بحجم 5 ميجابايت لكل صورة." }); setPending(false); return;
+    }
+    const { data: submitted, error } = await supabase.rpc("submit_service_request_with_images", {
+      input_name: customerName, input_phone: phone, input_email: email, input_service: serviceType,
+      input_problem: problemDescription, input_city: city, input_address: address,
+      input_latitude: latitude, input_longitude: longitude,
+    }).single();
+    if (error || !submitted) { console.error("Service request error:", error); setStatus({ success: false, message: "تعذر إرسال الطلب حاليًا. يرجى المحاولة مرة أخرى." }); setPending(false); return; }
+    const submission = submitted as { request_id: string; request_upload_token: string };
+    let uploaded = 0;
+    for (const file of photos) {
+      const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+      const path = `${submission.request_id}/${submission.request_upload_token}/${crypto.randomUUID()}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from("request-images").upload(path, file, { contentType: file.type });
+      if (uploadError) break;
+      const { error: attachError } = await supabase.rpc("attach_service_request_image", {
+        target_request_id: submission.request_id, target_upload_token: submission.request_upload_token,
+        target_storage_path: path, target_content_type: file.type,
+      });
+      if (attachError) break;
+      uploaded++;
+    }
+    if (uploaded < photos.length) {
+      setStatus({ success: true, message: `تم إنشاء الطلب وإرفاق ${uploaded} من ${photos.length} صور. يرجى التواصل معنا بشأن الصور المتبقية.` });
+      setPending(false);
+      return;
+    }
     setStatus({ success: true, message: "تم استلام طلبك بنجاح. سنتواصل معك قريبًا." }); setPending(false);
     if (!userId) { form.reset(); setLocation(null); }
   }
 
-  if (status.success) return <div className="request-success"><h2>تم إرسال الطلب</h2><p>{status.message}</p><a href="/" className="button primary">العودة للرئيسية</a></div>;
+  if (status.success) return <div className="request-success"><h2>تم إرسال الطلب</h2><p>{status.message}</p><Link href="/" className="button primary">العودة للرئيسية</Link></div>;
 
   return (
     <form onSubmit={handleSubmit} className="request-form">
@@ -94,6 +122,7 @@ export default function RequestForm() {
       <div className="form-group"><label htmlFor="problem_description">وصف المشكلة *</label><textarea id="problem_description" name="problem_description" required rows={5} placeholder="اشرح لنا المشكلة بالتفصيل" /></div>
       <div className="form-group"><label htmlFor="city">المدينة *</label><select id="city" name="city" required defaultValue=""><option value="">اختر المدينة</option>{cities.map((city) => <option key={city} value={city}>{city}</option>)}</select></div>
       <div className="form-group"><label htmlFor="address">العنوان *</label><textarea id="address" name="address" required rows={3} placeholder="الحي، الشارع، رقم المبنى..." /></div>
+      <div className="form-group"><label htmlFor="photos">صور المشكلة (حتى 5)</label><input id="photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /></div>
       <div className="form-group"><label>موقع الخدمة *</label><LocationPicker value={location} onChange={setLocation} /></div>
       {status.message && <div className={status.success ? "form-success" : "form-error"} role="alert">{status.message}</div>}
       <button type="submit" className="button primary" disabled={pending || loadingUser}>{loadingUser ? "جاري تحميل بيانات الحساب..." : pending ? "جاري إرسال الطلب..." : "إرسال طلب الخدمة"}</button>

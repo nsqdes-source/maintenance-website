@@ -1,3 +1,4 @@
+import Link from "next/link";
 const services = [
   { slug: "electricity", title: "الكهرباء", description: "تمديدات وإصلاح الأعطال والتركيب والتجهيزات الكهربائية للمنازل والمنشآت." },
   { slug: "ac", title: "التكييف", description: "صيانة وتنظيف وإصلاح أجهزة التكييف ومتابعة المشكلات التي تؤثر في كفاءتها." },
@@ -15,7 +16,7 @@ export default function ServicesPage() {
   return (
     <main className="innerPage">
       <div className="container">
-        <a className="backLink" href="/">← العودة للرئيسية</a>
+        <Link className="backLink" href="/">← العودة للرئيسية</Link>
         <header className="innerHeader">
           <p className="eyebrow">خدماتنا</p>
           <h1>خدمات صيانة متنوعة باحتياجك</h1>
@@ -27,7 +28,7 @@ export default function ServicesPage() {
               <span className="serviceNumber">0{index + 1}</span>
               <h2>{service.title}</h2>
               <p>{service.description}</p>
-              <a className="cardLink" href="/request">اطلب هذه الخدمة ←</a>
+              <Link className="cardLink" href="/request">اطلب هذه الخدمة ←</Link>
             </article>
           ))}
         </div>
@@ -36,7 +37,7 @@ export default function ServicesPage() {
             <p className="eyebrow">لم تجد ما تبحث عنه؟</p>
             <h2>أرسل تفاصيل المشكلة وسنساعدك.</h2>
           </div>
-          <a className="button primary" href="/request">طلب خدمة</a>
+          <Link className="button primary" href="/request">طلب خدمة</Link>
         </div>
       </div>
     </main>

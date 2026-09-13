@@ -1,6 +1,10 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import RequestTechnicianControl from "@/app/admin/RequestTechnicianControl";
+import WorkflowAdvanceControl from "@/app/admin/WorkflowAdvanceControl";
+import QuoteAdminControl from "@/app/admin/QuoteAdminControl";
+import RequestImages from "@/app/components/RequestImages";
 
 export const dynamic = "force-dynamic";
 
@@ -9,17 +13,24 @@ const WORKFLOW_LABELS: Record<string, string> = {
   awaiting_assignment: "بانتظار الإسناد",
   assigned: "تم إسناده",
   technician_accepted: "وافق الفني",
+  in_progress: "قيد التنفيذ",
+  awaiting_admin_quote: "بانتظار عرض الإدارة",
+  awaiting_customer_approval: "بانتظار موافقة العميل",
+  quote_approved: "وافق العميل",
   completed: "تم التنفيذ",
   needs_followup: "بحاجة إلى قطعة / تعديل",
   customer_rejected: "العميل رفض الإصلاح",
   cancelled: "ملغي",
+  customer_cancelled: "ألغاه العميل",
 };
 
 const ASSIGNMENT_LABELS: Record<string, string> = {
   pending: "قيد الانتظار",
   accepted: "مقبول",
-  declined: "مرفوض",
+  rejected: "مرفوض",
+  completed: "مكتمل",
   cancelled: "ملغي",
+  customer_cancelled: "ألغاه العميل",
 };
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -46,7 +57,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
   const [{ data: request, error: requestError }, { data: technicians }, { data: assignments }] = await Promise.all([
     supabase
       .from("service_requests")
-      .select("id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, created_at, workflow_updated_at")
+      .select("id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, created_at, workflow_updated_at, archived_at")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -77,6 +88,8 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
     ? technicianOptions.find((technician) => technician.id === activeAssignment.technician_id)
     : null;
 
+  const { data: quotes } = await supabase.from("service_request_quotes").select("id, description, parts_description, parts_cost, labor_cost, status, created_at, customer_notes").eq("service_request_id", id).order("created_at", { ascending: false });
+
   const hasLocation = Number.isFinite(request.latitude) && Number.isFinite(request.longitude);
   const mapUrl = hasLocation
     ? `https://www.google.com/maps?q=${request.latitude},${request.longitude}`
@@ -90,7 +103,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
             <p className="eyebrow">تفاصيل طلب الخدمة</p>
             <h1>طلب {request.id.slice(0, 8)}</h1>
           </div>
-          <a className="button secondary" href="/admin/requests">العودة للطلبات</a>
+          <Link className="button secondary" href="/admin/requests">العودة للطلبات</Link>
         </div>
 
         <section className="requestDetailGrid">
@@ -120,7 +133,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
             <div className="detailFields">
               <div><span>نوع الخدمة</span><strong>{request.service_type}</strong></div>
               <div className="detailWide"><span>العنوان</span><strong>{request.address}</strong></div>
-              <div className="detailWide"><span>وصف المشكلة</span><p>{request.problem_description}</p></div>
+              <div className="detailWide"><span>وصف المشكلة</span><p>{request.problem_description}</p><RequestImages requestId={request.id} /></div>
             </div>
 
             <h2>الموقع</h2>
@@ -136,6 +149,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
           <aside className="detailSideColumn">
             <section className="card detailCard">
               <h2>الإسناد</h2>
+              <WorkflowAdvanceControl requestId={request.id} stage={request.workflow_stage} />
               <RequestTechnicianControl
                 requestId={request.id}
                 serviceType={request.service_type}
@@ -153,6 +167,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
 
             <section className="card detailCard">
               <h2>النتيجة والقطع / التعديلات</h2>
+              <QuoteAdminControl requestId={request.id} stage={request.workflow_stage} archived={Boolean(request.archived_at)} />
               <div className="detailFields singleColumn">
                 <div><span>نتيجة الزيارة</span><strong>{request.visit_outcome ? WORKFLOW_LABELS[request.visit_outcome] ?? request.visit_outcome : "لم تسجل بعد"}</strong></div>
                 <div className="detailWide"><span>القطع / التعديلات والملاحظات</span><p className={request.visit_notes ? "" : "detailMuted"}>{request.visit_notes || "لا توجد قطع أو تعديلات أو ملاحظات مسجلة بعد."}</p></div>
@@ -161,6 +176,8 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
             </section>
           </aside>
         </section>
+
+        <section className="card detailCard"><h2>عروض الإصلاح</h2>{quotes?.length ? quotes.map(quote => <div className="assignmentHistoryItem" key={quote.id}><strong>{quote.description}</strong><span>{quote.parts_description || "—"} · {Number(quote.parts_cost) + Number(quote.labor_cost)} ر.س · {quote.status}</span>{quote.customer_notes ? <p>{quote.customer_notes}</p> : null}</div>) : <p className="detailMuted">لا يوجد عرض بعد.</p>}</section>
 
         <section className="card detailCard">
           <h2>سجل الإسناد</h2>
