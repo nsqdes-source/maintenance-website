@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 function getSafeNext(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/account";
+    return null;
   }
 
   return value;
@@ -35,5 +35,26 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.redirect(new URL(next, request.nextUrl.origin));
+  if (next) {
+    return NextResponse.redirect(new URL(next, request.nextUrl.origin));
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.redirect(new URL("/login?error=confirmation_failed", request.nextUrl.origin));
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const destination = profile?.role === "technician"
+    ? "/technician"
+    : ["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role ?? "")
+      ? "/admin"
+      : "/account";
+
+  return NextResponse.redirect(new URL(destination, request.nextUrl.origin));
 }

@@ -180,7 +180,10 @@ export default async function Home() {
             {footer.phone ? <a className="footerContact" href={`tel:${footer.phone}`}>{footer.phone}</a> : null}
             {footer.email ? <a className="footerContact" href={`mailto:${footer.email}`}>{footer.email}</a> : null}
           </div>
-          <span>{footer.copyright}</span>
+          <div>
+            <a className="footerContact" href="/privacy">سياسة الخصوصية</a>
+            <span style={{ display: "block", marginTop: 8 }}>{footer.copyright}</span>
+          </div>
         </div>
       </footer>
     </main>

@@ -79,6 +79,10 @@ button, input, textarea, select { font: inherit; }
 .footerInner { display: flex; align-items: center; justify-content: space-between; gap: 20px; font-size: .9rem; }
 .footer .logo { color: #0f172a; }
 .footer .logoMark { width: 32px; height: 32px; border-radius: 9px; font-size: .9rem; }
+.privacyPolicy { max-width: 800px; line-height: 1.9; }
+.privacyPolicy h1 { margin: 0 0 16px; }
+.privacyPolicy h2 { margin: 32px 0 8px; font-size: 1.3rem; }
+.privacyPolicy p { margin: 0 0 16px; color: #475569; }
 .innerPage { min-height: 100vh; padding: 48px 0 80px; background: #f8fafc; }
 .backLink { display: inline-block; margin-bottom: 32px; color: #475569; font-weight: 700; }
 .innerHeader { max-width: 760px; margin-bottom: 42px; }
