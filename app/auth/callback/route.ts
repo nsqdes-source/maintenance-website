@@ -36,7 +36,19 @@ export async function GET(request: NextRequest) {
   }
 
   if (next) {
-    return NextResponse.redirect(new URL(next, request.nextUrl.origin));
+    const response = NextResponse.redirect(new URL(next, request.nextUrl.origin));
+
+    if (next === "/update-password") {
+      response.cookies.set("password_recovery", "1", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 15 * 60,
+      });
+    }
+
+    return response;
   }
 
   const { data: { user } } = await supabase.auth.getUser();
