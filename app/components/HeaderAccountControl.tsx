@@ -80,6 +80,8 @@ export default function HeaderAccountControl({ ctaText = "تسجيل الدخو�
     setPending(true); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/";
   }
 
+  if (pathname === "/update-password") return null;
+
   if (!ready || !authenticated) return <Link className="button primary navCta" href="/login">{ctaText}</Link>;
 
   const accountPath = profile?.role === "technician" ? "/technician" : profile?.role === "maintenance_manager" || profile?.role === "admin_manager" || profile?.role === "super_admin" ? "/admin" : "/account";
