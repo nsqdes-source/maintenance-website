@@ -72,11 +72,7 @@ export default function UpdatePasswordPage() {
     }
 
     await supabase.auth.signOut();
-    setPassword("");
-    setConfirmation("");
-    setMessage("تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.");
-    setReady(false);
-    setPending(false);
+    window.location.replace("/login");
   }
 
   return (
