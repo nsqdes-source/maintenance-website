@@ -6,7 +6,7 @@ import HeaderAccountControl from "./components/HeaderAccountControl";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "خدمات الصيانة العامة",
+  title: "معين | خدمات الصيانة",
   description: "خدمات صيانة عامة موثوقة وسريعة.",
 };
 
