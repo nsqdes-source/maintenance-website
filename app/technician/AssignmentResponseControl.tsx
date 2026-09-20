@@ -3,16 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/app/components/LocaleContext";
 
 type Props = { assignmentId: string };
 
 export default function AssignmentResponseControl({ assignmentId }: Props) {
+  const locale = useLocale();
+  const t = (ar: string, en: string) => locale === "ar" ? ar : en;
   const router = useRouter();
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   async function respond(status: "accepted" | "rejected") {
+    if (status === "rejected" && !notes.trim()) { setError(t("اكتب سبب الرفض أولًا.", "Please enter a reason for declining.")); return; }
     setSaving(true);
     setError("");
 
@@ -24,7 +28,7 @@ export default function AssignmentResponseControl({ assignmentId }: Props) {
     });
 
     if (responseError) {
-      setError("تعذر تحديث ردك على الإسناد.");
+      setError(t("تعذر تحديث ردك على الإسناد.", "Could not update your response to this assignment."));
       setSaving(false);
       return;
     }
@@ -38,15 +42,15 @@ export default function AssignmentResponseControl({ assignmentId }: Props) {
         value={notes}
         onChange={(event) => setNotes(event.target.value)}
         rows={2}
-        placeholder="ملاحظات اختيارية"
+        placeholder={t("سبب الرفض مطلوب عند الرفض، والملاحظات اختيارية عند القبول", "A reason is required when declining; notes are optional when accepting.")}
         disabled={saving}
       />
       <div className="technicianResponseActions">
         <button className="button primary compactButton" type="button" onClick={() => respond("accepted")} disabled={saving}>
-          قبول الطلب
+          {t("قبول الطلب", "Accept request")}
         </button>
         <button className="button secondary compactButton" type="button" onClick={() => respond("rejected")} disabled={saving}>
-          رفض الطلب
+          {t("رفض الطلب", "Decline request")}
         </button>
       </div>
       {error ? <span className="inlineError">{error}</span> : null}

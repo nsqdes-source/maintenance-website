@@ -3,10 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/app/components/LocaleContext";
 
 type Props = { requestId: string; workflowStage: string };
 
 export default function CustomerRequestActions({ requestId, workflowStage }: Props) {
+  const locale = useLocale();
+  const t = (ar: string, en: string) => locale === "ar" ? ar : en;
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [reason, setReason] = useState("");
@@ -18,8 +21,8 @@ export default function CustomerRequestActions({ requestId, workflowStage }: Pro
 
   async function run(action: "cancel" | "reject") {
     const message = action === "cancel"
-      ? "هل أنت متأكد من إلغاء طلب الخدمة؟"
-      : "هل تريد رفض الإصلاح المقترح والقطع/التعديل؟";
+      ? t("هل أنت متأكد من إلغاء طلب الخدمة؟", "Are you sure you want to cancel this request?")
+      : t("هل تريد رفض الإصلاح المقترح والقطع/التعديل؟", "Do you want to decline the proposed repair?");
     if (!window.confirm(message)) return;
 
     setBusy(true);
@@ -31,10 +34,10 @@ export default function CustomerRequestActions({ requestId, workflowStage }: Pro
 
     if (actionError) {
       setError(actionError.message === "request_cannot_be_cancelled" || actionError.message === "technician_already_accepted"
-        ? "لا يمكن إلغاء الطلب في مرحلته الحالية."
+        ? t("لا يمكن إلغاء الطلب في مرحلته الحالية.", "This request cannot be cancelled at its current stage.")
         : actionError.message === "repair_rejection_not_available"
-          ? "لا يمكن رفض الإصلاح في مرحلته الحالية."
-          : "تعذر تنفيذ الإجراء. حاول مرة أخرى.");
+          ? t("لا يمكن رفض الإصلاح في مرحلته الحالية.", "The repair cannot be declined at its current stage.")
+          : t("تعذر تنفيذ الإجراء. حاول مرة أخرى.", "Could not complete the action. Try again."));
       setBusy(false);
       return;
     }
@@ -44,15 +47,15 @@ export default function CustomerRequestActions({ requestId, workflowStage }: Pro
 
   return (
     <div className="customerRequestActions">
-      <textarea value={reason} onChange={(event) => setReason(event.target.value)} rows={2} placeholder={canCancel ? "سبب الإلغاء (اختياري)" : "سبب رفض الإصلاح (اختياري)"} disabled={busy} />
+      <textarea value={reason} onChange={(event) => setReason(event.target.value)} rows={2} placeholder={canCancel ? t("سبب الإلغاء (اختياري)", "Cancellation reason (optional)") : t("سبب رفض الإصلاح (اختياري)", "Reason for declining (optional)")} disabled={busy} />
       {canCancel ? (
         <button type="button" className="button secondary compactButton" disabled={busy} onClick={() => run("cancel")}>
-          {busy ? "جارٍ التنفيذ..." : "إلغاء طلب الخدمة"}
+          {busy ? t("جارٍ التنفيذ...", "Working...") : t("إلغاء طلب الخدمة", "Cancel request")}
         </button>
       ) : null}
       {canReject ? (
         <button type="button" className="button secondary compactButton" disabled={busy} onClick={() => run("reject")}>
-          {busy ? "جارٍ التنفيذ..." : "رفض الإصلاح"}
+          {busy ? t("جارٍ التنفيذ...", "Working...") : t("رفض الإصلاح", "Decline repair")}
         </button>
       ) : null}
       {error ? <span className="inlineError" role="alert">{error}</span> : null}

@@ -11,6 +11,9 @@ const WORKFLOW_LABELS: Record<string, string> = {
   assigned: "تم إسناده",
   technician_accepted: "وافق الفني",
   in_progress: "قيد التنفيذ",
+  awaiting_completion_review: "بانتظار مراجعة الإدارة",
+  reschedule_requested: "طلب إعادة جدولة",
+  unable_to_complete: "تعذر التنفيذ",
   awaiting_admin_quote: "بانتظار عرض الإصلاح",
   awaiting_customer_approval: "بانتظار موافقة العميل",
   quote_approved: "وافق العميل",
@@ -57,7 +60,7 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
   const [{ data: requests, error }, { data: technicians }, { data: assignments }] = await Promise.all([
     requestsQuery,
     supabase.from("technicians").select("id, profile_id, service_types, is_active, profile:profiles(full_name, phone)").eq("is_active", true),
-    supabase.from("service_request_assignments").select("service_request_id, technician_id, status, assigned_at").in("status", ["pending", "accepted"]),
+    supabase.from("service_request_assignments").select("service_request_id, technician_id, status, assigned_at").in("status", ["pending", "accepted", "rejected"]).order("assigned_at", { ascending: false }),
   ]);
 
   const { data: stageRows } = await supabase.from("service_requests").select("workflow_stage").is("archived_at", null);
@@ -71,10 +74,10 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
 
   const activeAssignmentByRequest = new Map<string, { technicianId: string; status: string }>();
   for (const assignment of assignments ?? []) {
-    activeAssignmentByRequest.set(assignment.service_request_id, { technicianId: assignment.technician_id, status: assignment.status });
+    if (!activeAssignmentByRequest.has(assignment.service_request_id)) activeAssignmentByRequest.set(assignment.service_request_id, { technicianId: assignment.technician_id, status: assignment.status });
   }
 
-  return <main className="adminPage"><div className="container adminContainer">
+  return <main className="adminPage adminRequestsPage"><div className="container adminContainer">
     <div className="adminTopbar"><div><p className="eyebrow">إدارة الطلبات</p><h1>طلبات الخدمة</h1></div><Link className="button secondary" href="/admin">لوحة الإدارة</Link></div>
     <div className="grid">{FILTER_STATUSES.map(([value, label]) => <div className="card" key={value}><p className="serviceNumber">{stageCounts.get(value) ?? 0}</p><h3>{label}</h3></div>)}</div>
     <form className="card" method="get" aria-label="تصفية الطلبات">
@@ -87,7 +90,7 @@ export default async function AdminRequestsPage({ searchParams }: { searchParams
       </div>
       <div className="filterActions"><button className="button" type="submit">تطبيق التصفية</button><Link className="button secondary" href="/admin/requests">مسح التصفية</Link></div>
     </form>
-    {error ? <div className="form-error">تعذر تحميل الطلبات.</div> : !requests?.length ? <div className="emptyState"><h2>لا توجد طلبات مطابقة</h2><p>جرّب تغيير الحالة أو نطاق التاريخ.</p></div> : <div className="adminTableWrap"><div className="requestTableHeader"><span>{requests.length} طلب</span><span>نتائج التصفية الحالية</span></div><table className="adminTable"><thead><tr><th>العميل</th><th>الخدمة</th><th>المدينة</th><th>الجوال</th><th>الوصف</th><th>الحالة</th><th>الفني المسند</th><th>تاريخ الطلب</th></tr></thead><tbody>{requests.map((request) => { const assignment = activeAssignmentByRequest.get(request.id); const assignedTech = assignment ? technicianOptions.find((item) => item.id === assignment.technicianId) : null; return <tr key={request.id}><td><a className="requestDetailsLink" href={`/admin/requests/${request.id}`}>{request.customer_name}</a></td><td>{request.service_type}</td><td>{request.city}</td><td><a href={`tel:${request.phone}`}>{request.phone}</a></td><td className="descriptionCell">{request.problem_description}<small>{request.address}</small>{request.visit_notes ? <small>ملاحظات الزيارة: {request.visit_notes}</small> : null}</td><td><a href={`/admin/requests/${request.id}`}><span className={`statusBadge status-${request.workflow_stage}`}>{WORKFLOW_LABELS[request.workflow_stage] ?? request.workflow_stage}</span></a></td><td><RequestTechnicianControl requestId={request.id} serviceType={request.service_type} technicians={technicianOptions} currentTechnicianId={assignedTech?.id ?? null} />{assignedTech ? <small className="assignmentHint">{assignedTech.name} · {assignment?.status === "accepted" ? "مقبول" : "قيد الانتظار"}</small> : null}</td><td>{new Date(request.created_at).toLocaleString("ar-SA")}</td></tr>; })}</tbody></table></div>}
+    {error ? <div className="form-error">تعذر تحميل الطلبات.</div> : !requests?.length ? <div className="emptyState"><h2>لا توجد طلبات مطابقة</h2><p>جرّب تغيير الحالة أو نطاق التاريخ.</p></div> : <div className="adminTableWrap"><div className="requestTableHeader"><span>{requests.length} طلب</span><span>نتائج التصفية الحالية</span></div><table className="adminTable"><thead><tr><th>العميل</th><th>الخدمة</th><th>المدينة</th><th>الجوال</th><th>الوصف</th><th>الحالة</th><th>الفني المسند</th><th>تاريخ الطلب</th></tr></thead><tbody>{requests.map((request) => { const assignment = activeAssignmentByRequest.get(request.id); const assignedTech = assignment && ["pending", "accepted"].includes(assignment.status) ? technicianOptions.find((item) => item.id === assignment.technicianId) : null; const mode = !["awaiting_assignment", "assigned", "technician_accepted"].includes(request.workflow_stage) ? "unavailable" : assignment?.status === "rejected" ? "reassign" : assignment?.status === "pending" ? "pending" : assignment?.status === "accepted" ? "accepted" : "initial"; return <tr key={request.id}><td><a className="requestDetailsLink" href={`/admin/requests/${request.id}`}>{request.customer_name}</a></td><td>{request.service_type}</td><td>{request.city}</td><td><a href={`tel:${request.phone}`}>{request.phone}</a></td><td className="descriptionCell">{request.problem_description}<small>{request.address}</small>{request.visit_notes ? <small>ملاحظات الزيارة: {request.visit_notes}</small> : null}</td><td><a href={`/admin/requests/${request.id}`}><span className={`statusBadge status-${request.workflow_stage}`}>{WORKFLOW_LABELS[request.workflow_stage] ?? request.workflow_stage}</span></a></td><td><RequestTechnicianControl requestId={request.id} serviceType={request.service_type} technicians={technicianOptions} mode={mode} previousTechnicianId={assignment?.status === "rejected" ? assignment.technicianId : null} />{assignedTech ? <small className="assignmentHint">{assignedTech.name} · {assignment?.status === "accepted" ? "مقبول" : "قيد الانتظار"}</small> : null}</td><td>{new Date(request.created_at).toLocaleString("ar-SA")}</td></tr>; })}</tbody></table></div>}
     <style>{`.requestDetailsLink { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }`}</style>
   </div></main>;
 }

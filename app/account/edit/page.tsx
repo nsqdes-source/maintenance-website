@@ -114,7 +114,7 @@ export default function EditAccountPage() {
           <label>رقم الجوال<input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" maxLength={10} required /></label>
           <label>البريد الإلكتروني<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
           <label>الصورة الشخصية<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)} /></label>
-          <label>نوع الحساب<input value={roles.has(role ?? "") ? ({ customer: "عميل", technician: "فني", maintenance_manager: "مدير صيانة", admin_manager: "مدير إدارة", super_admin: "مدير النظام" } as Record<string, string>)[role!] : "—"} readOnly /></label>
+          {role && role !== "customer" ? <label>نوع الحساب<input value={roles.has(role) ? ({ technician: "فني", maintenance_manager: "مدير صيانة", admin_manager: "مدير إدارة", super_admin: "مدير النظام" } as Record<string, string>)[role] ?? "—" : "—"} readOnly /></label> : null}
           {message && <p role="status" style={{ margin: 0, color: "#475569" }}>{message}</p>}
           <button className="button primary" type="submit" disabled={saving}>{saving ? "جاري الحفظ..." : "حفظ التغييرات"}</button>
         </form>

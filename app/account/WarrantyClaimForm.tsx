@@ -1,0 +1,4 @@
+"use client";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+export default function WarrantyClaimForm({requestId}:{requestId:string}){const [description,setDescription]=useState("");const [message,setMessage]=useState("");async function submit(){const {error}=await createClient().rpc("submit_warranty_claim",{target_service_request_id:requestId,claim_description:description});setMessage(error?"تعذر تسجيل طلب الضمان.":"تم تسجيل طلب الضمان، وسيراجعه فريق معين.");if(!error)setDescription("")}return <details className="followupNotice"><summary>طلب متابعة ضمن الضمان</summary><label>وصف المشكلة بعد التنفيذ<textarea rows={3} value={description} onChange={e=>setDescription(e.target.value)}/></label><button className="button secondary compactButton" type="button" disabled={!description.trim()} onClick={submit}>إرسال طلب الضمان</button>{message?<p role="status">{message}</p>:null}</details>}

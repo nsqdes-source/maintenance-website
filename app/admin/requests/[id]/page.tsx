@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import RequestTechnicianControl from "@/app/admin/RequestTechnicianControl";
 import WorkflowAdvanceControl from "@/app/admin/WorkflowAdvanceControl";
 import QuoteAdminControl from "@/app/admin/QuoteAdminControl";
+import RequestWorkflowActions from "@/app/admin/RequestWorkflowActions";
 import RequestImages from "@/app/components/RequestImages";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,9 @@ const WORKFLOW_LABELS: Record<string, string> = {
   assigned: "تم إسناده",
   technician_accepted: "وافق الفني",
   in_progress: "قيد التنفيذ",
+  awaiting_completion_review: "بانتظار مراجعة الإدارة",
+  reschedule_requested: "طلب إعادة جدولة",
+  unable_to_complete: "تعذر التنفيذ",
   awaiting_admin_quote: "بانتظار عرض الإدارة",
   awaiting_customer_approval: "بانتظار موافقة العميل",
   quote_approved: "وافق العميل",
@@ -41,6 +45,14 @@ function formatDate(value: string | null | undefined) {
   return new Date(value).toLocaleString("ar-SA");
 }
 
+function eventLabel(type: string, fromStage: string | null, toStage: string | null) {
+  if (type === "assignment_created") return "تم إسناد الطلب لفني";
+  if (type === "assignment_reassigned") return "أُعيد إسناد الطلب لفني آخر";
+  if (type === "assignment_status_changed") return "تغير رد الفني على الإسناد";
+  if (type === "stage_changed") return `تغيرت حالة الطلب من ${fromStage ? WORKFLOW_LABELS[fromStage] ?? fromStage : "—"} إلى ${toStage ? WORKFLOW_LABELS[toStage] ?? toStage : "—"}`;
+  return type;
+}
+
 export default async function AdminRequestDetailsPage({ params }: PageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -57,7 +69,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
   const [{ data: request, error: requestError }, { data: technicians }, { data: assignments }] = await Promise.all([
     supabase
       .from("service_requests")
-      .select("id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, created_at, workflow_updated_at, archived_at")
+      .select("id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, created_at, workflow_updated_at, archived_at, confirmed_date, confirmed_time_period, appointment_notes, cancellation_reason")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -84,11 +96,14 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
   });
 
   const activeAssignment = (assignments ?? []).find((assignment) => assignment.status === "pending" || assignment.status === "accepted");
+  const latestAssignment = assignments?.[0];
+  const assignmentMode = !["awaiting_assignment", "assigned", "technician_accepted"].includes(request.workflow_stage) ? "unavailable" : latestAssignment?.status === "rejected" ? "reassign" : latestAssignment?.status === "pending" ? "pending" : latestAssignment?.status === "accepted" ? "accepted" : "initial";
   const assignedTechnician = activeAssignment
     ? technicianOptions.find((technician) => technician.id === activeAssignment.technician_id)
     : null;
 
   const { data: quotes } = await supabase.from("service_request_quotes").select("id, description, parts_description, parts_cost, labor_cost, status, created_at, customer_notes").eq("service_request_id", id).order("created_at", { ascending: false });
+  const { data: events } = await supabase.from("service_request_events").select("id,event_type,from_stage,to_stage,details,created_at,actor:profiles(full_name,role)").eq("service_request_id", id).order("created_at", { ascending: false });
 
   const hasLocation = Number.isFinite(request.latitude) && Number.isFinite(request.longitude);
   const mapUrl = hasLocation
@@ -133,7 +148,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
             <div className="detailFields">
               <div><span>نوع الخدمة</span><strong>{request.service_type}</strong></div>
               <div className="detailWide"><span>العنوان</span><strong>{request.address}</strong></div>
-              <div className="detailWide"><span>وصف المشكلة</span><p>{request.problem_description}</p><RequestImages requestId={request.id} /></div>
+              <div className="detailWide"><span>وصف المشكلة</span><p>{request.problem_description}</p><RequestImages requestId={request.id} showDriveSync={profile.role === "admin_manager" || profile.role === "super_admin"} /></div>
             </div>
 
             <h2>الموقع</h2>
@@ -150,11 +165,12 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
             <section className="card detailCard">
               <h2>الإسناد</h2>
               <WorkflowAdvanceControl requestId={request.id} stage={request.workflow_stage} />
+              <RequestWorkflowActions requestId={request.id} stage={request.workflow_stage} />
               <RequestTechnicianControl
                 requestId={request.id}
                 serviceType={request.service_type}
                 technicians={technicianOptions}
-                currentTechnicianId={assignedTechnician?.id ?? null}
+                mode={assignmentMode} previousTechnicianId={latestAssignment?.status === "rejected" ? latestAssignment.technician_id : null}
               />
               {assignedTechnician ? (
                 <div className="assignedTechnician">
@@ -163,6 +179,8 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
                   <span>{activeAssignment?.status === "accepted" ? "الفني وافق على الإسناد" : "الإسناد بانتظار رد الفني"}</span>
                 </div>
               ) : <p className="detailMuted">لم يتم إسناد فني حاليًا.</p>}
+              {request.confirmed_date ? <div className="assignedTechnician"><strong>الموعد المؤكد</strong><span>{request.confirmed_date} · {request.confirmed_time_period || "—"}</span>{request.appointment_notes ? <span>{request.appointment_notes}</span> : null}</div> : null}
+              {request.cancellation_reason ? <p className="detailMuted">سبب الإلغاء: {request.cancellation_reason}</p> : null}
             </section>
 
             <section className="card detailCard">
@@ -178,6 +196,15 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
         </section>
 
         <section className="card detailCard"><h2>عروض الإصلاح</h2>{quotes?.length ? quotes.map(quote => <div className="assignmentHistoryItem" key={quote.id}><strong>{quote.description}</strong><span>{quote.parts_description || "—"} · {Number(quote.parts_cost) + Number(quote.labor_cost)} ر.س · {quote.status}</span>{quote.customer_notes ? <p>{quote.customer_notes}</p> : null}</div>) : <p className="detailMuted">لا يوجد عرض بعد.</p>}</section>
+
+        <section className="card detailCard">
+          <h2>الخط الزمني وسجل التدقيق</h2>
+          {!events?.length ? <p className="detailMuted">لا توجد أحداث مسجلة بعد.</p> : <div className="assignmentHistory">{events.map((event) => {
+            const actor = Array.isArray(event.actor) ? event.actor[0] : event.actor;
+            const details = event.details && typeof event.details === "object" && !Array.isArray(event.details) ? event.details as { reason?: string; notes?: string } : {};
+            return <div className="assignmentHistoryItem" key={event.id}><div><strong>{eventLabel(event.event_type, event.from_stage, event.to_stage)}</strong><span>{formatDate(event.created_at)}</span></div><span>{actor?.full_name || "النظام"}</span>{details.reason ? <p>السبب: {details.reason}</p> : details.notes ? <p>ملاحظات: {details.notes}</p> : null}</div>;
+          })}</div>}
+        </section>
 
         <section className="card detailCard">
           <h2>سجل الإسناد</h2>

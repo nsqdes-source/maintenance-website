@@ -1,10 +1,15 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/app/components/LocaleContext";
 
 export default function LoginPage() {
+  const locale = useLocale();
+  const router = useRouter();
+  const t = (ar: string, en: string) => locale === "ar" ? ar : en;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,7 +27,7 @@ export default function LoginPage() {
     });
 
     if (signInError) {
-      setError("بيانات الدخول غير صحيحة أو يجب تأكيد البريد الإلكتروني أولًا.");
+      setError(t("بيانات الدخول غير صحيحة أو يجب تأكيد البريد الإلكتروني أولًا.", "The sign-in details are incorrect, or you need to confirm your email first."));
       setPending(false);
       return;
     }
@@ -33,16 +38,16 @@ export default function LoginPage() {
       .maybeSingle();
 
     if (profile?.role === "technician") {
-      window.location.href = "/technician";
+      router.push("/technician");
       return;
     }
 
     if (["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role ?? "")) {
-      window.location.href = "/admin";
+      router.push("/admin");
       return;
     }
 
-    window.location.href = "/";
+    router.push("/");
   }
 
   async function signInWithGoogle() {
@@ -53,38 +58,38 @@ export default function LoginPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (oauthError) {
-      setError("تعذر بدء تسجيل الدخول عبر Google.");
+      setError(t("تعذر بدء تسجيل الدخول عبر Google.", "Could not start Google sign-in."));
       setPending(false);
     }
   }
   return (
-    <main className="adminPage">
-      <div className="adminLoginCard">
-        <Link className="backLink" href="/">← العودة للرئيسية</Link>
-        <p className="eyebrow">حساب المستخدم</p>
-        <h1>تسجيل الدخول</h1>
-        <p className="adminIntro">سجّل الدخول للوصول إلى حسابك ولوحة العمل المناسبة لدورك.</p>
+    <main className="authShell">
+      <div className="authCard">
+        <Link className="backLink" href="/">{t("← العودة للرئيسية", "← Back to home")}</Link>
+        <p className="eyebrow">{t("حساب المستخدم", "User account")}</p>
+        <h1>{t("تسجيل الدخول", "Sign in")}</h1>
+        <p className="adminIntro">{t("سجّل الدخول للوصول إلى حسابك ولوحة العمل المناسبة لدورك.", "Sign in to access your account and work area.")}</p>
 
         <form className="request-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">البريد الإلكتروني</label>
+            <label htmlFor="email">{t("البريد الإلكتروني", "Email")}</label>
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
           <div className="form-group">
-            <label htmlFor="password">كلمة المرور</label>
+            <label htmlFor="password">{t("كلمة المرور", "Password")}</label>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
           </div>
 
           {error && <div className="form-error" role="alert">{error}</div>}
 
           <button className="button primary adminSubmit" type="submit" disabled={pending}>
-            {pending ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+            {pending ? t("جاري تسجيل الدخول...", "Signing in...") : t("تسجيل الدخول", "Sign in")}
           </button>
         </form>
 
-        <button type="button" className="button secondary adminSubmit" disabled={pending} onClick={signInWithGoogle}>الدخول عبر Google</button>
-        <p className="adminIntro"><Link href="/forgot-password">نسيت كلمة المرور؟</Link></p>
-        <p className="adminIntro">ليس لديك حساب؟ <Link href="/register">إنشاء حساب</Link></p>
+        <button type="button" className="button secondary adminSubmit" disabled={pending} onClick={signInWithGoogle}>{t("الدخول عبر Google", "Continue with Google")}</button>
+        <p className="adminIntro"><Link href="/forgot-password">{t("نسيت كلمة المرور؟", "Forgot your password?")}</Link></p>
+        <p className="adminIntro">{t("ليس لديك حساب؟ ", "No account yet? ")}<Link href="/register">{t("إنشاء حساب", "Create an account")}</Link></p>
       </div>
     </main>
   );

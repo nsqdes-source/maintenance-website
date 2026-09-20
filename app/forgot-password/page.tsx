@@ -2,8 +2,11 @@
 
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/app/components/LocaleContext";
 
 export default function ForgotPasswordPage() {
+  const locale = useLocale();
+  const t = (ar: string, en: string) => locale === "ar" ? ar : en;
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -17,7 +20,7 @@ export default function ForgotPasswordPage() {
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setError("يرجى إدخال بريد إلكتروني صحيح.");
+      setError(t("يرجى إدخال بريد إلكتروني صحيح.", "Enter a valid email address."));
       setPending(false);
       return;
     }
@@ -28,26 +31,26 @@ export default function ForgotPasswordPage() {
     });
 
     if (resetError) {
-      setError("تعذر إرسال رابط استعادة كلمة المرور. حاول مرة أخرى لاحقًا.");
+      setError(t("تعذر إرسال رابط استعادة كلمة المرور. حاول مرة أخرى لاحقًا.", "Could not send a reset link. Please try again later."));
       setPending(false);
       return;
     }
 
-    setMessage("إذا كان البريد مرتبطًا بحساب، فسيصلك رابط لاستعادة كلمة المرور. تحقق من البريد والرسائل غير المرغوب فيها.");
+    setMessage(t("إذا كان البريد مرتبطًا بحساب، فسيصلك رابط لاستعادة كلمة المرور. تحقق من البريد والرسائل غير المرغوب فيها.", "If this email belongs to an account, a password reset link will arrive. Check your inbox and spam folder."));
     setPending(false);
   }
 
   return (
     <main className="adminPage">
       <div className="adminLoginCard">
-        <a className="backLink" href="/login">← العودة لتسجيل الدخول</a>
-        <p className="eyebrow">استعادة الحساب</p>
-        <h1>نسيت كلمة المرور؟</h1>
-        <p className="adminIntro">أدخل بريدك الإلكتروني وسنرسل لك رابطًا آمنًا لتعيين كلمة مرور جديدة.</p>
+        <a className="backLink" href="/login">{t("← العودة لتسجيل الدخول", "← Back to sign in")}</a>
+        <p className="eyebrow">{t("استعادة الحساب", "Account recovery")}</p>
+        <h1>{t("نسيت كلمة المرور؟", "Forgot your password?")}</h1>
+        <p className="adminIntro">{t("أدخل بريدك الإلكتروني وسنرسل لك رابطًا آمنًا لتعيين كلمة مرور جديدة.", "Enter your email and we will send you a secure password reset link.")}</p>
 
         <form className="request-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">البريد الإلكتروني</label>
+            <label htmlFor="email">{t("البريد الإلكتروني", "Email")}</label>
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" autoFocus />
           </div>
 
@@ -55,7 +58,7 @@ export default function ForgotPasswordPage() {
           {message && <div className="form-success" role="status">{message}</div>}
 
           <button className="button primary adminSubmit" type="submit" disabled={pending}>
-            {pending ? "جاري إرسال الرابط..." : "إرسال رابط الاستعادة"}
+            {pending ? t("جاري إرسال الرابط...", "Sending link...") : t("إرسال رابط الاستعادة", "Send reset link")}
           </button>
         </form>
       </div>

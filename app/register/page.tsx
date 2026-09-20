@@ -2,15 +2,14 @@
 import Link from "next/link";
 
 import { FormEvent, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/app/components/LocaleContext";
 
 const phonePattern = /^0\d{9}$/;
 
-type RegistrationResponse = {
-  ok?: boolean;
-  error?: string;
-};
-
 export default function RegisterPage() {
+  const locale = useLocale();
+  const t = (ar: string, en: string) => locale === "ar" ? ar : en;
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -30,88 +29,83 @@ export default function RegisterPage() {
     const normalizedName = fullName.trim();
 
     if (!normalizedName) {
-      setError("يرجى إدخال الاسم.");
+      setError(t("يرجى إدخال الاسم.", "Enter your name."));
       setPending(false);
       return;
     }
 
     if (!phonePattern.test(normalizedPhone)) {
-      setError("رقم الجوال يجب أن يتكون من 10 أرقام ويبدأ بـ 0.");
+      setError(t("رقم الجوال يجب أن يتكون من 10 أرقام ويبدأ بـ 0.", "The phone number must have 10 digits and start with 0."));
       setPending(false);
       return;
     }
 
     if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setError("يرجى إدخال بريد إلكتروني صحيح.");
+      setError(t("يرجى إدخال بريد إلكتروني صحيح.", "Enter a valid email address."));
       setPending(false);
       return;
     }
 
     if (password.length < 8) {
-      setError("كلمة المرور يجب ألا تقل عن 8 أحرف.");
+      setError(t("كلمة المرور يجب ألا تقل عن 8 أحرف.", "Password must have at least 8 characters."));
       setPending(false);
       return;
     }
 
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName: normalizedName,
+    const supabase = createClient();
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/account`,
+        data: {
+          full_name: normalizedName,
           phone: normalizedPhone,
-          email: normalizedEmail,
-          password,
-        }),
-      });
+        },
+      },
+    });
 
-      const result = (await response.json().catch(() => null)) as
-        | RegistrationResponse
-        | null;
-
-      if (!response.ok) {
-        setError(
-          result?.error ??
-            "تعذر إنشاء الحساب حاليًا. تحقق من البيانات وحاول مرة أخرى."
-        );
-        setPending(false);
-        return;
-      }
-
-      setPassword("");
-      setMessage("تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.");
-    } catch {
-      setError("تعذر الاتصال بخدمة التسجيل حاليًا. حاول مرة أخرى.");
-    } finally {
+    if (signUpError) {
+      setError(signUpError.message.includes("Database error saving new user") || signUpError.message.includes("already registered")
+        ? t("تعذر إنشاء الحساب. قد يكون البريد الإلكتروني أو رقم الجوال مستخدمًا بالفعل. جرّب تسجيل الدخول أو استعادة كلمة المرور.", "Could not create the account. The email or phone may already be in use. Try signing in or resetting your password.")
+        : t("تعذر إنشاء الحساب. تحقق من البيانات وحاول مرة أخرى.", "Could not create the account. Check your details and try again."));
       setPending(false);
+      return;
     }
+
+    if (!signUpData.user || signUpData.user.identities?.length === 0) {
+      setError(t("إذا كان البريد الإلكتروني مستخدمًا بالفعل، فلن يُنشأ حساب جديد. جرّب تسجيل الدخول أو استعادة كلمة المرور.", "If this email is already in use, no new account was created. Try signing in or resetting your password."));
+      setPending(false);
+      return;
+    }
+
+    setMessage(t("تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.", "Account created. Check your email to confirm it, then sign in."));
+    setPending(false);
   }
 
   return (
     <main className="adminPage">
       <div className="adminLoginCard">
-        <Link className="backLink" href="/">← العودة للرئيسية</Link>
-        <p className="eyebrow">حساب العميل</p>
-        <h1>إنشاء حساب</h1>
-        <p className="adminIntro">أنشئ حسابًا لمتابعة طلبات الصيانة المرتبطة بك.</p>
+        <Link className="backLink" href="/">{t("← العودة للرئيسية", "← Back to home")}</Link>
+        <p className="eyebrow">{t("حساب العميل", "Customer account")}</p>
+        <h1>{t("إنشاء حساب", "Create account")}</h1>
+        <p className="adminIntro">{t("أنشئ حسابًا لمتابعة طلبات الصيانة المرتبطة بك.", "Create an account to track your maintenance requests.")}</p>
 
         <form className="request-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="full_name">الاسم</label>
+            <label htmlFor="full_name">{t("الاسم", "Name")}</label>
             <input id="full_name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
           </div>
           <div className="form-group">
-            <label htmlFor="phone">رقم الجوال</label>
+            <label htmlFor="phone">{t("رقم الجوال", "Phone number")}</label>
             <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} required autoComplete="tel" dir="ltr" inputMode="numeric" maxLength={10} placeholder="05xxxxxxxx" />
           </div>
           <div className="form-group">
-            <label htmlFor="email">البريد الإلكتروني</label>
+            <label htmlFor="email">{t("البريد الإلكتروني", "Email")}</label>
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
           <div className="form-group">
-            <label htmlFor="password">كلمة المرور</label>
+            <label htmlFor="password">{t("كلمة المرور", "Password")}</label>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
           </div>
 
@@ -119,13 +113,13 @@ export default function RegisterPage() {
 
 
           <button className="button primary adminSubmit" type="submit" disabled={pending}>
-            {pending ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}
+            {pending ? t("جاري إنشاء الحساب...", "Creating account...") : "إنشاء الحساب"}
           </button>
         </form>
 
-        <p className="adminIntro">لديك حساب بالفعل؟ <Link href="/login">تسجيل الدخول</Link></p>
+        <p className="adminIntro">{t("لديك حساب بالفعل؟ ", "Already have an account? ")}<Link href="/login">{t("تسجيل الدخول", "Sign in")}</Link></p>
       </div>
-      {message ? <div role="presentation" style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,.48)", display: "grid", placeItems: "center", padding: 20 }}><div role="dialog" aria-modal="true" aria-labelledby="registration-success-title" className="card" style={{ maxWidth: 440, padding: 28 }}><h2 id="registration-success-title">تم إنشاء الحساب</h2><p>{message}</p><button type="button" className="button primary" onClick={() => setMessage("")}>حسنًا</button></div></div> : null}
+      {message ? <div role="presentation" style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,.48)", display: "grid", placeItems: "center", padding: 20 }}><div role="dialog" aria-modal="true" aria-labelledby="registration-success-title" className="card" style={{ maxWidth: 440, padding: 28 }}><h2 id="registration-success-title">{t("تم إنشاء الحساب", "Account created")}</h2><p>{message}</p><button type="button" className="button primary" onClick={() => { window.location.href = "/"; }}>{t("العودة للرئيسية", "Back to home")}</button></div></div> : null}
     </main>
   );
 }

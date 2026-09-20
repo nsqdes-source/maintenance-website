@@ -102,10 +102,10 @@ export default function HeaderAccountControl({ ctaText = "تسجيل الدخو�
             <span>الاسم: {profile?.full_name || "—"}</span>
             <span style={{ overflowWrap: "anywhere" }}>البريد الإلكتروني: {email || "—"}</span>
             <span>رقم الجوال: {profile?.phone || "—"}</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+            {profile?.role && profile.role !== "customer" ? <span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
               <span>التصنيف:</span>
               <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 9px", borderRadius: 999, background: roleColors.background, color: roleColors.color, border: `1px solid ${roleColors.border}`, fontSize: ".76rem", fontWeight: 800, lineHeight: 1.4 }}>{roleLabel}</span>
-            </span>
+            </span> : null}
           </div>
         </div>
         <a href={accountPath} role="menuitem" style={{ width: "100%", display: "block", marginTop: 8, padding: "9px 10px", border: "1px solid #e2e8f0", borderRadius: 8, background: "#f8fafc", color: "#0f172a", fontSize: ".82rem", fontWeight: 700, textAlign: "right", textDecoration: "none" }}>{accountLabel}</a>

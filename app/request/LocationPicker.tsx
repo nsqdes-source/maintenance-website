@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./LocationPicker.module.css";
+import { useLocale } from "@/app/components/LocaleContext";
 
 type Coordinates = { latitude: number; longitude: number };
 type LatLng = { lat: number; lng: number };
@@ -20,36 +21,13 @@ declare global { interface Window { google?: { maps: MapsApi } } }
 const defaultCenter = { lat: 21.5433, lng: 39.1728 };
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-function ManualCoordinates({ value, onChange }: { value: Coordinates | null; onChange: (value: Coordinates | null) => void }) {
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-
-  if (value && (Number(latitude) !== value.latitude || Number(longitude) !== value.longitude)) {
-    setLatitude(String(value.latitude));
-    setLongitude(String(value.longitude));
-  }
-
-  function update(nextLatitude: string, nextLongitude: string) {
-    setLatitude(nextLatitude);
-    setLongitude(nextLongitude);
-    if (!nextLatitude.trim() || !nextLongitude.trim()) {
-      onChange(null);
-      return;
-    }
-    const coordinates = { latitude: Number(nextLatitude), longitude: Number(nextLongitude) };
-    onChange(Number.isFinite(coordinates.latitude) && Number.isFinite(coordinates.longitude) ? coordinates : null);
-  }
-
-  return <div className="detailFields">
-    <label>خط العرض<input type="number" min="-90" max="90" step="any" value={latitude} onChange={event => update(event.target.value, longitude)} /></label>
-    <label>خط الطول<input type="number" min="-180" max="180" step="any" value={longitude} onChange={event => update(latitude, event.target.value)} /></label>
-  </div>;
-}
 export default function LocationPicker({ value, onChange }: { value: Coordinates | null; onChange: (value: Coordinates | null) => void }) {
+  const locale = useLocale();
+  const t = (ar: string, en: string) => locale === "ar" ? ar : en;
   const mapElement = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const markerRef = useRef<MarkerInstance | null>(null);
-  const [error, setError] = useState(apiKey ? "" : "خريطة Google غير مهيأة محليًا؛ أدخل الإحداثيات يدويًا أو استخدم موقعك الحالي.");
+  const [error, setError] = useState(apiKey ? "" : t("خريطة Google غير مهيأة محليًا؛ استخدم موقعك الحالي بعد إضافة مفتاح الخريطة.", "Google Maps is unavailable locally; add a map key to use your current location."));
   const [loading, setLoading] = useState(Boolean(apiKey));
 
   useEffect(() => {
@@ -82,13 +60,13 @@ export default function LocationPicker({ value, onChange }: { value: Coordinates
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
     script.async = true; script.defer = true; script.dataset.googleMaps = "true";
     script.onload = initializeMap;
-    script.onerror = () => { if (!cancelled) { setError("تعذر تحميل Google Maps."); setLoading(false); } };
+    script.onerror = () => { if (!cancelled) { setError(t("تعذر تحميل Google Maps.", "Could not load Google Maps.")); setLoading(false); } };
     document.head.appendChild(script);
     return () => { cancelled = true; };
   }, []);
 
   function useCurrentLocation() {
-    if (!navigator.geolocation) { setError("المتصفح لا يدعم تحديد الموقع."); return; }
+    if (!navigator.geolocation) { setError(t("المتصفح لا يدعم تحديد الموقع.", "This browser does not support location access.")); return; }
     setError("");
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const position = { lat: coords.latitude, lng: coords.longitude };
@@ -98,18 +76,16 @@ export default function LocationPicker({ value, onChange }: { value: Coordinates
         if (markerRef.current) markerRef.current.setPosition(position);
         else if (window.google?.maps) markerRef.current = new window.google.maps.Marker({ position, map: mapRef.current });
       }
-    }, () => setError("تعذر تحديد موقعك الحالي. يمكنك اختيار الموقع يدويًا على الخريطة."), { enableHighAccuracy: true, timeout: 10000 });
+    }, () => setError(t("تعذر تحديد موقعك الحالي. يمكنك اختيار الموقع يدويًا على الخريطة.", "Could not get your location. Choose it manually on the map.")), { enableHighAccuracy: true, timeout: 10000 });
   }
 
   return <div className={styles.locationPicker}>
     <input type="hidden" name="latitude" value={value?.latitude ?? ""} />
     <input type="hidden" name="longitude" value={value?.longitude ?? ""} />
-    <div className={styles.actions}><button type="button" className="button secondary" onClick={useCurrentLocation}>استخدام موقعي الحالي</button><span className={styles.hint}>حدد الموقع على الخريطة أو أدخل إحداثياته يدويًا.</span></div>
-    {apiKey && <div ref={mapElement} className={styles.map} aria-label="خريطة تحديد موقع الخدمة" />}
-    <p className={styles.hint}>الإحداثيات اليدوية</p>
-    <ManualCoordinates value={value} onChange={onChange} />
+    <div className={styles.actions}><button type="button" className="button secondary" onClick={useCurrentLocation}>{t("استخدام موقعي الحالي", "Use my location")}</button><span className={styles.hint}>{t("حدد موقع الخدمة على الخريطة أو استخدم موقعك الحالي.", "Choose the service location on the map or use your current location.")}</span></div>
+    {apiKey && <div ref={mapElement} className={styles.map} aria-label={t("خريطة تحديد موقع الخدمة", "Service location map")} />}
     {value && <p className={styles.hint} dir="ltr">{value.latitude.toFixed(6)}, {value.longitude.toFixed(6)}</p>}
-    {loading && <p className={styles.hint}>جاري تحميل الخريطة...</p>}
+    {loading && <p className={styles.hint}>{t("جاري تحميل الخريطة...", "Loading map...")}</p>}
     {error && <p className={styles.error} role="alert">{error}</p>}
   </div>;
 }
