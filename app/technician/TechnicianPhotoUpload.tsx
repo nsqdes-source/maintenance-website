@@ -7,8 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 type Stage = "technician_arrival" | "technician_completion";
 
 const STAGES: { value: Stage; label: string; hint: string }[] = [
-  { value: "technician_arrival", label: "صور الزيارة الأولى", hint: "أرفق صورة واحدة على الأقل عند الوصول." },
-  { value: "technician_completion", label: "صور بعد التنفيذ", hint: "صورة واحدة مطلوبة قبل تسجيل تم التنفيذ." },
+  { value: "technician_arrival", label: "صور الزيارة الأولى", hint: "اختيارية لتوثيق حالة الموقع عند الوصول." },
+  { value: "technician_completion", label: "صور بعد التنفيذ", hint: "اختيارية لتوثيق العمل المنجز." },
 ];
 
 function extension(file: File) {
