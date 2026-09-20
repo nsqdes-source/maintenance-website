@@ -8,6 +8,9 @@ const NEXT_STAGE: Record<string, { value: string; label: string }> = {
   technician_accepted: { value: "in_progress", label: "بدء التنفيذ" },
   needs_followup: { value: "awaiting_admin_quote", label: "إعداد عرض الإصلاح" },
   quote_approved: { value: "in_progress", label: "استئناف التنفيذ" },
+  awaiting_completion_review: { value: "completed", label: "اعتماد اكتمال التنفيذ" },
+  reschedule_requested: { value: "in_progress", label: "استئناف التنفيذ" },
+  unable_to_complete: { value: "in_progress", label: "استئناف التنفيذ" },
 };
 
 export default function WorkflowAdvanceControl({ requestId, stage }: { requestId: string; stage: string }) {

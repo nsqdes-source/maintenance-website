@@ -1,82 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { DragEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import ImageUploadField from "./ImageUploadField";
 
-type Section = { id: string; slug: string; eyebrow: string | null; title: string; description: string | null; image_url: string | null; sort_order: number; is_visible: boolean };
-type Item = { id: string; section_id: string; title: string; description: string | null; image_url: string | null; sort_order: number; is_visible: boolean };
-const LABELS: Record<string, string> = { hero: "الواجهة الرئيسية", services: "الخدمات", "why-us": "لماذا نحن", works: "الأعمال", contact: "التواصل" };
+type SectionStyle = { background_color?: string; padding_y?: number; columns?: number };
+type Section = { id:string; slug:string; eyebrow:string|null; eyebrow_en:string|null; title:string; title_en:string|null; description:string|null; description_en:string|null; image_url:string|null; sort_order:number; is_visible:boolean; style_config:SectionStyle };
+type Item = { id:string; section_id:string; title:string; title_en:string|null; description:string|null; description_en:string|null; image_url:string|null; sort_order:number; is_visible:boolean };
+const LABELS:Record<string,string>={hero:"الواجهة الرئيسية",services:"الخدمات","why-us":"لماذا نحن",works:"الأعمال",contact:"التواصل"};
+const reorder=<T,>(rows:T[],from:number,to:number)=>{const next=[...rows];const [row]=next.splice(from,1);next.splice(to,0,row);return next;};
 
-export default function SiteEditor({ initialSettings, initialSections, initialItems }: { initialSettings: Record<string, string>; initialSections: Section[]; initialItems: Item[] }) {
-  const [settings, setSettings] = useState<Record<string, string>>(initialSettings);
-  const [sections, setSections] = useState<Section[]>(initialSections);
-  const [items, setItems] = useState<Item[]>(initialItems);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
-
-  async function save() {
-    setBusy(true);
-    setMessage("");
-    const supabase = createClient();
-    const settingsResult = await supabase.from("site_settings").upsert(Object.entries(settings).map(([key, value]) => ({ key, value })));
-    const sectionResults = await Promise.all(sections.map(section => supabase.from("site_sections").update({
-      eyebrow: section.eyebrow, title: section.title, description: section.description,
-      image_url: section.image_url, sort_order: section.sort_order, is_visible: section.is_visible,
-    }).eq("id", section.id)));
-    const itemResults = await Promise.all(items.map(item => supabase.from("site_section_items").update({
-      title: item.title, description: item.description, image_url: item.image_url,
-      sort_order: item.sort_order, is_visible: item.is_visible,
-    }).eq("id", item.id)));
-    setBusy(false);
-    setMessage(settingsResult.error || sectionResults.some(result => result.error) || itemResults.some(result => result.error)
-      ? "تعذر حفظ بعض التغييرات. راجع القيم وحاول مجددًا." : "حُفظت تغييرات الموقع.");
-  }
-
-  async function addItem(sectionId: string) {
-    const { data, error } = await createClient().from("site_section_items")
-      .insert({ section_id: sectionId, title: "عنصر جديد", description: "", sort_order: items.filter(item => item.section_id === sectionId).length })
-      .select("id,section_id,title,description,image_url,sort_order,is_visible").single();
-    if (error || !data) { setMessage("تعذر إضافة العنصر."); return; }
-    setItems(current => [...current, data]);
-  }
-  async function removeItem(id: string) {
-    const { error } = await createClient().from("site_section_items").delete().eq("id", id);
-    if (error) { setMessage("تعذر حذف العنصر."); return; }
-    setItems(current => current.filter(item => item.id !== id));
-  }
-
-  return <div className="requestList">
-    <section className="card"><h2>الشعار والألوان وHeader</h2>
-      <div className="detailFields">
-        <label>نص الشعار<input value={settings.logo_text || ""} onChange={e => setSettings({ ...settings, logo_text: e.target.value })} /></label>
-        <label>رابط صورة الشعار<input type="url" value={settings.logo_image_url || ""} onChange={e => setSettings({ ...settings, logo_image_url: e.target.value })} /></label>
-        <label>اللون الأساسي<input type="color" value={settings.primary_color || "#0f172a"} onChange={e => setSettings({ ...settings, primary_color: e.target.value })} /></label>
-        <label>اللون المساعد<input type="color" value={settings.accent_color || "#f59e0b"} onChange={e => setSettings({ ...settings, accent_color: e.target.value })} /></label>
-        <label>نص زر Header<input value={settings.header_cta_text || ""} onChange={e => setSettings({ ...settings, header_cta_text: e.target.value })} /></label>
-      </div>
-    </section>
-    {sections.map(section => <section className="card" key={section.id}>
-      <h2>{LABELS[section.slug] || section.slug}</h2>
-      <div className="detailFields">
-        <label>العنوان الفرعي<input value={section.eyebrow || ""} onChange={e => setSections(current => current.map(row => row.id === section.id ? { ...row, eyebrow: e.target.value } : row))} /></label>
-        <label>العنوان<input value={section.title} onChange={e => setSections(current => current.map(row => row.id === section.id ? { ...row, title: e.target.value } : row))} /></label>
-        <label>الوصف<textarea value={section.description || ""} onChange={e => setSections(current => current.map(row => row.id === section.id ? { ...row, description: e.target.value } : row))} /></label>
-        <label>رابط الصورة<input type="url" value={section.image_url || ""} onChange={e => setSections(current => current.map(row => row.id === section.id ? { ...row, image_url: e.target.value } : row))} /></label>
-        <label>الترتيب<input type="number" value={section.sort_order} onChange={e => setSections(current => current.map(row => row.id === section.id ? { ...row, sort_order: Number(e.target.value) } : row))} /></label>
-        <label><input type="checkbox" checked={section.is_visible} onChange={e => setSections(current => current.map(row => row.id === section.id ? { ...row, is_visible: e.target.checked } : row))} /> إظهار القسم</label>
-      </div>
-      {items.filter(item => item.section_id === section.id).sort((a,b) => a.sort_order - b.sort_order).map(item => <div key={item.id} className="assignmentHistoryItem">
-        <div className="detailFields">
-          <label>عنوان العنصر<input value={item.title} onChange={e => setItems(current => current.map(row => row.id === item.id ? { ...row, title: e.target.value } : row))} /></label>
-          <label>الوصف<textarea value={item.description || ""} onChange={e => setItems(current => current.map(row => row.id === item.id ? { ...row, description: e.target.value } : row))} /></label>
-          <label>رابط الصورة<input type="url" value={item.image_url || ""} onChange={e => setItems(current => current.map(row => row.id === item.id ? { ...row, image_url: e.target.value } : row))} /></label>
-          <label>الترتيب<input type="number" value={item.sort_order} onChange={e => setItems(current => current.map(row => row.id === item.id ? { ...row, sort_order: Number(e.target.value) } : row))} /></label>
-          <label><input type="checkbox" checked={item.is_visible} onChange={e => setItems(current => current.map(row => row.id === item.id ? { ...row, is_visible: e.target.checked } : row))} /> إظهار العنصر</label>
-        </div>
-        <button type="button" className="button secondary compactButton" onClick={() => removeItem(item.id)}>حذف العنصر</button>
-      </div>)}
-      {section.slug !== "hero" && section.slug !== "contact" ? <button type="button" className="button secondary compactButton" onClick={() => addItem(section.id)}>إضافة عنصر</button> : null}
-    </section>)}
-    <div><button type="button" className="button primary" disabled={busy} onClick={save}>{busy ? "جارٍ الحفظ..." : "حفظ تغييرات الموقع"}</button>{message ? <p role="status">{message}</p> : null}</div>
-  </div>;
+export default function SiteEditor({initialSettings,initialSections,initialItems}:{initialSettings:Record<string,string>;initialSections:Section[];initialItems:Item[]}){
+ const [settings,setSettings]=useState(initialSettings); const [sections,setSections]=useState(initialSections); const [items,setItems]=useState(initialItems); const [selectedId,setSelectedId]=useState(initialSections[0]?.id??""); const [device,setDevice]=useState<"desktop"|"tablet"|"mobile">("desktop"); const [busy,setBusy]=useState(false); const [message,setMessage]=useState(""); const [dragSection,setDragSection]=useState<string|null>(null); const [dragItem,setDragItem]=useState<string|null>(null);
+ const selected=sections.find(x=>x.id===selectedId)??sections[0]; const sortedSections=useMemo(()=>[...sections].sort((a,b)=>a.sort_order-b.sort_order),[sections]); const selectedItems=useMemo(()=>items.filter(x=>x.section_id===selected?.id).sort((a,b)=>a.sort_order-b.sort_order),[items,selected]);
+ const patchSection=(patch:Partial<Section>)=>setSections(rows=>rows.map(x=>x.id===selected?.id?{...x,...patch}:x)); const patchItem=(id:string,patch:Partial<Item>)=>setItems(rows=>rows.map(x=>x.id===id?{...x,...patch}:x));
+ function reorderSections(fromId:string,toId:string){if(fromId===toId)return;const ordered=[...sortedSections];const from=ordered.findIndex(x=>x.id===fromId),to=ordered.findIndex(x=>x.id===toId);const next=reorder(ordered,from,to).map((row,index)=>({...row,sort_order:index}));setSections(next)}
+ function reorderItems(fromId:string,toId:string){if(fromId===toId)return;const ordered=[...selectedItems];const from=ordered.findIndex(x=>x.id===fromId),to=ordered.findIndex(x=>x.id===toId);const updated=reorder(ordered,from,to).map((row,index)=>({...row,sort_order:index}));setItems(rows=>rows.map(row=>updated.find(x=>x.id===row.id)??row))}
+ async function save(){setBusy(true);setMessage("");const supabase=createClient();const a=await supabase.from("site_settings").upsert(Object.entries(settings).map(([key,value])=>({key,value})));const b=await Promise.all(sections.map(s=>supabase.from("site_sections").update({eyebrow:s.eyebrow,eyebrow_en:s.eyebrow_en,title:s.title,title_en:s.title_en,description:s.description,description_en:s.description_en,image_url:s.image_url,sort_order:s.sort_order,is_visible:s.is_visible,style_config:s.style_config}).eq("id",s.id)));const c=await Promise.all(items.map(i=>supabase.from("site_section_items").update({title:i.title,title_en:i.title_en,description:i.description,description_en:i.description_en,image_url:i.image_url,sort_order:i.sort_order,is_visible:i.is_visible}).eq("id",i.id)));const version=await supabase.from("site_editor_versions").insert({status:"draft",snapshot:{settings,sections,items}});setBusy(false);setMessage(a.error||b.some(x=>x.error)||c.some(x=>x.error)||version.error?"تعذر حفظ بعض التغييرات.":"حُفظت مسودة جديدة وأصبحت جاهزة للمعاينة.")}
+ async function addItem(){if(!selected)return;const {data,error}=await createClient().from("site_section_items").insert({section_id:selected.id,title:"عنصر جديد",description:"",sort_order:selectedItems.length}).select("id,section_id,title,title_en,description,description_en,image_url,sort_order,is_visible").single();if(error||!data){setMessage("تعذر إضافة العنصر.");return}setItems(rows=>[...rows,data])}
+ async function removeItem(id:string){const {error}=await createClient().from("site_section_items").delete().eq("id",id);if(error){setMessage("تعذر حذف العنصر.");return}setItems(rows=>rows.filter(x=>x.id!==id))}
+ const dragOver=(e:DragEvent)=>e.preventDefault();
+ async function initializePage(){
+   setBusy(true);setMessage("");
+   const defaults=[
+     {slug:"hero",eyebrow:"معين.. الصيانة أسهل",title:"صيانة موثوقة. موعد واضح. سعر عادل.",description:"خدمات التكييف والسباكة والكهرباء والنجارة، بطريقة منظمة من طلب الخدمة وحتى التنفيذ والمتابعة.",sort_order:0,is_visible:true},
+     {slug:"services",eyebrow:"خدماتنا",title:"كل ما تحتاجه للصيانة في مكان واحد",description:"خدمات أساسية للمنازل والمنشآت.",sort_order:1,is_visible:true},
+     {slug:"why-us",eyebrow:"لماذا نحن؟",title:"تجربة صيانة أبسط وأكثر وضوحًا",description:"من أول طلب الخدمة حتى التواصل.",sort_order:2,is_visible:true},
+     {slug:"works",eyebrow:"أعمالنا",title:"نماذج من الأعمال المنفذة",description:"نماذج من الخدمات والأعمال.",sort_order:3,is_visible:true},
+     {slug:"contact",eyebrow:"تواصل معنا",title:"نحن هنا لخدمتك",description:"أرسل طلبك وسنتواصل معك.",sort_order:4,is_visible:true},
+   ];
+   const {data,error}=await createClient().from("site_sections").insert(defaults).select("id,slug,eyebrow,eyebrow_en,title,title_en,description,description_en,image_url,sort_order,is_visible,style_config");
+   setBusy(false);
+   if(error||!data?.length){setMessage("تعذر تهيئة أقسام الصفحة.");return}
+   setSections(data);setSelectedId(data[0].id);setMessage("تمت تهيئة أقسام الصفحة. يمكنك الآن ترتيبها وتعديلها.");
+ }
+ if(!selected)return <section className="builderEmpty"><p className="eyebrow">محرر مرئي</p><h2>هيّئ أقسام الصفحة الرئيسية</h2><p>لا توجد أقسام محفوظة في قاعدة البيانات المحلية بعد. أنشئ الهيكل المبدئي ثم عدّل كل قسم بحرية.</p><button className="button primary" type="button" disabled={busy} onClick={initializePage}>{busy?"جارٍ التهيئة...":"إنشاء أقسام الصفحة"}</button>{message?<p role="status">{message}</p>:null}</section>;
+ return <div className="siteBuilder">
+  <section className="siteBuilderToolbar"><div><p className="eyebrow">محرر مرئي</p><h2>صمّم الصفحة الرئيسية</h2></div><div className="deviceToggle" aria-label="حجم المعاينة">{(["desktop","tablet","mobile"] as const).map(d=><button key={d} type="button" className={device===d?"active":""} onClick={()=>setDevice(d)}>{d==="desktop"?"كمبيوتر":d==="tablet"?"تابلت":"جوال"}</button>)}</div><a className="button secondary" href="/" target="_blank">معاينة الصفحة كاملة</a><button className="button primary" type="button" disabled={busy} onClick={save}>{busy?"جارٍ الحفظ...":"حفظ مسودة"}</button></section>
+  {message?<p className="builderMessage" role="status">{message}</p>:null}
+  <div className="siteBuilderGrid">
+   <aside className="builderPanel blockList"><h3>أقسام الصفحة</h3><p>اسحب القسم لإعادة ترتيبه.</p>{sortedSections.map(section=><button key={section.id} type="button" draggable onDragStart={()=>setDragSection(section.id)} onDragOver={dragOver} onDrop={()=>{if(dragSection)reorderSections(dragSection,section.id);setDragSection(null)}} onClick={()=>setSelectedId(section.id)} className={selected.id===section.id?"blockRow active":"blockRow"}><span className="dragHandle" aria-hidden>⠿</span><span>{LABELS[section.slug]||section.slug}</span><small>{section.is_visible?"ظاهر":"مخفي"}</small></button>)}</aside>
+   <section className="builderCanvas"><div className={`sitePreview ${device}`}><div className="previewHeader"><strong>{settings.logo_text||"معين"}</strong><span>الرئيسية　 الخدمات　 تواصل معنا</span><button>طلب خدمة</button></div><div className="previewHero" style={{backgroundColor:settings.background_color||"#f8fafc"}}>{selected.image_url?<img src={selected.image_url} alt=""/>:null}<p>{selected.eyebrow||"قسم الموقع"}</p><h1>{selected.title||"عنوان القسم"}</h1><span>{selected.description||"اكتب وصف القسم من لوحة الخصائص."}</span><button style={{background:settings.primary_color||"#0f172a"}}>طلب الخدمة</button></div>{selected.slug!=="hero"?<div className="previewCards">{selectedItems.slice(0,4).map(i=><article key={i.id}>{i.image_url?<img src={i.image_url} alt=""/>:null}<strong>{i.title}</strong><small>{i.description}</small></article>)}{!selectedItems.length?<span>أضف عناصر لهذا القسم من لوحة الخصائص.</span>:null}</div>:null}</div></section>
+   <aside className="builderPanel properties"><h3>خصائص {LABELS[selected.slug]||selected.slug}</h3><label><input type="checkbox" checked={selected.is_visible} onChange={e=>patchSection({is_visible:e.target.checked})}/> إظهار هذا القسم</label><label>العنوان الفرعي<input value={selected.eyebrow||""} onChange={e=>patchSection({eyebrow:e.target.value})}/></label><label>العنوان<input value={selected.title} onChange={e=>patchSection({title:e.target.value})}/></label><label>الوصف<textarea value={selected.description||""} onChange={e=>patchSection({description:e.target.value})}/></label><ImageUploadField label="صورة القسم" value={selected.image_url} onChange={url=>patchSection({image_url:url})}/><details><summary>العربية والإنجليزية</summary><label>English title<input lang="en" dir="ltr" value={selected.title_en||""} onChange={e=>patchSection({title_en:e.target.value})}/></label><label>English description<textarea lang="en" dir="ltr" value={selected.description_en||""} onChange={e=>patchSection({description_en:e.target.value})}/></label></details><details open><summary>عناصر القسم</summary>{selectedItems.map(item=><div key={item.id} className="builderItem" draggable onDragStart={()=>setDragItem(item.id)} onDragOver={dragOver} onDrop={()=>{if(dragItem)reorderItems(dragItem,item.id);setDragItem(null)}}><span className="dragHandle">⠿</span><label>العنوان<input value={item.title} onChange={e=>patchItem(item.id,{title:e.target.value})}/></label><label>الوصف<textarea value={item.description||""} onChange={e=>patchItem(item.id,{description:e.target.value})}/></label><ImageUploadField label="صورة العنصر" value={item.image_url} onChange={url=>patchItem(item.id,{image_url:url})}/><label>English title<input lang="en" dir="ltr" value={item.title_en||""} onChange={e=>patchItem(item.id,{title_en:e.target.value})}/></label><label>English description<textarea lang="en" dir="ltr" value={item.description_en||""} onChange={e=>patchItem(item.id,{description_en:e.target.value})}/></label><label><input type="checkbox" checked={item.is_visible} onChange={e=>patchItem(item.id,{is_visible:e.target.checked})}/> إظهار</label><button type="button" onClick={()=>removeItem(item.id)}>حذف</button></div>)}{selected.slug!=="hero"?<button className="button secondary compactButton" type="button" onClick={addItem}>＋ إضافة عنصر جديد</button>:null}</details></aside>
+  </div>
+  <section className="builderIdentity"><h3>الهوية العامة</h3><label>اسم العلامة<input value={settings.logo_text||""} onChange={e=>setSettings({...settings,logo_text:e.target.value})}/></label><label>Brand name<input dir="ltr" value={settings.logo_text_en||""} onChange={e=>setSettings({...settings,logo_text_en:e.target.value})}/></label><ImageUploadField label="صورة الشعار" value={settings.logo_image_url||null} onChange={url=>setSettings({...settings,logo_image_url:url||""})}/><label>زر طلب الخدمة<input value={settings.request_cta_text||"اطلب خدمة"} onChange={e=>setSettings({...settings,request_cta_text:e.target.value})}/></label><label>زر تسجيل الدخول<input value={settings.header_cta_text||"تسجيل الدخول"} onChange={e=>setSettings({...settings,header_cta_text:e.target.value})}/></label><label>اللون الأساسي<input type="color" value={settings.primary_color||"#0f172a"} onChange={e=>setSettings({...settings,primary_color:e.target.value})}/></label><label>اللون المساعد<input type="color" value={settings.accent_color||"#14b8a6"} onChange={e=>setSettings({...settings,accent_color:e.target.value})}/></label><label>لون الخلفية<input type="color" value={settings.background_color||"#f8fafc"} onChange={e=>setSettings({...settings,background_color:e.target.value})}/></label></section>
+ </div>
 }

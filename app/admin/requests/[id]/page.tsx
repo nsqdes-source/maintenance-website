@@ -148,7 +148,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
             <div className="detailFields">
               <div><span>نوع الخدمة</span><strong>{request.service_type}</strong></div>
               <div className="detailWide"><span>العنوان</span><strong>{request.address}</strong></div>
-              <div className="detailWide"><span>وصف المشكلة</span><p>{request.problem_description}</p><RequestImages requestId={request.id} /></div>
+              <div className="detailWide"><span>وصف المشكلة</span><p>{request.problem_description}</p><RequestImages requestId={request.id} showDriveSync={profile.role === "admin_manager" || profile.role === "super_admin"} /></div>
             </div>
 
             <h2>الموقع</h2>

@@ -1,60 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-function getSafeNext(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return null;
-  }
-
-  return value;
-}
-
-export async function GET(request: NextRequest) {
-  const code = request.nextUrl.searchParams.get("code");
-  const next = getSafeNext(request.nextUrl.searchParams.get("next"));
-
-  if (!code) {
-    return NextResponse.redirect(
-      new URL("/login?error=confirmation_failed", request.nextUrl.origin)
-    );
-  }
-
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  if (!code) return NextResponse.redirect(new URL("/login?error=oauth", url.origin));
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-  if (error) {
-    console.error("Email confirmation callback failed", {
-      name: error.name,
-      message: error.message,
-      status: error.status,
-      code: error.code,
-    });
-
-    return NextResponse.redirect(
-      new URL("/login?error=confirmation_failed", request.nextUrl.origin)
-    );
-  }
-
-  if (next) {
-    return NextResponse.redirect(new URL(next, request.nextUrl.origin));
-  }
-
+  if (error) return NextResponse.redirect(new URL("/login?error=oauth", url.origin));
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.redirect(new URL("/login?error=confirmation_failed", request.nextUrl.origin));
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const destination = profile?.role === "technician"
-    ? "/technician"
-    : ["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role ?? "")
-      ? "/admin"
-      : "/account";
-
-  return NextResponse.redirect(new URL(destination, request.nextUrl.origin));
+  const { data: profile } = user ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle() : { data: null };
+  const destination = profile?.role === "technician" ? "/technician" : ["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role ?? "") ? "/admin" : "/account";
+  return NextResponse.redirect(new URL(destination, url.origin));
 }

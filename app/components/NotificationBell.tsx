@@ -1,49 +1,84 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Notification = { id: string; title: string; body: string | null; service_request_id: string; read_at: string | null; created_at: string };
+type Role = "customer" | "technician" | "admin";
+
+const STAGES: Record<string, { ar: string; en: string }> = {
+  awaiting_assignment: { ar: "بانتظار الإسناد", en: "Awaiting assignment" },
+  assigned: { ar: "تم إسناد الطلب", en: "Assigned" },
+  technician_accepted: { ar: "قبل الفني الطلب", en: "Technician accepted" },
+  in_progress: { ar: "قيد التنفيذ", en: "In progress" },
+  awaiting_completion_review: { ar: "بانتظار مراجعة الإدارة", en: "Awaiting admin review" },
+  needs_followup: { ar: "بحاجة إلى قطع ومواد أو تعديل", en: "Parts or follow-up needed" },
+  reschedule_requested: { ar: "طلب الفني إعادة جدولة الموعد", en: "Technician requested rescheduling" },
+  unable_to_complete: { ar: "تعذر على الفني إتمام التنفيذ", en: "Technician could not complete the work" },
+  awaiting_admin_quote: { ar: "بانتظار عرض الإصلاح", en: "Awaiting repair quote" },
+  awaiting_customer_approval: { ar: "بانتظار موافقة العميل", en: "Awaiting customer approval" },
+  quote_approved: { ar: "وافق العميل على العرض", en: "Quote approved" },
+  completed: { ar: "تم التنفيذ", en: "Completed" },
+  customer_rejected: { ar: "رفض العميل الإصلاح", en: "Customer declined" },
+  customer_cancelled: { ar: "ألغى العميل الطلب", en: "Customer cancelled" },
+  cancelled: { ar: "ملغي", en: "Cancelled" },
+};
 
 export default function NotificationBell() {
+  const router = useRouter();
   const [items, setItems] = useState<Notification[]>([]);
+  const [role, setRole] = useState<Role>("customer");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [locale, setLocale] = useState<"ar" | "en">("ar");
 
   async function refresh() {
     setLoading(true);
-    const { data } = await createClient().from("notifications")
-      .select("id,title,body,service_request_id,read_at,created_at")
-      .order("created_at", { ascending: false }).limit(20);
-    setItems(data ?? []);
+    const supabase = createClient();
+    const [{ data }, { data: auth }] = await Promise.all([
+      supabase.from("notifications").select("id,title,body,service_request_id,read_at,created_at").order("created_at", { ascending: false }).limit(20),
+      supabase.auth.getUser(),
+    ]);
+    // Keep the newest notification for an identical request/stage pair. Older events remain in the request timeline.
+    const unique = (data ?? []).filter((item, index, rows) => rows.findIndex(candidate => candidate.service_request_id === item.service_request_id && candidate.body === item.body) === index);
+    setItems(unique);
+    if (auth.user) {
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", auth.user.id).maybeSingle();
+      setRole(profile?.role === "technician" ? "technician" : ["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role ?? "") ? "admin" : "customer");
+    }
+    setLocale(document.documentElement.lang === "en" ? "en" : "ar");
     setLoading(false);
   }
 
-  useEffect(() => {
-    let active = true;
-    void createClient().from("notifications").select("id,title,body,service_request_id,read_at,created_at").order("created_at", { ascending: false }).limit(20).then(({ data }) => {
-      if (active) setItems(data ?? []);
-    });
-    return () => { active = false; };
-  }, []);
-  async function markRead(id: string) {
-    const { error } = await createClient().rpc("mark_notification_read", { target_notification_id: id });
-    if (!error) setItems(current => current.map(item => item.id === id ? { ...item, read_at: new Date().toISOString() } : item));
+  useEffect(() => { const timer = window.setTimeout(() => { void refresh(); }, 0); return () => window.clearTimeout(timer); }, []);
+
+  async function openRequest(item: Notification) {
+    if (!item.read_at) {
+      const { error } = await createClient().rpc("mark_notification_read", { target_notification_id: item.id });
+      if (!error) setItems(current => current.map(row => row.id === item.id ? { ...row, read_at: new Date().toISOString() } : row));
+    }
+    setOpen(false);
+    const id = encodeURIComponent(item.service_request_id);
+    router.push(role === "admin" ? `/admin/requests/${id}` : role === "technician" ? `/technician#request-${id}` : `/account#request-${id}`);
   }
+
   const unread = items.filter(item => !item.read_at).length;
-  return <div style={{ position: "relative" }}>
-    <button type="button" aria-label={`الإشعارات، ${unread} غير مقروءة`} aria-expanded={open} title="الإشعارات"
-      onClick={() => { setOpen(value => !value); void refresh(); }}
-      style={{ width: 44, height: 44, border: "1px solid #cbd5e1", borderRadius: "50%", background: "#fff", cursor: "pointer", position: "relative" }}>
-      🔔{unread ? <span style={{ position: "absolute", top: -6, left: -6, background: "#b42318", color: "#fff", borderRadius: 999, minWidth: 19, fontSize: 11 }}>{unread}</span> : null}
+  return <div className="notificationMenu">
+    <button type="button" className="notificationTrigger" aria-label={locale === "ar" ? `الإشعارات، ${unread} غير مقروءة` : `Notifications, ${unread} unread`} aria-expanded={open} title={locale === "ar" ? "الإشعارات" : "Notifications"}
+      onClick={() => { setOpen(value => !value); void refresh(); }}>
+      🔔{unread ? <span className="notificationCount">{unread}</span> : null}
     </button>
-    {open ? <div style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, width: "min(340px, calc(100vw - 32px))", maxHeight: 400, overflowY: "auto", padding: 12, background: "#fff", border: "1px solid #dbe3ee", borderRadius: 14, boxShadow: "0 16px 42px rgba(15,23,42,.18)", zIndex: 1000 }}>
-      <strong>الإشعارات</strong>
-      {loading ? <p>جارٍ التحميل...</p> : !items.length ? <p>لا توجد إشعارات.</p> : items.map(item => <div key={item.id} style={{ padding: "10px 0", borderBottom: "1px solid #e2e8f0" }}>
-        <strong>{item.title}</strong><p style={{ margin: "4px 0" }}>{item.body || ""}</p>
-        <small>{new Date(item.created_at).toLocaleString("ar-SA")}</small>
-        {!item.read_at ? <button type="button" onClick={() => markRead(item.id)} style={{ display: "block", marginTop: 5 }}>تحديد كمقروء</button> : null}
-      </div>)}
+    {open ? <div className="notificationPanel">
+      <strong>{locale === "ar" ? "الإشعارات" : "Notifications"}</strong>
+      {loading ? <p>{locale === "ar" ? "جارٍ التحميل..." : "Loading..."}</p> : !items.length ? <p>{locale === "ar" ? "لا توجد إشعارات." : "No notifications."}</p> : items.map(item => {
+        const stage = item.body && STAGES[item.body];
+        return <button key={item.id} type="button" className={`notificationItem ${item.read_at ? "" : "unread"}`} onClick={() => void openRequest(item)}>
+          <strong>{stage ? (locale === "ar" ? `طلب الصيانة: ${stage.ar}` : `Service request: ${stage.en}`) : item.title}</strong>
+          <span>{stage ? stage[locale] : item.body || ""}</span>
+          <small>{new Date(item.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}</small>
+        </button>;
+      })}
     </div> : null}
   </div>;
 }

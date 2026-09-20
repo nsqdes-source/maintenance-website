@@ -1,38 +1,28 @@
 import Link from "next/link";
-
-export const metadata = { title: "سياسة الخصوصية | خدمات الصيانة العامة" };
-
-export default function PrivacyPage() {
-  return (
-    <main className="innerPage">
-      <div className="container adminContainer privacyPolicy">
-        <Link className="backLink" href="/">← العودة للرئيسية</Link>
-        <p className="eyebrow">مؤسسة أمان للمقاولات</p>
-        <h1>سياسة الخصوصية</h1>
-        <p>توضح هذه الصفحة كيف تتعامل مؤسسة أمان للمقاولات مع بيانات مستخدمي موقع خدمات الصيانة العامة. آخر تحديث: ١٣ سبتمبر ٢٠٢٦.</p>
-
-        <h2>البيانات التي نجمعها</h2>
-        <p>عند إنشاء حساب، نعالج الاسم ورقم الجوال والبريد الإلكتروني وبيانات الدخول اللازمة لإدارة الحساب. عند اختيار الدخول عبر Google، نستقبل معلومات الهوية الأساسية التي يتيحها Google بموافقتك، ومنها البريد الإلكتروني والاسم ومعلومات الملف الشخصي. لا يطلب هذا الدخول الوصول إلى Gmail أو ملفات Google Drive أو جهات الاتصال.</p>
-        <p>عند إرسال طلب صيانة، نجمع بيانات التواصل ونوع الخدمة ووصف المشكلة والمدينة والعنوان وإحداثيات موقع الخدمة، وأي صور ترفقها اختيارًا. وقد نحتفظ بملاحظات متابعة الطلب وعروض التكلفة وحالته. إذا أضفت صورة شخصية إلى حسابك، نخزنها لعرضها داخل الموقع.</p>
-
-        <h2>كيف نستخدم البيانات</h2>
-        <p>نستخدم بيانات الحساب للتحقق من الهوية وإتاحة الوصول إلى الحساب المناسب. ونستخدم بيانات الطلب للتواصل معك، وتحديد موقع الخدمة، وإسناد العمل إلى الفني، وتنفيذ الخدمة، وإبلاغك بالمستجدات. كما نستخدم بيانات التشغيل الضرورية لحماية الموقع وتشخيص الأعطال.</p>
-
-        <h2>من يطّلع عليها والخدمات المستخدمة</h2>
-        <p>يطلع مسؤولو الخدمة والفني المكلف على البيانات اللازمة لمتابعة الطلب وتنفيذه وفق صلاحياتهم. يستخدم الموقع Supabase للمصادقة وقاعدة البيانات وتخزين الصور، وVercel لاستضافة الموقع. يُستخدم Google للدخول عندما تختار ذلك، وتُحمّل خرائط Google عند استعمال خريطة تحديد الموقع. تخضع هذه الخدمات لسياسات الخصوصية الخاصة بها.</p>
-
-        <h2>الموقع والصور</h2>
-        <p>نستخدم الإحداثيات التي تحددها على الخريطة أو تدخلها يدويًا لتحديد موقع الخدمة. إذا اخترت استخدام موقع جهازك الحالي، يطلب المتصفح إذنك أولًا. تُحفظ الصور التي ترفعها مع الطلب أو الحساب لتتاح للأشخاص المخولين بمتابعة الخدمة.</p>
-
-        <h2>مدة الاحتفاظ والحماية</h2>
-        <p>نحتفظ بالبيانات ما دامت لازمة لتشغيل الحساب ومتابعة طلبات الصيانة أو للوفاء بالتزامات نظامية مطبقة. نراجع الحاجة إلى الاحتفاظ بها عند انتهاء الغرض منها أو عند تلقي طلب حذف. نستخدم وسائل للتحكم في الوصول وصلاحيات على البيانات والملفات للحد من الوصول غير المصرح به.</p>
-
-        <h2>خياراتك والتواصل معنا</h2>
-        <p>يمكنك مراجعة بعض بيانات حسابك وتعديلها من صفحة الحساب. لطلب الاطلاع على بياناتك أو تصحيحها أو حذفها، راسلنا على <a href="mailto:y.h.3@live.com">y.h.3@live.com</a>. سنراجع الطلب وفق الالتزامات النظامية والبيانات التي يلزم الاحتفاظ بها. يمكنك أيضًا إلغاء ربط التطبيق بحساب Google من إعدادات حسابك لدى Google؛ وقد يتطلب حذف بيانات الموقع مراسلتنا بشكل مستقل.</p>
-
-        <h2>تحديث السياسة</h2>
-        <p>قد نحدّث هذه السياسة عند تغيير طريقة عمل الموقع أو الخدمات المستخدمة. سننشر النسخة المحدثة هنا مع تاريخ تحديثها.</p>
-      </div>
-    </main>
-  );
+import { getLocale, text } from "@/lib/locale";
+export const metadata = { title: "سياسة الخصوصية | معين لخدمات الصيانة" };
+export default async function PrivacyPage() {
+  const locale = await getLocale();
+  const t = (ar: string, en: string) => text(locale, ar, en);
+  return <main className="innerPage"><div className="container adminContainer privacyPolicy">
+    <Link className="backLink" href="/">{t("← العودة للرئيسية", "← Back to home")}</Link>
+    <p className="eyebrow">{t("معين لخدمات الصيانة", "Mueen Maintenance Services")}</p>
+    <h1>{t("سياسة الخصوصية", "Privacy policy")}</h1>
+    <p>{t("توضح هذه الصفحة كيف تتعامل معين لخدمات الصيانة مع بيانات مستخدمي الموقع. آخر تحديث: ٢٠ سبتمبر ٢٠٢٦.", "This page explains how Mueen Maintenance Services handles website user data. Last updated: 20 September 2026.")}</p>
+    <h2>{t("البيانات التي نجمعها", "Data we collect")}</h2>
+    <p>{t("عند إنشاء حساب، نعالج الاسم ورقم الجوال والبريد الإلكتروني وبيانات الدخول اللازمة لإدارة الحساب. عند اختيار الدخول عبر Google، نستقبل معلومات الهوية الأساسية التي يتيحها Google بموافقتك، ومنها البريد الإلكتروني والاسم ومعلومات الملف الشخصي. لا يطلب تسجيل الدخول وحده الوصول إلى Gmail أو ملفات Google Drive أو جهات الاتصال. ربط Drive للنسخ الاختياري إجراء منفصل لا يتاح إلا لمسؤول الإدارة بعد منحه موافقة مستقلة.", "When you create an account, we process your name, phone number, email address and sign-in data. If you choose Google sign-in, we receive the basic identity information you authorize Google to share, including email, name and profile information. Sign-in alone does not request access to Gmail, Drive files or contacts. Optional Drive backup is a separate action available only to an administrator after separate consent.")}</p>
+    <p>{t("عند إرسال طلب صيانة، نجمع بيانات التواصل ونوع الخدمة ووصف المشكلة والمدينة والعنوان وإحداثيات موقع الخدمة، وأي صور ترفقها اختيارًا. وقد نحتفظ بملاحظات متابعة الطلب وعروض التكلفة وحالته والفواتير الصادرة المرتبطة به. إذا أضفت صورة شخصية إلى حسابك، نخزنها لعرضها داخل الموقع.", "When you submit a maintenance request, we collect contact details, service type, problem description, city, address, location coordinates and any photos you choose to attach. We may also retain service notes, quotes, request status and related issued invoices. If you add a profile photo, we store it for display in your account.")}</p>
+    <h2>{t("كيف نستخدم البيانات", "How we use data")}</h2>
+    <p>{t("نستخدم بيانات الحساب للتحقق من الهوية وإتاحة الوصول إلى الحساب المناسب. ونستخدم بيانات الطلب للتواصل معك، وتحديد موقع الخدمة، وإسناد العمل إلى الفني، وتنفيذ الخدمة، وإبلاغك بالمستجدات. كما نستخدم بيانات التشغيل الضرورية لحماية الموقع وتشخيص الأعطال.", "We use account data to verify identity and provide the appropriate account access. We use request data to contact you, locate the service, assign a technician, perform the work and provide updates. We also use operational data needed to protect and troubleshoot the site.")}</p>
+    <h2>{t("من يطّلع عليها والخدمات المستخدمة", "Access and service providers")}</h2>
+    <p>{t("يطلع مسؤولو الخدمة والفني المكلف على البيانات اللازمة لمتابعة الطلب وتنفيذه وفق صلاحياتهم. يستخدم الموقع Supabase للمصادقة وقاعدة البيانات وتخزين الصور، وVercel لاستضافة الموقع. يُستخدم Google للدخول عندما تختار ذلك، وتُحمّل خرائط Google عند استعمال خريطة تحديد الموقع. نستخدم Resend لإرسال رسائل الحساب والفواتير. يمكن لمسؤول الإدارة نسخ صور الطلبات والفواتير إلى مجلد Google Drive بعد حفظها في Supabase؛ لا تتم هذه المزامنة تلقائيًا، ويتيح تفويض Drive للتطبيق إنشاء الملفات التي يديرها فقط. تخضع هذه الخدمات لسياسات الخصوصية الخاصة بها.", "Authorized managers and the assigned technician can access information needed to handle the request. The site uses Supabase for authentication, database and image storage, and Vercel for hosting. Google is used for sign-in if you choose it, and Google Maps loads when you use the location picker. We use Resend for account and invoice emails. An administrator can optionally copy request photos and invoices to a Google Drive folder after they are saved in Supabase; this does not happen automatically. Drive authorization is limited to files the application creates and manages. These providers have their own privacy policies.")}</p>
+    <h2>{t("الموقع والصور", "Location and photos")}</h2>
+    <p>{t("نستخدم الإحداثيات التي تحددها على الخريطة أو تدخلها يدويًا لتحديد موقع الخدمة. إذا اخترت استخدام موقع جهازك الحالي، يطلب المتصفح إذنك أولًا. تُحفظ الصور التي ترفعها مع الطلب أو الحساب لتتاح للأشخاص المخولين بمتابعة الخدمة.", "We use the coordinates you choose on the map or enter manually to locate the service. If you choose your device's current location, your browser asks for permission first. Photos uploaded with requests or accounts are stored for authorized service staff.")}</p>
+    <h2>{t("مدة الاحتفاظ والحماية", "Retention and security")}</h2>
+    <p>{t("نحتفظ بالبيانات ما دامت لازمة لتشغيل الحساب ومتابعة طلبات الصيانة أو للوفاء بالتزامات نظامية مطبقة. نراجع الحاجة إلى الاحتفاظ بها عند انتهاء الغرض منها أو عند تلقي طلب حذف. نستخدم وسائل للتحكم في الوصول وصلاحيات على البيانات والملفات للحد من الوصول غير المصرح به.", "We retain data for as long as needed to operate accounts, handle maintenance requests or meet applicable legal obligations. We review retention when that need ends or when we receive a deletion request. Access controls and permissions help limit unauthorized access to data and files.")}</p>
+    <h2>{t("خياراتك والتواصل معنا", "Your choices and contact")}</h2>
+    <p>{t("يمكنك مراجعة بعض بيانات حسابك وتعديلها من صفحة الحساب. لطلب الاطلاع على بياناتك أو تصحيحها أو حذفها، راسلنا على", "You can review and edit some account details from your account page. To request access, correction or deletion, email us at")} <a href="mailto:y.h.3@live.com">y.h.3@live.com</a>. {t("سنراجع الطلب وفق الالتزامات النظامية والبيانات التي يلزم الاحتفاظ بها. يمكنك أيضًا إلغاء ربط التطبيق بحساب Google من إعدادات حسابك لدى Google؛ وقد يتطلب حذف بيانات الموقع مراسلتنا بشكل مستقل.", "We will review your request against applicable obligations and records that must be retained. You can also revoke the application's access in your Google Account settings; removing site data may require a separate request to us.")}</p>
+    <h2>{t("تحديث السياسة", "Policy updates")}</h2>
+    <p>{t("قد نحدّث هذه السياسة عند تغيير طريقة عمل الموقع أو الخدمات المستخدمة. سننشر النسخة المحدثة هنا مع تاريخ تحديثها.", "We may update this policy when the site or its service providers change. We will publish the revised version here with its update date.")}</p>
+  </div></main>;
 }
