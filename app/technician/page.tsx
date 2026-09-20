@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AssignmentResponseControl from "./AssignmentResponseControl";
 import VisitOutcomeControl from "./VisitOutcomeControl";
 import TechnicianPhotoUpload from "./TechnicianPhotoUpload";
+import PortalNavigation from "@/app/components/PortalNavigation";
 import RequestImages from "@/app/components/RequestImages";
 import { getLocale, text } from "@/lib/locale";
 import { TECHNICIAN_DASHBOARD_CARDS, dashboardCardStyle, normalizeDashboardCards } from "@/lib/dashboard-display";
@@ -48,7 +49,7 @@ export default async function TechnicianPage() {
   const completed = assignments?.filter(a => a.status === "completed").length ?? 0;
   const declined = assignments?.filter(a => a.status === "rejected").length ?? 0;
 
-  return <main className="adminPage techPortal"><div className="container adminContainer">
+  return <main className="adminPage techPortal"><div className="container adminContainer"><PortalNavigation kind="technician" />
     <div className="adminTopbar"><div><p className="eyebrow">{t("لوحة الفني", "Technician dashboard")}</p><h1>{t("مرحبًا", "Welcome,")} {profile.full_name || user.email}</h1></div></div>
     <div className="grid dashboardDisplayCard" style={dashboardCardStyle(dashboardCards, "summary")}>
       <div className="card"><p className="serviceNumber">{current}</p><h3>{t("الطلبات الحالية", "Current requests")}</h3></div>

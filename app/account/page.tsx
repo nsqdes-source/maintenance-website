@@ -5,6 +5,7 @@ import CustomerRequestActions from "./CustomerRequestActions";
 import CustomerQuoteDecision from "./CustomerQuoteDecision";
 import RequestImages from "@/app/components/RequestImages";
 import WarrantyClaimForm from "./WarrantyClaimForm";
+import PortalNavigation from "@/app/components/PortalNavigation";
 import { getLocale, text } from "@/lib/locale";
 import { CUSTOMER_DASHBOARD_CARDS, dashboardCardStyle, normalizeDashboardCards } from "@/lib/dashboard-display";
 
@@ -58,7 +59,7 @@ export default async function AccountPage() {
   const quoteByRequest = new Map((quotes ?? []).map(quote => [quote.service_request_id, quote]));
   const dashboardCards = normalizeDashboardCards(dashboardDisplay?.customer_cards, CUSTOMER_DASHBOARD_CARDS);
 
-  return <main className="adminPage"><div className="container adminContainer">
+  return <main className="adminPage"><div className="container adminContainer"><PortalNavigation kind="customer" />
     <div className="adminTopbar dashboardDisplayCard" style={dashboardCardStyle(dashboardCards, "new_request")}>
       <div><p className="eyebrow">{t("حساب المستخدم", "User account")}</p><h1>{t("مرحبًا", "Welcome,")} {profile?.full_name || user.email}</h1></div>
       <Link href="/request" className="button button-primary">{t("إنشاء طلب", "New request")}</Link>
