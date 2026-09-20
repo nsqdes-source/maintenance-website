@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const STAGES: Record<string, string> = {
   awaiting_assignment: "بانتظار الإسناد", assigned: "تم الإسناد",
-  technician_accepted: "تم قبول الإسناد — جارٍ تأكيد الموعد", in_progress: "قيد التنفيذ",
+  technician_accepted: "جاري تأكيد الموعد", in_progress: "قيد التنفيذ",
   awaiting_completion_review: "بانتظار مراجعة الإدارة", reschedule_requested: "طلب إعادة جدولة", unable_to_complete: "تعذر التنفيذ",
   completed: "تم التنفيذ", needs_followup: "بحاجة إلى متابعة",
   awaiting_admin_quote: "بانتظار عرض الإصلاح",
@@ -25,7 +25,7 @@ const ASSIGNMENTS: Record<string, string> = {
   rejected: "مرفوض", cancelled: "ملغي",
 };
 
-const STAGES_EN: Record<string, string> = { awaiting_assignment: "Awaiting assignment", assigned: "Assigned", technician_accepted: "Assignment accepted — appointment being confirmed", in_progress: "In progress", awaiting_completion_review: "Awaiting admin review", reschedule_requested: "Rescheduling requested", unable_to_complete: "Unable to complete", completed: "Completed", needs_followup: "Parts or follow-up needed", awaiting_admin_quote: "Awaiting quote", awaiting_customer_approval: "Awaiting customer approval", quote_approved: "Quote approved", customer_rejected: "Customer declined", customer_cancelled: "Customer cancelled", cancelled: "Cancelled" };
+const STAGES_EN: Record<string, string> = { awaiting_assignment: "Awaiting assignment", assigned: "Assigned", technician_accepted: "Confirming appointment", in_progress: "In progress", awaiting_completion_review: "Awaiting admin review", reschedule_requested: "Rescheduling requested", unable_to_complete: "Unable to complete", completed: "Completed", needs_followup: "Parts needed", awaiting_admin_quote: "Awaiting quote", awaiting_customer_approval: "Awaiting approval", quote_approved: "Quote approved", customer_rejected: "Customer declined", customer_cancelled: "Cancelled by customer", cancelled: "Cancelled" };
 const ASSIGNMENTS_EN: Record<string, string> = { pending: "Awaiting response", accepted: "Accepted", completed: "Completed", rejected: "Declined", cancelled: "Cancelled" };
 export default async function TechnicianPage() {
   const locale = await getLocale();
