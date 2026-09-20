@@ -14,8 +14,6 @@ export default function FinanceDashboard({ initialSettings, initialInvoices, req
   const router = useRouter();
   const [settings, setSettings] = useState(initialSettings);
   const [requestId, setRequestId] = useState("");
-  const [description, setDescription] = useState("");
-  const [subtotal, setSubtotal] = useState("");
   const [busy, setBusy] = useState(false);
   const [paymentInvoiceId, setPaymentInvoiceId] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -44,18 +42,12 @@ export default function FinanceDashboard({ initialSettings, initialInvoices, req
     setBusy(false); setMessage(error ? `تعذر حفظ المعلومات: ${error.message}` : "حُفظت معلومات المنشأة.");
   }
   async function createInvoice() {
-    if (!requestId || !description.trim() || !subtotal || Number(subtotal) < 0) { setMessage("اختر طلبًا واكتب الوصف والمبلغ."); return; }
+    if (!requestId) { setMessage("اختر طلبًا مكتملًا لإنشاء مسودة الفاتورة."); return; }
     setBusy(true); setMessage("");
-    const { error } = await createClient().rpc("finance_create_invoice", { p_request_id: requestId, p_description: description, p_subtotal: Number(subtotal) });
+    const { data, error } = await createClient().rpc("finance_ensure_invoice_draft", { p_request_id: requestId });
     setBusy(false);
     if (error) setMessage(`تعذر إنشاء الفاتورة: ${error.message}`);
-    else { setMessage("أُنشئت مسودة الفاتورة. راجعها قبل إصدارها."); setRequestId(""); setDescription(""); setSubtotal(""); router.refresh(); }
-  }
-  async function issueInvoice(id: string) {
-    setBusy(true); setMessage("");
-    const { error } = await createClient().rpc("finance_set_invoice_status", { p_invoice_id: id, p_status: "issued" });
-    setBusy(false); setMessage(error ? `تعذر الإصدار: ${error.message}` : "أُصدرت الفاتورة. يمكنك إرسالها بالبريد الآن.");
-    if (!error) router.refresh();
+    else if (data) router.push(`/admin/finance/invoices/${data}`);
   }
   async function voidInvoice(id: string) {
     if (!window.confirm("إلغاء الفاتورة؟ لا يمكن إلغاء فاتورة عليها مبالغ تحصيل غير ملغاة.")) return;
@@ -100,11 +92,9 @@ export default function FinanceDashboard({ initialSettings, initialInvoices, req
         <label>نسبة الضريبة %<input type="number" min="0" max="100" step="0.01" value={settings.tax_rate} disabled={!settings.vat_registered} onChange={e => setSettings({ ...settings, tax_rate: Number(e.target.value) })} /></label>
       </div><button className="button primary" type="button" disabled={busy} onClick={saveSettings}>حفظ معلومات المنشأة</button>
     </section>
-    <section className="card financePanel"><h2>فاتورة جديدة</h2><p>تتوفر الطلبات المكتملة فقط. تُحفظ الفاتورة أولًا كمسودة.</p>
-      <div className="financeGrid"><label>الطلب<select value={requestId} onChange={e => setRequestId(e.target.value)}><option value="">اختر طلبًا</option>{requests.map(r => <option key={r.id} value={r.id}>{r.customer_name} · {r.service_type} · {r.id.slice(0, 8)}</option>)}</select></label>
-      <label>وصف الخدمة<input value={description} onChange={e => setDescription(e.target.value)} /></label>
-      <label>المبلغ قبل الضريبة (ر.س)<input type="number" min="0" step="0.01" value={subtotal} onChange={e => setSubtotal(e.target.value)} /></label></div>
-      <button className="button primary" type="button" disabled={busy} onClick={createInvoice}>إنشاء مسودة</button>
+    <section className="card financePanel"><h2>مسودة من طلب مكتمل</h2><p>ينشئ النظام مسودة تلقائيًا عند اعتماد اكتمال الطلب. استخدم هذا الخيار للطلبات المكتملة سابقًا أو لفتح مسودتها للمراجعة.</p>
+      <div className="financeGrid"><label>الطلب<select value={requestId} onChange={e => setRequestId(e.target.value)}><option value="">اختر طلبًا</option>{requests.map(r => <option key={r.id} value={r.id}>{r.customer_name} · {r.service_type} · {r.id.slice(0, 8)}</option>)}</select></label></div>
+      <button className="button primary" type="button" disabled={busy} onClick={createInvoice}>فتح مسودة الفاتورة</button>
     </section>
     <section className="card financePanel"><h2>تسجيل تحصيل</h2><p>سجل المبالغ التي استلمتها المؤسسة فعلًا. لا يمكن تجاوز رصيد الفاتورة.</p>
       <div className="financeGrid"><label>الفاتورة<select value={paymentInvoiceId} onChange={e => setPaymentInvoiceId(e.target.value)}><option value="">اختر فاتورة صادرة</option>{issued.filter(i => Number(i.total) > (paidByInvoice.get(i.id) ?? 0)).map(i => <option key={i.id} value={i.id}>#{i.invoice_number} · {i.customer_name} · متبقي {money(Number(i.total) - (paidByInvoice.get(i.id) ?? 0))}</option>)}</select></label>
@@ -113,6 +103,6 @@ export default function FinanceDashboard({ initialSettings, initialInvoices, req
       <label>مرجع أو ملاحظة<input value={paymentNote} onChange={e => setPaymentNote(e.target.value)} /></label></div><button type="button" className="button primary" disabled={busy} onClick={recordPayment}>تسجيل التحصيل</button>
     </section>
     <section className="card financePanel"><h2>سجل الإيرادات المحصّلة</h2>{initialPayments.length ? <div className="financeTableWrap"><table className="financeTable"><thead><tr><th>الفاتورة</th><th>المبلغ</th><th>الطريقة</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>{initialPayments.map(p => <tr key={p.id}><td>#{initialInvoices.find(i => i.id === p.invoice_id)?.invoice_number ?? "—"}</td><td>{money(p.amount)}</td><td>{({ bank_transfer: "تحويل", cash: "نقدًا", card: "بطاقة", other: "أخرى" } as Record<string,string>)[p.method] || p.method}</td><td>{new Date(p.paid_at).toLocaleDateString("ar-SA")}</td><td>{p.voided_at ? "ملغي" : <button disabled={busy} onClick={() => voidPayment(p.id)}>إلغاء القيد</button>}</td></tr>)}</tbody></table></div> : <p>لا توجد مبالغ محصّلة بعد.</p>}</section>
-    <section className="card financePanel"><h2>الفواتير</h2><p>المسودات الضريبية للمراجعة فقط، ولا تُصدر أو تُرسل حتى تكتمل متطلبات الفوترة الإلكترونية. عند عدم التسجيل الضريبي، يمكن إصدار مستند غير ضريبي.</p>{initialInvoices.length ? <div className="financeTableWrap"><table className="financeTable"><thead><tr><th>الرقم</th><th>العميل</th><th>المبلغ</th><th>الحالة</th><th>الدفع</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>{initialInvoices.map(i => <tr key={i.id}><td><Link href={`/admin/finance/invoices/${i.id}`}>#{i.invoice_number}</Link></td><td>{i.customer_name}<small>{i.customer_email}</small></td><td>{money(i.total)}<small>المتبقي: {money(Math.max(0, Number(i.total) - (paidByInvoice.get(i.id) ?? 0)))}</small></td><td>{i.status === "issued" ? "صادرة" : i.status === "void" ? "ملغاة" : "مسودة"}</td><td>{paymentLabel(i)}</td><td>{new Date(i.created_at).toLocaleDateString("ar-SA")}</td><td>{i.status === "draft" ? <><button disabled={busy || settings.vat_registered !== false} onClick={() => issueInvoice(i.id)}>إصدار مستند غير ضريبي</button><button disabled={busy} onClick={() => voidInvoice(i.id)}>إلغاء</button></> : i.status === "issued" ? <><button disabled={busy} onClick={() => emailInvoice(i.id)}>{i.emailed_at ? "إعادة إرسال" : "إرسال بالبريد"}</button><button disabled={busy} onClick={() => voidInvoice(i.id)}>إلغاء</button></> : null}{i.status === "issued" && driveConnected ? <DriveSyncButton type="invoice" id={i.id} synced={syncedInvoiceIds.includes(i.id)} /> : null}</td></tr>)}</tbody></table></div> : <p>لا توجد فواتير بعد.</p>}</section>
+    <section className="card financePanel"><h2>الفواتير</h2><p>تُراجع المسودة أولًا: العمل المنجز وبنود الأسعار، ثم تعتمد للإصدار. لا تُرسل فاتورة قبل إصدارها.</p>{initialInvoices.length ? <div className="financeTableWrap"><table className="financeTable"><thead><tr><th>الرقم</th><th>العميل</th><th>المبلغ</th><th>الحالة</th><th>الدفع</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>{initialInvoices.map(i => <tr key={i.id}><td><Link href={`/admin/finance/invoices/${i.id}`}>#{i.invoice_number}</Link></td><td>{i.customer_name}<small>{i.customer_email}</small></td><td>{money(i.total)}<small>المتبقي: {money(Math.max(0, Number(i.total) - (paidByInvoice.get(i.id) ?? 0)))}</small></td><td>{i.status === "issued" ? "صادرة" : i.status === "void" ? "ملغاة" : "مسودة"}</td><td>{paymentLabel(i)}</td><td>{new Date(i.created_at).toLocaleDateString("ar-SA")}</td><td>{i.status === "draft" ? <><Link className="button secondary compactButton" href={`/admin/finance/invoices/${i.id}`}>مراجعة المسودة</Link><button disabled={busy} onClick={() => voidInvoice(i.id)}>إلغاء</button></> : i.status === "issued" ? <><button disabled={busy} onClick={() => emailInvoice(i.id)}>{i.emailed_at ? "إعادة إرسال" : "إرسال بالبريد"}</button><button disabled={busy} onClick={() => voidInvoice(i.id)}>إلغاء</button></> : null}{i.status === "issued" && driveConnected ? <DriveSyncButton type="invoice" id={i.id} synced={syncedInvoiceIds.includes(i.id)} /> : null}</td></tr>)}</tbody></table></div> : <p>لا توجد فواتير بعد.</p>}</section>
   </>;
 }
