@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary", title: "معين لخدمات الصيانة في مكة", description: "صيانة موثوقة، موعد واضح، وسعر عادل." },
 };
 
-function SiteHeader({ logoText, logoImage, ctaText, requestCtaText, locale }: { logoText: string; logoImage: string; ctaText: string; requestCtaText: string; locale: Locale }) {
+function SiteHeader({ logoText, logoImage, ctaText, requestCtaText, showRequestCta, locale }: { logoText: string; logoImage: string; ctaText: string; requestCtaText: string; showRequestCta: boolean; locale: Locale }) {
   return (
     <header className="header">
       <div className="container nav">
@@ -44,7 +44,7 @@ function SiteHeader({ logoText, logoImage, ctaText, requestCtaText, locale }: { 
           <Link href="/#contact">{text(locale, "تواصل معنا", "Contact")}</Link>
         </nav>
         <LanguageSwitcher />
-        <div className="headerActions"><Link className="button primary navCta" href="/request">{requestCtaText}</Link><HeaderAccountControl ctaText={ctaText} /></div>
+        <div className="headerActions">{showRequestCta ? <Link className="button primary navCta" href="/request">{requestCtaText}</Link> : null}<HeaderAccountControl ctaText={ctaText} /></div>
       </div>
     </header>
   );
@@ -76,7 +76,7 @@ export default async function RootLayout({
         {gaMeasurementId ? <><Script src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} strategy="afterInteractive" /><Script id="google-analytics" strategy="afterInteractive">{`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} window.gtag = gtag; gtag('js', new Date()); gtag('config', '${gaMeasurementId}', { send_page_view: true });`}</Script></> : null}
         <AnalyticsBootstrap />
         <LocaleProvider locale={locale}>
-          <SiteHeader logoText={locale === "en" ? theme.logo_text_en || theme.logo_text || "Mueen" : theme.logo_text || "معين"} logoImage={theme.logo_image_url || "/mueen-logo.png"} ctaText={locale === "en" ? theme.header_cta_text_en || "Sign in" : theme.header_cta_text || "تسجيل الدخول"} requestCtaText={locale === "en" ? theme.request_cta_text_en || "Request service" : theme.request_cta_text || "اطلب خدمة"} locale={locale} />
+          <SiteHeader logoText={locale === "en" ? theme.logo_text_en || theme.logo_text || "Mueen" : theme.logo_text || "معين"} logoImage={theme.logo_image_url || "/mueen-logo.png"} ctaText={locale === "en" ? theme.header_cta_text_en || "Sign in" : theme.header_cta_text || "تسجيل الدخول"} requestCtaText={locale === "en" ? theme.request_cta_text_en || "Request service" : theme.request_cta_text || "اطلب خدمة"} showRequestCta={theme.header_request_cta_visible !== "false"} locale={locale} />
           {children}
         </LocaleProvider>
       </body>
