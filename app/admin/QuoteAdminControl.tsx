@@ -14,8 +14,10 @@ export default function QuoteAdminControl({ requestId, stage, archived }: { requ
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [services,setServices]=useState<CatalogService[]>([]); const [catalogParts,setCatalogParts]=useState<CatalogPart[]>([]); const [serviceId,setServiceId]=useState(""); const [partId,setPartId]=useState("");
+  const [selectedPartIds,setSelectedPartIds]=useState<string[]>([]); const [otherPart,setOtherPart]=useState(""); const [otherPrice,setOtherPrice]=useState("0");
   useEffect(()=>{const db=createClient();Promise.all([db.from("service_catalog_items").select("id,name").is("parent_id",null).eq("is_visible",true).order("sort_order"),db.from("service_catalog_parts").select("id,service_catalog_item_id,name,default_price").eq("is_active",true).order("sort_order")]).then(([a,b])=>{setServices(a.data??[]);setCatalogParts(b.data??[])});},[]);
   function choosePart(value:string){setPartId(value);const part=catalogParts.find(x=>x.id===value);if(part){setParts(part.name);setPartsCost(String(part.default_price));}}
+  function chooseParts(values:string[]){setSelectedPartIds(values);const picked=catalogParts.filter(part=>values.includes(part.id));setParts([...picked.map(part=>part.name),otherPart.trim()].filter(Boolean).join("، "));setPartsCost(String(picked.reduce((sum,part)=>sum+Number(part.default_price),0)+(Number(otherPrice)||0)));}
 
   async function submitQuote() {
     setBusy(true);
@@ -49,7 +51,9 @@ export default function QuoteAdminControl({ requestId, stage, archived }: { requ
     {stage === "awaiting_admin_quote" ? <>
       <label>وصف الإصلاح<input value={description} onChange={e => setDescription(e.target.value)} /></label>
       <label>نوع الخدمة<select value={serviceId} onChange={e=>{setServiceId(e.target.value);setPartId("");}}><option value="">اختر الخدمة</option>{services.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <label>القطعة الشائعة<select value={partId} onChange={e=>choosePart(e.target.value)} disabled={!serviceId}><option value="">اختر قطعة أو اكتبها يدويًا</option>{catalogParts.filter(item=>item.service_catalog_item_id===serviceId).map(item=><option key={item.id} value={item.id}>{item.name} — {item.default_price} ر.س</option>)}</select></label>
+      <label>القطع الشائعة<select multiple value={selectedPartIds} onChange={e=>chooseParts(Array.from(e.target.selectedOptions).map(option=>option.value))} disabled={!serviceId}>{catalogParts.filter(item=>item.service_catalog_item_id===serviceId).map(item=><option key={item.id} value={item.id}>{item.name} — {item.default_price} ر.س</option>)}</select><small>يمكن اختيار أكثر من قطعة.</small></label>
+      <label>أخرى (اختياري)<input value={otherPart} placeholder="اسم قطعة غير موجودة" onChange={e=>{setOtherPart(e.target.value);chooseParts(selectedPartIds)}} /></label>
+      {otherPart.trim()?<label>سعر القطعة الأخرى<input type="number" min="0" step="0.01" value={otherPrice} onChange={e=>{setOtherPrice(e.target.value);chooseParts(selectedPartIds)}} /></label>:null}
       <label>القطع أو التعديلات<input value={parts} onChange={e => setParts(e.target.value)} /></label>
       <label>تكلفة القطع<input type="number" min="0" step="0.01" value={partsCost} onChange={e => setPartsCost(e.target.value)} /></label>
       <label>تكلفة العمل<input type="number" min="0" step="0.01" value={laborCost} onChange={e => setLaborCost(e.target.value)} /></label>
