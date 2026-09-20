@@ -9,7 +9,7 @@ export default async function SiteEditorPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!["maintenance_manager", "admin_manager", "super_admin"].includes(profile?.role || "")) redirect("/account");
+  if (profile?.role !== "super_admin") redirect("/admin");
   const [settings, sections, items] = await Promise.all([
     supabase.from("site_settings").select("key,value"),
     supabase.from("site_sections").select("id,slug,eyebrow,eyebrow_en,title,title_en,description,description_en,image_url,sort_order,is_visible,style_config").order("sort_order"),

@@ -13,7 +13,6 @@ const links = [
   { href: "/admin/technicians", label: "الفنيون" },
   { href: "/admin/users", label: "المستخدمون" },
   { href: "/admin/catalog", label: "الخدمات والأسعار" },
-  { href: "/admin/site", label: "محرر الموقع" },
   { href: "/admin/dashboard", label: "عرض اللوحات" },
 ];
 
@@ -42,6 +41,7 @@ export default function AdminNavigation({ children }: { children: React.ReactNod
 
   if (pathname === "/admin/login") return <>{children}</>;
   const canViewFinance = profile?.role === "admin_manager" || profile?.role === "super_admin";
+  const canEditSite = profile?.role === "super_admin";
 
   return <>
     <style>{`.header { display: none; }`}</style>
@@ -51,6 +51,7 @@ export default function AdminNavigation({ children }: { children: React.ReactNod
       <div className="adminOpsUser"><small>مساحتك في معين</small><strong>{profile?.full_name || "الإدارة"}</strong><span>{profile?.role === "super_admin" ? "مسؤول النظام" : "إدارة التشغيل"}</span></div>
       <nav aria-label="تنقل الإدارة">
         {links.map((link) => <Link key={link.href} className={isActive(pathname, link.href, link.exact) ? "active" : ""} href={link.href}>{link.label}</Link>)}
+        {canEditSite ? <Link className={isActive(pathname, "/admin/site") ? "active" : ""} href="/admin/site">محرر الموقع</Link> : null}
         {canViewFinance ? <Link className={isActive(pathname, "/admin/finance") ? "active" : ""} href="/admin/finance">المالية</Link> : null}
       </nav>
       <div className="adminOpsActions"><Link className="adminOpsNew" href="/request">＋ طلب جديد</Link><button className="adminOpsSignOut" type="button" disabled={signingOut} onClick={async () => { setSigningOut(true); await createClient().auth.signOut(); window.location.href = "/"; }}>{signingOut ? "جارٍ تسجيل الخروج..." : "تسجيل الخروج"}</button></div>
