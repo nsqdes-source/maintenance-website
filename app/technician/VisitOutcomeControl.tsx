@@ -20,6 +20,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   accepted_assignment_not_found: "لا يمكن تسجيل النتيجة لأن الطلب غير مسند إليك بإسناد مقبول.",
   request_already_closed: "لا يمكن تسجيل النتيجة لأن الطلب مغلق بالفعل.",
   invalid_visit_outcome: "نتيجة الزيارة غير صحيحة.",
+  arrival_photo_required: "أرفق صورة واحدة على الأقل عند الزيارة الأولى قبل تسجيل النتيجة.",
+  completion_photo_required: "أرفق صورة واحدة على الأقل بعد التنفيذ قبل تسجيل تم التنفيذ.",
 };
 
 export default function VisitOutcomeControl({ requestId }: Props) {

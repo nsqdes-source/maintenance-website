@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AssignmentResponseControl from "./AssignmentResponseControl";
 import VisitOutcomeControl from "./VisitOutcomeControl";
+import TechnicianPhotoUpload from "./TechnicianPhotoUpload";
 import RequestImages from "@/app/components/RequestImages";
 import { getLocale, text } from "@/lib/locale";
 import { TECHNICIAN_DASHBOARD_CARDS, dashboardCardStyle, normalizeDashboardCards } from "@/lib/dashboard-display";
@@ -70,7 +71,7 @@ export default async function TechnicianPage() {
             <td><span>{request?.city || "—"}، {request?.address || "—"}</span><small><a href={`tel:${request?.phone || ""}`}>{request?.phone || "—"}</a></small>{mapUrl ? <small><a href={mapUrl} target="_blank" rel="noreferrer">{t("فتح Google Maps", "Open Google Maps")}</a></small> : null}</td>
             <td><span className={`statusBadge status-${stage}`}>{(locale === "ar" ? STAGES : STAGES_EN)[stage] || stage}</span>{request?.visit_notes ? <small>{request.visit_notes}</small> : null}</td>
             <td><span className={`statusBadge assignment-${assignment.status}`}>{(locale === "ar" ? ASSIGNMENTS : ASSIGNMENTS_EN)[assignment.status] || assignment.status}</span>{assignment.notes ? <small>{assignment.notes}</small> : null}</td>
-            <td>{assignment.status === "pending" ? <AssignmentResponseControl assignmentId={assignment.id} /> : canRecord ? <VisitOutcomeControl requestId={assignment.service_request_id} /> : "—"}</td>
+            <td>{assignment.status === "pending" ? <AssignmentResponseControl assignmentId={assignment.id} /> : canRecord ? <><TechnicianPhotoUpload requestId={assignment.service_request_id} technicianId={technician.id} /><VisitOutcomeControl requestId={assignment.service_request_id} /></> : "—"}</td>
             <td>{new Date(assignment.assigned_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}</td>
           </tr>;
         })}
