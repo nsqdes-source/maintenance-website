@@ -8,6 +8,7 @@ import "./globals.css";
 import "./admin/admin.css";
 import HeaderAccountControl from "./components/HeaderAccountControl";
 import AnalyticsBootstrap from "./components/AnalyticsBootstrap";
+import MobileHeaderMenu from "./components/MobileHeaderMenu";
 import { createClient } from "@/lib/supabase/server";
 
 const tajawal = Tajawal({
@@ -43,8 +44,9 @@ function SiteHeader({ logoText, logoImage, ctaText, requestCtaText, showRequestC
           <Link href="/#faq">{text(locale, "الأسئلة الشائعة", "FAQ")}</Link>
           <Link href="/#contact">{text(locale, "تواصل معنا", "Contact")}</Link>
         </nav>
-        <LanguageSwitcher />
-        <div className="headerActions">{showRequestCta ? <Link className="button primary navCta" href="/request">{requestCtaText}</Link> : null}<HeaderAccountControl ctaText={ctaText} /></div>
+        <div className="desktopLanguage"><LanguageSwitcher /></div>
+        <div className="headerActions">{showRequestCta ? <Link className="button primary navCta requestHeaderCta" href="/request">{requestCtaText}</Link> : null}<HeaderAccountControl ctaText={ctaText} /></div>
+        <MobileHeaderMenu locale={locale} />
       </div>
     </header>
   );

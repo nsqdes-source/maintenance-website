@@ -34,12 +34,18 @@ export default function TechnicianPhotoUpload({ requestId, technicianId }: { req
     const supabase = createClient();
     for (const file of selected) {
       const path = `${requestId}/${technicianId}/${stage}/${crypto.randomUUID()}.${extension(file)}`;
-      const { error: uploadError } = await supabase.storage.from("request-images").upload(path, file, { contentType: file.type, upsert: false });
+      const storage = supabase.storage.from("request-images");
+      const { error: uploadError } = await storage.upload(path, file, { contentType: file.type, upsert: false });
       if (uploadError) { setError("تعذر رفع الصورة. حاول مرة أخرى."); setBusyStage(null); return; }
       const { error: attachError } = await supabase.rpc("technician_attach_service_request_image", {
         target_request_id: requestId, target_stage: stage, target_storage_path: path, target_content_type: file.type,
       });
-      if (attachError) { setError("رُفعت الصورة لكن تعذر ربطها بالطلب."); setBusyStage(null); return; }
+      if (attachError) {
+        console.error("Technician image attachment failed", { requestId, stage, path, attachError });
+        await storage.remove([path]);
+        const reason = attachError.message.includes("accepted_assignment_not_found") ? "تأكد أن الطلب قيد التنفيذ وأن الإسناد ما زال مقبولًا." : attachError.message.includes("attachment_limit_reached") ? "وصلت إلى الحد الأقصى للصور في هذه المرحلة." : "حاول تحديث الصفحة ثم إعادة الرفع.";
+        setError(`تعذر ربط الصورة بالطلب. ${reason}`); setBusyStage(null); return;
+      }
     }
     setBusyStage(null); setMessage("تم حفظ الصور في ملف الطلب."); router.refresh();
   }

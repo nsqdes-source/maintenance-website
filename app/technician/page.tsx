@@ -7,6 +7,7 @@ import PortalNavigation from "@/app/components/PortalNavigation";
 import RequestImages from "@/app/components/RequestImages";
 import { getLocale, text } from "@/lib/locale";
 import { TECHNICIAN_DASHBOARD_CARDS, dashboardCardStyle, normalizeDashboardCards } from "@/lib/dashboard-display";
+import { requestReference } from "@/lib/request-reference";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,7 @@ export default async function TechnicianPage() {
           const mapUrl = coordinates ? `https://www.google.com/maps/search/?api=1&query=${request.latitude},${request.longitude}` : null;
           const canRecord = assignment.status === "accepted" && stage === "in_progress";
           return <tr id={`request-${assignment.service_request_id}`} key={assignment.id}>
-            <td><strong>{request?.service_type || "طلب صيانة"}</strong><small>{request?.customer_name || "—"}</small><small>{request?.problem_description || "—"}</small><RequestImages requestId={assignment.service_request_id} /></td>
+            <td><strong>{request?.service_type || "طلب صيانة"}</strong><small dir="ltr">{requestReference(assignment.service_request_id)}</small><small>{request?.customer_name || "—"}</small><small>{request?.problem_description || "—"}</small><RequestImages requestId={assignment.service_request_id} /></td>
             <td><span>{request?.city || "—"}، {request?.address || "—"}</span><small><a href={`tel:${request?.phone || ""}`}>{request?.phone || "—"}</a></small>{mapUrl ? <small><a href={mapUrl} target="_blank" rel="noreferrer">{t("فتح Google Maps", "Open Google Maps")}</a></small> : null}</td>
             <td><span className={`statusBadge status-${stage}`}>{(locale === "ar" ? STAGES : STAGES_EN)[stage] || stage}</span>{request?.visit_notes ? <small>{request.visit_notes}</small> : null}</td>
             <td><span className={`statusBadge assignment-${assignment.status}`}>{(locale === "ar" ? ASSIGNMENTS : ASSIGNMENTS_EN)[assignment.status] || assignment.status}</span>{assignment.notes ? <small>{assignment.notes}</small> : null}</td>

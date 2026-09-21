@@ -38,7 +38,18 @@ export default function InvoiceDraftEditor({ invoiceId, status, initialWorkSumma
     if (issue) {
       const { error: issueError } = await supabase.rpc("finance_set_invoice_status", { p_invoice_id: invoiceId, p_status: "issued" });
       setBusy(false);
-      if (issueError) { setMessage("حُفظت المسودة، لكن تعذر الإصدار. راجع إعدادات المنشأة وحالة الفاتورة."); return; }
+      if (issueError) {
+        console.error("Invoice issue failed", issueError);
+        const details = issueError.message.includes("tax_invoicing_integration_required")
+          ? "المنشأة محددة كمسجلة في ضريبة القيمة المضافة، والإصدار الضريبي الإلكتروني غير مفعّل بعد. بقيت الفاتورة مسودة لحمايتك من إصدار مستند غير متوافق."
+          : issueError.message.includes("invoice_lines_required")
+            ? "أضف بندًا واحدًا على الأقل قبل الإصدار."
+            : issueError.message.includes("invoice_not_draft")
+              ? "هذه الفاتورة لم تعد مسودة قابلة للإصدار. حدّث الصفحة لمراجعة حالتها."
+              : "راجع بيانات المنشأة وحالة الفاتورة ثم حاول مجددًا.";
+        setMessage(`حُفظت المسودة، لكن تعذر الإصدار. ${details}`);
+        return;
+      }
       setMessage("أُصدرت الفاتورة. يمكنك طباعتها أو إرسالها من صفحة المالية.");
     } else {
       setBusy(false); setMessage("حُفظت المسودة.");

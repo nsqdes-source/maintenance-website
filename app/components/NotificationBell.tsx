@@ -63,6 +63,11 @@ export default function NotificationBell() {
     router.push(role === "admin" ? `/admin/requests/${id}` : role === "technician" ? `/technician#request-${id}` : `/account#request-${id}`);
   }
 
+  async function markAllRead() {
+    const { error } = await createClient().rpc("mark_all_notifications_read");
+    if (!error) setItems(current => current.map(item => ({ ...item, read_at: item.read_at || new Date().toISOString() })));
+  }
+
   const unread = items.filter(item => !item.read_at).length;
   return <div className="notificationMenu">
     <button type="button" className="notificationTrigger" aria-label={locale === "ar" ? `الإشعارات، ${unread} غير مقروءة` : `Notifications, ${unread} unread`} aria-expanded={open} title={locale === "ar" ? "الإشعارات" : "Notifications"}
@@ -70,7 +75,7 @@ export default function NotificationBell() {
       🔔{unread ? <span className="notificationCount">{unread}</span> : null}
     </button>
     {open ? <div className="notificationPanel">
-      <strong>{locale === "ar" ? "الإشعارات" : "Notifications"}</strong>
+      <div className="notificationPanelHeader"><strong>{locale === "ar" ? "الإشعارات" : "Notifications"}</strong>{unread ? <button type="button" onClick={() => void markAllRead()}>{locale === "ar" ? "تعيين الكل كمقروء" : "Mark all as read"}</button> : null}</div>
       {loading ? <p>{locale === "ar" ? "جارٍ التحميل..." : "Loading..."}</p> : !items.length ? <p>{locale === "ar" ? "لا توجد إشعارات." : "No notifications."}</p> : items.map(item => {
         const stage = item.body && STAGES[item.body];
         return <button key={item.id} type="button" className={`notificationItem ${item.read_at ? "" : "unread"}`} onClick={() => void openRequest(item)}>

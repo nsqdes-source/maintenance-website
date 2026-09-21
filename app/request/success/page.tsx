@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, text } from "@/lib/locale";
+import { requestReference } from "@/lib/request-reference";
 
 export const metadata: Metadata = {
   title: "تم استلام الطلب | معين لخدمات الصيانة",
@@ -20,7 +21,7 @@ export default async function RequestSuccessPage({ searchParams }: { searchParam
     <p className="eyebrow">{t("تم استلام طلبك", "Request received")}</p>
     <h1>{t("شكرًا، طلبك الآن لدى فريق معين", "Thank you, your request is now with Mueen")}</h1>
     <p>{t("سنراجع التفاصيل ونتواصل معك لتأكيد الخدمة والموعد المبدئي.", "We will review the details and contact you to confirm the service and preliminary schedule.")}</p>
-    {requestId ? <div className="requestIdBox"><span>{t("رقم الطلب", "Request ID")}</span><strong dir="ltr">{requestId}</strong></div> : null}
+    {requestId ? <div className="requestIdBox"><span>{t("رقم الطلب", "Request ID")}</span><strong dir="ltr">{requestReference(requestId)}</strong><small>{t("احتفظ بهذا الرقم للرجوع إلى طلبك.", "Keep this number for future reference.")}</small></div> : null}
     {partialUpload ? <div className="form-notice" role="status">{t("تم إنشاء الطلب بنجاح. تعذر إرفاق صورة أو أكثر، ويمكنك إرسالها للفريق عند التواصل معك.", "Your request was created successfully. One or more images could not be attached; you can send them to our team when they contact you.")}</div> : null}
     <ol className="successJourney">
       <li><span>1</span><strong>{t("نراجع التفاصيل", "We review the details")}</strong></li>
