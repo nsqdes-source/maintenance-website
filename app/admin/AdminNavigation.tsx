@@ -54,6 +54,7 @@ export default function AdminNavigation({ children }: { children: React.ReactNod
       <nav aria-label="تنقل الإدارة">
         {links.map((link) => <Link key={link.href} className={isActive(pathname, link.href, link.exact) ? "active" : ""} href={link.href}>{link.label}</Link>)}
         {canEditSite ? <Link className={isActive(pathname, "/admin/site") ? "active" : ""} href="/admin/site">محرر الموقع</Link> : null}
+        {canEditSite ? <Link className={isActive(pathname, "/admin/roles") ? "active" : ""} href="/admin/roles">الأدوار والصلاحيات</Link> : null}
         {canViewFinance ? <Link className={isActive(pathname, "/admin/finance") ? "active" : ""} href="/admin/finance">المالية</Link> : null}
       </nav>
       <div className="adminOpsActions"><Link className="adminOpsNew" href="/request">＋ طلب جديد</Link><button className="adminOpsSignOut" type="button" disabled={signingOut} onClick={async () => { setSigningOut(true); await createClient().auth.signOut(); window.location.href = "/"; }}>{signingOut ? "جارٍ تسجيل الخروج..." : "تسجيل الخروج"}</button></div>
