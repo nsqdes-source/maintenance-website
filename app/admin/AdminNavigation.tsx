@@ -13,6 +13,8 @@ const links = [
   { href: "/admin/technicians", label: "الفنيون" },
   { href: "/admin/users", label: "المستخدمون" },
   { href: "/admin/catalog", label: "الخدمات والأسعار" },
+  { href: "/admin/contact", label: "رسائل الموقع" },
+  { href: "/admin/warranty", label: "مطالبات الضمان" },
   { href: "/admin/dashboard", label: "عرض اللوحات" },
 ];
 

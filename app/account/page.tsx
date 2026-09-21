@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import CustomerRequestActions from "./CustomerRequestActions";
 import CustomerQuoteDecision from "./CustomerQuoteDecision";
 import RequestImages from "@/app/components/RequestImages";
-import WarrantyClaimForm from "./WarrantyClaimForm";
+import WarrantyClaimForm, { type WarrantyOption } from "./WarrantyClaimForm";
 import PortalNavigation from "@/app/components/PortalNavigation";
 import { getLocale, text } from "@/lib/locale";
 import { CUSTOMER_DASHBOARD_CARDS, dashboardCardStyle, normalizeDashboardCards } from "@/lib/dashboard-display";
@@ -58,6 +58,13 @@ export default async function AccountPage() {
 
   const { data: quotes } = requests?.length ? await supabase.from("service_request_quotes").select("id, service_request_id, description, parts_description, parts_cost, labor_cost, line_items, status").in("service_request_id", requests.map(item => item.id)).eq("status", "pending") : { data: [] };
   const quoteByRequest = new Map((quotes ?? []).map(quote => [quote.service_request_id, quote]));
+  const { data: activeWarrantyItems } = await supabase.rpc("customer_get_active_warranty_items");
+  const warrantyByRequest = new Map<string, WarrantyOption[]>();
+  for (const item of activeWarrantyItems ?? []) {
+    const options = warrantyByRequest.get(item.service_request_id) ?? [];
+    options.push({ lineId: item.line_id, description: item.description, expiresAt: item.expires_at, terms: item.terms || "" });
+    warrantyByRequest.set(item.service_request_id, options);
+  }
   const dashboardCards = normalizeDashboardCards(dashboardDisplay?.customer_cards, CUSTOMER_DASHBOARD_CARDS);
 
   return <main className="adminPage customerPortal"><div className="container adminContainer"><PortalNavigation kind="customer" />
@@ -80,7 +87,7 @@ export default async function AccountPage() {
               {request.visit_outcome === "needs_followup" && request.visit_notes ? <div className="followupNotice"><strong>{t("نتيجة الزيارة:", "Visit result:")}</strong><p>{request.visit_notes}</p></div> : null}
               {request.workflow_stage === "awaiting_customer_approval" && quoteByRequest.get(request.id) ? <CustomerQuoteDecision quote={quoteByRequest.get(request.id)!} /> : null}
               <CustomerRequestActions requestId={request.id} workflowStage={request.workflow_stage} />
-              {request.workflow_stage === "completed" ? <WarrantyClaimForm requestId={request.id} /> : null}
+              {request.workflow_stage === "completed" ? <WarrantyClaimForm requestId={request.id} options={warrantyByRequest.get(request.id) ?? []} /> : null}
             </div>
             <div className="requestAdminDetails">
               <div><strong>{t("العنوان", "Address")}</strong><span>{request.address}</span></div>
