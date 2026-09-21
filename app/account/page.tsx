@@ -56,7 +56,7 @@ export default async function AccountPage() {
 
   if (profile?.role === "customer" && !profile.phone) redirect("/account/edit");
 
-  const { data: quotes } = requests?.length ? await supabase.from("service_request_quotes").select("id, service_request_id, description, parts_description, parts_cost, labor_cost, status").in("service_request_id", requests.map(item => item.id)).eq("status", "pending") : { data: [] };
+  const { data: quotes } = requests?.length ? await supabase.from("service_request_quotes").select("id, service_request_id, description, parts_description, parts_cost, labor_cost, line_items, status").in("service_request_id", requests.map(item => item.id)).eq("status", "pending") : { data: [] };
   const quoteByRequest = new Map((quotes ?? []).map(quote => [quote.service_request_id, quote]));
   const dashboardCards = normalizeDashboardCards(dashboardDisplay?.customer_cards, CUSTOMER_DASHBOARD_CARDS);
 

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/app/components/LocaleContext";
 
 export default function CustomerQuoteDecision({ quote }: {
-  quote: { id: string; description: string; parts_description: string | null; parts_cost: number; labor_cost: number; status: string };
+  quote: { id: string; description: string; parts_description: string | null; parts_cost: number; labor_cost: number; status: string; line_items?: unknown };
 }) {
   const locale = useLocale();
   const t = (ar: string, en: string) => locale === "ar" ? ar : en;
@@ -14,6 +14,11 @@ export default function CustomerQuoteDecision({ quote }: {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const lineItems = Array.isArray(quote.line_items) ? quote.line_items.filter((item): item is { description: string; quantity: number; unit_price: number } => {
+    if (!item || typeof item !== "object") return false;
+    const line = item as Record<string, unknown>;
+    return typeof line.description === "string" && Number(line.quantity) > 0 && Number(line.unit_price) >= 0;
+  }) : [];
 
   async function decide(approve: boolean) {
     setBusy(true);
@@ -31,8 +36,7 @@ export default function CustomerQuoteDecision({ quote }: {
   return <div className="followupNotice">
     <strong>{t("عرض الإصلاح", "Repair quote")}</strong>
     <p>{quote.description}</p>
-    {quote.parts_description ? <p>القطع والتعديلات: {quote.parts_description}</p> : null}
-    <p>القطع: {Number(quote.parts_cost).toFixed(2)} ر.س · العمل: {Number(quote.labor_cost).toFixed(2)} ر.س</p>
+    {lineItems.length ? <div className="quoteCustomerLines">{lineItems.map((line, index) => <div key={`${line.description}-${index}`}><span>{line.description} × {Number(line.quantity)}</span><strong>{(Number(line.quantity) * Number(line.unit_price)).toFixed(2)} ر.س</strong></div>)}</div> : <>{quote.parts_description ? <p>القطع والتعديلات: {quote.parts_description}</p> : null}<p>القطع: {Number(quote.parts_cost).toFixed(2)} ر.س · العمل: {Number(quote.labor_cost).toFixed(2)} ر.س</p></>}
     <strong>الإجمالي: {(Number(quote.parts_cost) + Number(quote.labor_cost)).toFixed(2)} ر.س</strong>
     <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t("ملاحظاتك (اختياري)", "Your notes (optional)")} disabled={busy} />
     <div className="filterActions">

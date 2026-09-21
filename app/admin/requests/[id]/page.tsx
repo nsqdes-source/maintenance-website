@@ -69,7 +69,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
   const [{ data: request, error: requestError }, { data: technicians }, { data: assignments }] = await Promise.all([
     supabase
       .from("service_requests")
-      .select("id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, created_at, workflow_updated_at, archived_at, confirmed_date, confirmed_time_period, appointment_notes, cancellation_reason")
+      .select("id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, requested_parts, created_at, workflow_updated_at, archived_at, confirmed_date, confirmed_time_period, appointment_notes, cancellation_reason")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -102,7 +102,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
     ? technicianOptions.find((technician) => technician.id === activeAssignment.technician_id)
     : null;
 
-  const { data: quotes } = await supabase.from("service_request_quotes").select("id, description, parts_description, parts_cost, labor_cost, status, created_at, customer_notes").eq("service_request_id", id).order("created_at", { ascending: false });
+  const { data: quotes } = await supabase.from("service_request_quotes").select("id, description, parts_description, parts_cost, labor_cost, line_items, status, created_at, customer_notes").eq("service_request_id", id).order("created_at", { ascending: false });
   const { data: events } = await supabase.from("service_request_events").select("id,event_type,from_stage,to_stage,details,created_at,actor:profiles(full_name,role)").eq("service_request_id", id).order("created_at", { ascending: false });
 
   const hasLocation = Number.isFinite(request.latitude) && Number.isFinite(request.longitude);
@@ -185,7 +185,7 @@ export default async function AdminRequestDetailsPage({ params }: PageProps) {
 
             <section className="card detailCard">
               <h2>النتيجة والقطع / التعديلات</h2>
-              <QuoteAdminControl requestId={request.id} stage={request.workflow_stage} archived={Boolean(request.archived_at)} />
+              <QuoteAdminControl requestId={request.id} stage={request.workflow_stage} archived={Boolean(request.archived_at)} serviceType={request.service_type} requestedParts={Array.isArray(request.requested_parts) ? request.requested_parts as { id?: string | null; name: string; price?: number; quantity?: number }[] : []} />
               <div className="detailFields singleColumn">
                 <div><span>نتيجة الزيارة</span><strong>{request.visit_outcome ? WORKFLOW_LABELS[request.visit_outcome] ?? request.visit_outcome : "لم تسجل بعد"}</strong></div>
                 <div className="detailWide"><span>القطع / التعديلات والملاحظات</span><p className={request.visit_notes ? "" : "detailMuted"}>{request.visit_notes || "لا توجد قطع أو تعديلات أو ملاحظات مسجلة بعد."}</p></div>

@@ -1,46 +1,104 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type CatalogService={id:string;name:string}; type CatalogPart={id:string;service_catalog_item_id:string;name:string;default_price:number};
-export default function QuoteAdminControl({ requestId, stage, archived }: { requestId: string; stage: string; archived: boolean }) {
+type CatalogService = { id: string; name: string };
+type CatalogPart = { id: string; service_catalog_item_id: string; name: string; default_price: number };
+export type RequestedPart = { id?: string | null; name: string; price?: number; quantity?: number };
+type QuoteLine = { key: string; partId: string | null; description: string; quantity: number; unitPrice: number; itemType: "part" | "other" };
+
+function initialQuoteLines(parts: RequestedPart[]) {
+  return parts.filter((part) => part.name?.trim()).map((part, index): QuoteLine => ({
+    key: `requested-${index}-${part.id ?? "other"}`,
+    partId: part.id ?? null,
+    description: part.name.trim(),
+    quantity: Math.max(1, Number(part.quantity) || 1),
+    unitPrice: Math.max(0, Number(part.price) || 0),
+    itemType: part.id ? "part" : "other",
+  }));
+}
+
+export default function QuoteAdminControl({ requestId, stage, archived, serviceType, requestedParts }: {
+  requestId: string;
+  stage: string;
+  archived: boolean;
+  serviceType: string;
+  requestedParts: RequestedPart[];
+}) {
   const router = useRouter();
   const [description, setDescription] = useState("");
-  const [parts, setParts] = useState("");
-  const [partsCost, setPartsCost] = useState("0");
   const [laborCost, setLaborCost] = useState("0");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [services,setServices]=useState<CatalogService[]>([]); const [catalogParts,setCatalogParts]=useState<CatalogPart[]>([]); const [serviceId,setServiceId]=useState(""); const [partId,setPartId]=useState("");
-  const [selectedPartIds,setSelectedPartIds]=useState<string[]>([]); const [otherPart,setOtherPart]=useState(""); const [otherPrice,setOtherPrice]=useState("0");
-  useEffect(()=>{const db=createClient();Promise.all([db.from("service_catalog_items").select("id,name").is("parent_id",null).eq("is_visible",true).order("sort_order"),db.from("service_catalog_parts").select("id,service_catalog_item_id,name,default_price").eq("is_active",true).order("sort_order")]).then(([a,b])=>{setServices(a.data??[]);setCatalogParts(b.data??[])});},[]);
-  function choosePart(value:string){setPartId(value);const part=catalogParts.find(x=>x.id===value);if(part){setParts(part.name);setPartsCost(String(part.default_price));}}
-  function chooseParts(values:string[]){setSelectedPartIds(values);const picked=catalogParts.filter(part=>values.includes(part.id));setParts([...picked.map(part=>part.name),otherPart.trim()].filter(Boolean).join("، "));setPartsCost(String(picked.reduce((sum,part)=>sum+Number(part.default_price),0)+(Number(otherPrice)||0)));}
+  const [services, setServices] = useState<CatalogService[]>([]);
+  const [catalogParts, setCatalogParts] = useState<CatalogPart[]>([]);
+  const [serviceId, setServiceId] = useState("");
+  const [partToAdd, setPartToAdd] = useState("");
+  const [lines, setLines] = useState<QuoteLine[]>(() => initialQuoteLines(requestedParts));
+
+  useEffect(() => {
+    const db = createClient();
+    Promise.all([
+      db.from("service_catalog_items").select("id,name").is("parent_id", null).eq("is_visible", true).order("sort_order"),
+      db.from("service_catalog_parts").select("id,service_catalog_item_id,name,default_price").eq("is_active", true).order("sort_order"),
+    ]).then(([serviceResult, partResult]) => {
+      const loadedServices = (serviceResult.data ?? []) as CatalogService[];
+      setServices(loadedServices);
+      setCatalogParts((partResult.data ?? []) as CatalogPart[]);
+      setServiceId(loadedServices.find((service) => service.name === serviceType)?.id ?? "");
+    });
+  }, [serviceType]);
+
+  const partsTotal = useMemo(() => lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0), [lines]);
+  const total = partsTotal + (Number(laborCost) || 0);
+  const availableParts = catalogParts.filter((part) => part.service_catalog_item_id === serviceId && !lines.some((line) => line.partId === part.id));
+
+  function addCatalogPart() {
+    const part = catalogParts.find((item) => item.id === partToAdd);
+    if (!part) return;
+    setLines((current) => [...current, { key: crypto.randomUUID(), partId: part.id, description: part.name, quantity: 1, unitPrice: Number(part.default_price), itemType: "part" }]);
+    setPartToAdd("");
+  }
+
+  function addOtherPart() {
+    setLines((current) => [...current, { key: crypto.randomUUID(), partId: null, description: "", quantity: 1, unitPrice: 0, itemType: "other" }]);
+  }
+
+  function updateLine(key: string, patch: Partial<QuoteLine>) {
+    setLines((current) => current.map((line) => line.key === key ? { ...line, ...patch } : line));
+  }
 
   async function submitQuote() {
+    if (!description.trim() || lines.some((line) => !line.description.trim() || line.quantity <= 0 || line.unitPrice < 0) || Number(laborCost) < 0) {
+      setError("أكمل وصف الإصلاح وأسماء القطع والكميات والأسعار.");
+      return;
+    }
     setBusy(true);
     setError("");
+    const quoteLines = [
+      ...lines.map((line) => ({ item_type: line.itemType, description: line.description.trim(), quantity: line.quantity, unit_price: line.unitPrice, catalog_part_id: line.partId })),
+      { item_type: "labor", description: "أجرة العمل", quantity: 1, unit_price: Number(laborCost) || 0, catalog_part_id: null },
+    ];
     const { error: resultError } = await createClient().rpc("admin_submit_service_request_quote", {
       target_service_request_id: requestId,
       quote_description: description.trim(),
-      quote_parts_description: parts.trim() || null,
-      quote_parts_cost: Number(partsCost),
-      quote_labor_cost: Number(laborCost),
+      quote_line_items: quoteLines,
     });
     setBusy(false);
-    if (resultError) { setError("تعذر إرسال العرض. تحقق من الوصف والتكاليف ومرحلة الطلب."); return; }
+    if (resultError) {
+      console.error("Quote submission failed", resultError);
+      setError("تعذر إرسال العرض. تحقق من البنود ومرحلة الطلب ثم حاول مجددًا.");
+      return;
+    }
     router.refresh();
   }
 
   async function setArchive(shouldArchive: boolean) {
     setBusy(true);
     setError("");
-    const { error: resultError } = await createClient().rpc("admin_set_service_request_archive", {
-      target_service_request_id: requestId,
-      should_archive: shouldArchive,
-    });
+    const { error: resultError } = await createClient().rpc("admin_set_service_request_archive", { target_service_request_id: requestId, should_archive: shouldArchive });
     setBusy(false);
     if (resultError) { setError("تعذر تحديث الأرشفة."); return; }
     router.refresh();
@@ -49,19 +107,21 @@ export default function QuoteAdminControl({ requestId, stage, archived }: { requ
   const closed = ["completed", "customer_rejected", "customer_cancelled", "cancelled"].includes(stage);
   return <div className="technicianResponseControl">
     {stage === "awaiting_admin_quote" ? <>
-      <label>وصف الإصلاح<input value={description} onChange={e => setDescription(e.target.value)} /></label>
-      <label>نوع الخدمة<select value={serviceId} onChange={e=>{setServiceId(e.target.value);setPartId("");}}><option value="">اختر الخدمة</option>{services.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <label>القطع الشائعة<select multiple value={selectedPartIds} onChange={e=>chooseParts(Array.from(e.target.selectedOptions).map(option=>option.value))} disabled={!serviceId}>{catalogParts.filter(item=>item.service_catalog_item_id===serviceId).map(item=><option key={item.id} value={item.id}>{item.name} — {item.default_price} ر.س</option>)}</select><small>يمكن اختيار أكثر من قطعة.</small></label>
-      <label>أخرى (اختياري)<input value={otherPart} placeholder="اسم قطعة غير موجودة" onChange={e=>{setOtherPart(e.target.value);chooseParts(selectedPartIds)}} /></label>
-      {otherPart.trim()?<label>سعر القطعة الأخرى<input type="number" min="0" step="0.01" value={otherPrice} onChange={e=>{setOtherPrice(e.target.value);chooseParts(selectedPartIds)}} /></label>:null}
-      <label>القطع أو التعديلات<input value={parts} onChange={e => setParts(e.target.value)} /></label>
-      <label>تكلفة القطع<input type="number" min="0" step="0.01" value={partsCost} onChange={e => setPartsCost(e.target.value)} /></label>
-      <label>تكلفة العمل<input type="number" min="0" step="0.01" value={laborCost} onChange={e => setLaborCost(e.target.value)} /></label>
-      <button type="button" className="button primary compactButton" disabled={busy || !description.trim()} onClick={submitQuote}>إرسال العرض للعميل</button>
+      <label>وصف الإصلاح<input value={description} onChange={(event) => setDescription(event.target.value)} /></label>
+      <label>تصنيف الخدمة<select value={serviceId} onChange={(event) => { setServiceId(event.target.value); setPartToAdd(""); }}><option value="">اختر الخدمة</option>{services.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <div className="quotePartPicker"><select value={partToAdd} onChange={(event) => setPartToAdd(event.target.value)} disabled={!serviceId}><option value="">اختر قطعة لإضافتها</option>{availableParts.map((item) => <option key={item.id} value={item.id}>{item.name} — {item.default_price} ر.س</option>)}</select><button type="button" className="button secondary compactButton" onClick={addCatalogPart} disabled={!partToAdd}>إضافة</button></div>
+      <div className="quoteLines">{lines.map((line) => <div className="quoteLine" key={line.key}>
+        <input aria-label="اسم القطعة" value={line.description} readOnly={Boolean(line.partId)} placeholder="اسم القطعة" onChange={(event) => updateLine(line.key, { description: event.target.value })} />
+        <input aria-label="الكمية" type="number" min="1" step="1" value={line.quantity} onChange={(event) => updateLine(line.key, { quantity: Math.max(1, Number(event.target.value) || 1) })} />
+        <input aria-label="سعر الوحدة" type="number" min="0" step="0.01" value={line.unitPrice} onChange={(event) => updateLine(line.key, { unitPrice: Math.max(0, Number(event.target.value) || 0) })} />
+        <button type="button" className="button secondary compactButton" onClick={() => setLines((current) => current.filter((item) => item.key !== line.key))}>حذف</button>
+      </div>)}</div>
+      <button type="button" className="button secondary compactButton" onClick={addOtherPart}>＋ قطعة أخرى</button>
+      <label>تكلفة العمل<input type="number" min="0" step="0.01" value={laborCost} onChange={(event) => setLaborCost(event.target.value)} /></label>
+      <p className="quoteTotal">القطع: {partsTotal.toFixed(2)} ر.س · الإجمالي: <strong>{total.toFixed(2)} ر.س</strong></p>
+      <button type="button" className="button primary compactButton" disabled={busy || !description.trim()} onClick={submitQuote}>{busy ? "جارٍ الإرسال..." : "إرسال العرض للعميل"}</button>
     </> : null}
-    {closed ? <button type="button" className="button secondary compactButton" disabled={busy} onClick={() => setArchive(!archived)}>
-      {archived ? "إعادة من الأرشيف" : "أرشفة الطلب"}
-    </button> : null}
+    {closed ? <button type="button" className="button secondary compactButton" disabled={busy} onClick={() => setArchive(!archived)}>{archived ? "إعادة من الأرشيف" : "أرشفة الطلب"}</button> : null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
   </div>;
 }
