@@ -545,8 +545,14 @@
   gap: 8px;
 }
 
+.financeIntegrationHelp {
+  display: grid;
+  gap: 8px;
+}
+
 .financeIntegrationHelp code {
   display: block;
+  width: 100%;
   padding: 7px 9px;
   border: 1px solid #d6e0e7;
   border-radius: 7px;
@@ -554,6 +560,7 @@
   direction: ltr;
   text-align: left;
   font-size: .78rem;
+  overflow-wrap: anywhere;
 }
 
 .financeIntegrationHelp .button {
