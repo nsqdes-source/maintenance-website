@@ -132,4 +132,133 @@
     padding: 7px 11px;
     font-size: 0.78rem;
   }
+
+  /* Compact admin layout */
+.adminSharedLayout {
+  grid-template-columns: 210px minmax(0, 1fr);
+}
+
+.adminSharedSidebar {
+  gap: 14px;
+  padding: 16px 12px;
+}
+
+.adminSharedSidebar .adminOpsBrand {
+  gap: 8px;
+  font-size: 1rem;
+}
+
+.adminSharedSidebar .adminOpsBrand span {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.adminSharedSidebar .adminOpsUser {
+  gap: 2px;
+  padding: 12px;
+}
+
+.adminSharedSidebar nav {
+  gap: 3px;
+}
+
+.adminSharedSidebar nav a {
+  padding: 9px 11px;
+  border-radius: 9px;
+  font-size: 0.88rem;
+}
+
+.adminSharedSidebar .adminOpsNew {
+  padding: 11px;
+  border-radius: 11px;
+  font-size: 0.88rem;
+}
+
+.adminSharedSidebar .adminOpsSignOut {
+  min-height: 38px;
+  margin-top: 0;
+  font-size: 0.86rem;
+}
+
+/* Use more of the available desktop width */
+.adminSharedContent .adminContainer {
+  width: min(100% - 32px, 1380px);
+  max-width: 1380px;
+}
+
+.adminSharedContent .adminPage {
+  padding-top: 28px;
+  padding-bottom: 50px;
+}
+
+.adminSharedContent .adminTopbar {
+  margin-bottom: 18px;
+}
+
+/* Compact finance overview */
+.financePortal .grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.financePortal .grid .card {
+  min-height: 130px;
+  padding: 18px;
+}
+
+.financePortal .grid .card h2 {
+  margin: 10px 0 4px;
+  font-size: 1.55rem;
+}
+
+.financePortal .financePanel {
+  margin-top: 16px;
+  padding: 22px;
+}
+
+.financePortal .financeGrid {
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.financeNavigation {
+  margin-bottom: 16px;
+  padding: 7px;
+  gap: 5px;
+}
+
+.financeNavigation a,
+.financeNavPending {
+  min-height: 34px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+}
+
+/* Keep responsive behavior */
+@media (max-width: 1100px) {
+  .adminSharedLayout {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .adminSharedContent .adminContainer {
+    width: min(100% - 24px, 1200px);
+  }
+}
+
+@media (max-width: 980px) {
+  .adminSharedLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .financePortal .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminSharedContent .adminContainer {
+    width: min(100% - 20px, 1200px);
+  }
+}
 }
