@@ -139,7 +139,7 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 @media(max-width:620px){.marketingGrid.four,.marketingGrid.three{grid-template-columns:1fr}.trustBarInner{justify-content:flex-start;gap:10px}.trustBarInner span{width:100%}.headerActions{gap:4px}.headerActions .button{padding-inline:10px;font-size:.8rem}.languageSwitcher{padding-inline:8px}}
 @media (max-width:1000px) { .heroGrid { grid-template-columns: 1fr; gap: 42px; } .heroPanel { min-height: 330px; } .heroPanelContent { min-height: 328px; } .grid { grid-template-columns: repeat(3,1fr); } .benefitGrid { grid-template-columns: repeat(2,1fr); } .servicePageGrid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width:760px) { .navLinks { display:none; } .nav { min-height:68px; } .hero { padding:68px 0; } .section { padding:68px 0; } .sectionHeading { display:block; } .sectionHeading .sectionIntro { margin-top:16px; } .grid { grid-template-columns: repeat(2,1fr); } .worksGrid { grid-template-columns:1fr; } .contactGrid { grid-template-columns:1fr; gap:32px; } .ctaBox { display:block; padding:36px 28px; } .ctaBox .lightButton { margin-top:24px; } .requestAdminCard { grid-template-columns:1fr; } .requestAdminDetails { padding-right:0; padding-top:18px; border-right:0; border-top:1px solid #e2e8f0; } }
-@media (max-width:520px) { .container { width:min(100% - 24px,1120px); } .navCta { min-height:40px; padding-inline:14px; font-size:.88rem; } .logo span:last-child { display:none; } .hero h1 { font-size:2.55rem; } .heroText { font-size:1rem; } .actions { flex-direction:column; } .actions .button { width:100%; } .heroTrust { gap:10px 14px; font-size:.8rem; } .heroPanelContent { padding:26px; } .grid,.benefitGrid,.servicePageGrid { grid-template-columns:1fr; } .card { min-height:0; } .serviceNumber { margin-bottom:28px; } .pageCta { flex-direction:column; align-items:stretch; } .footerInner { flex-direction:column; text-align:center; } .request-page { padding:40px 16px; } .request-form { padding:22px; } .request-header h1 { font-size:30px; } }
+@media (max-width:520px) { .container { width:min(100% - 24px,1120px); } .navCta { min-height:40px; padding-inline:14px; font-size:.88rem; } .logo span:last-child { display:none; } .hero h1 { font-size:2.55rem; } .heroText { font-size:1rem; } .actions { flex-direction:column; } .actions .button { width:100%; } .heroTrust { gap:10px 14px; font-size:.8rem; } .heroPanelContent { padding:26px; } .grid,.benefitGrid,.servicePageGrid { grid-template-columns:1fr; } .card { min-height:0; } .serviceNumber { margin-bottom:28px; } .pageCta { flex-direction:column; align-items:stretch; } .request-page { padding:40px 16px; } .request-form { padding:22px; } .request-header h1 { font-size:30px; } }
 /* Constrained site-editor theme tokens. */
 .logoMark,.primary,.benefitIcon { background: var(--brand-primary, #0f172a); }
 .primary:hover { filter: brightness(1.12); background: var(--brand-primary, #0f172a); }
@@ -257,7 +257,144 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 
 
 /* Public footer */
-.footer{margin-top:0;padding:48px 0 24px;border:0;background:#0d2e4f;color:#d5e2f0}.footerInner{display:grid;grid-template-columns:1.25fr .8fr 1fr;align-items:start;gap:44px}.footer .logo{color:#fff}.footerLogo{width:42px;height:42px;object-fit:cover;border-radius:12px;background:#fff}.footerDescription{max-width:390px;margin:14px 0;color:#b9cadc;line-height:1.8}.footerContacts{display:grid;gap:5px;color:#b9cadc;font-size:.92rem}.footerContacts a,.footerLinks a{color:inherit}.footerLinks{display:grid;gap:11px;align-content:start}.footer h3{margin:0 0 13px;color:#fff;font-size:1rem}.footerLinks>a:not(.businessCentreLink){width:max-content;color:#c8d8e8}.businessCentreLink{display:inline-flex;align-items:center;gap:9px;width:max-content;margin-top:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(255,255,255,.07);color:#fff;font-weight:800}.businessCentreLogo{display:grid;place-items:center;width:28px;height:28px;overflow:hidden;border-radius:7px;background:#fff;color:#0d2e4f}.businessCentreLogo img{width:100%;height:100%;object-fit:contain}.footerPayment>p{margin:0 0 13px;color:#b9cadc;font-size:.9rem}.paymentMarks{display:flex;flex-wrap:wrap;gap:8px}.paymentMark{display:inline-flex;align-items:center;min-height:30px;padding:4px 9px;border-radius:7px;background:#fff;color:#133c64;font-size:.74rem;font-weight:900;letter-spacing:.02em}.paymentMark.mastercard{background:linear-gradient(90deg,#ee512c,#f9ba33);color:#101820}.paymentMark.mada{color:#0b8a98}.paymentMark.apple_pay{background:#111;color:#fff}.paymentMark.bank_transfer,.paymentMark.cash{background:#dcecf6}.footerCopyright{display:block;margin-top:19px;color:#9eb4c9;font-size:.8rem}@media(max-width:760px){.footer{padding:36px 0 22px}.footerInner{grid-template-columns:1fr;gap:28px}.footerLinks>a:not(.businessCentreLink){width:auto}.footerDescription{max-width:none}}
+.footer{margin-top:0;padding:48px 0 24px;border:0;background:#0d2e4f;color:#d5e2f0}.footerInner{display:grid;grid-template-columns:1.25fr .8fr 1fr;align-items:start;gap:44px}.footer .logo{color:#fff}.footerLogo{width:42px;height:42px;object-fit:cover;border-radius:12px;background:#fff}.footerDescription{max-width:390px;margin:14px 0;color:#b9cadc;line-height:1.8}.footerContacts{display:grid;gap:5px;color:#b9cadc;font-size:.92rem}.footerContacts a,.footerLinks a{color:inherit}.footerLinks{display:grid;gap:11px;align-content:start}.footer h3{margin:0 0 13px;color:#fff;font-size:1rem}.footerLinks>a:not(.businessCentreLink){width:max-content;color:#c8d8e8}.businessCentreLink{display:inline-flex;align-items:center;gap:9px;width:max-content;margin-top:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(255,255,255,.07);color:#fff;font-weight:800}.businessCentreLogo{display:grid;place-items:center;width:28px;height:28px;overflow:hidden;border-radius:7px;background:#fff;color:#0d2e4f}.businessCentreLogo img{width:100%;height:100%;object-fit:contain}.footerPayment>p{margin:0 0 13px;color:#b9cadc;font-size:.9rem}.paymentMarks{display:flex;flex-wrap:wrap;gap:8px}.paymentMark{display:inline-flex;align-items:center;min-height:30px;padding:4px 9px;border-radius:7px;background:#fff;color:#133c64;font-size:.74rem;font-weight:900;letter-spacing:.02em}.paymentMark.mastercard{background:linear-gradient(90deg,#ee512c,#f9ba33);color:#101820}.paymentMark.mada{color:#0b8a98}.paymentMark.apple_pay{background:#111;color:#fff}.paymentMark.bank_transfer,.paymentMark.cash{background:#dcecf6}.footerCopyright{display:block;margin-top:19px;color:#9eb4c9;font-size:.8rem}@media(max-width:760px){
+  .footer{
+    padding:30px 0 20px;
+  }
+
+  .footerInner{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:start;
+    gap:14px;
+    text-align:center;
+  }
+
+  .footerBrand,
+  .footerLinks,
+  .footerPayment{
+    min-width:0;
+    max-width:none;
+  }
+
+  .footerLinks>a:not(.businessCentreLink){
+    width:auto;
+  }
+
+  .footerDescription{
+    max-width:none;
+  }
+}
+
+@media(max-width:520px){
+  .footer{
+    padding:24px 0 18px;
+  }
+
+  .footerInner{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    text-align:center;
+  }
+
+  .footerBrand,
+  .footerLinks,
+  .footerPayment{
+    min-width:0;
+    max-width:none;
+  }
+
+  .footerBrand{
+    font-size:.72rem;
+  }
+
+  .footer .logo{
+    justify-content:center;
+    gap:5px;
+    font-size:.74rem;
+  }
+
+  .footerLogo{
+    width:32px;
+    height:32px;
+    border-radius:9px;
+  }
+
+  .footerDescription,
+  .footerPayment>p{
+    font-size:.68rem;
+    line-height:1.5;
+    margin-bottom:8px;
+  }
+
+  .footerContacts{
+    gap:4px;
+    font-size:.68rem;
+    overflow-wrap:anywhere;
+  }
+
+  .footerLinks{
+    gap:6px;
+    font-size:.7rem;
+  }
+
+  .footer h3{
+    font-size:.82rem;
+    margin-bottom:6px;
+  }
+
+  .footerLinks>a:not(.businessCentreLink){
+    width:auto;
+    line-height:1.35;
+  }
+
+  .businessCentreLink{
+    width:100%;
+    justify-content:center;
+    gap:5px;
+    padding:6px 4px;
+    font-size:.66rem;
+    white-space:normal;
+  }
+
+  .businessCentreLogo{
+    flex:0 0 24px;
+    width:24px;
+    height:24px;
+  }
+
+  .footerSocialLinks{
+    justify-content:center;
+    gap:4px;
+    margin-top:9px;
+  }
+
+  .footerSocialLink{
+    width:28px;
+    height:28px;
+  }
+
+  .footerSocialLink img{
+    width:17px;
+    height:17px;
+  }
+
+  .paymentMarks{
+    justify-content:center;
+    gap:4px;
+  }
+
+  .paymentLogo{
+    width:40px;
+    height:28px;
+    padding:2px;
+  }
+
+  .footerCopyright{
+    margin-top:12px;
+    font-size:.62rem;
+    line-height:1.4;
+  }
+}
 
 /* Icon-only payment methods */
 .paymentMarks{align-items:center}.paymentIcon{display:inline-grid;place-items:center;width:48px;height:32px;border-radius:8px;background:#fff;color:#153e67;box-shadow:0 1px 0 rgba(0,0,0,.12)}.paymentIcon svg{width:100%;height:100%;display:block}.paymentIcon.bank,.paymentIcon.cash{background:#e1f3f4;color:#087a82}.paymentIcon.applePay{background:#111}.paymentIcon.mastercard,.paymentIcon.mada,.paymentIcon.visa{background:#fff}
