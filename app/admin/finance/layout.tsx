@@ -18,9 +18,9 @@ export default function FinanceLayout({
         التحصيلات
         </Link>
 
-        <span className="financeNavPending" aria-disabled="true">
-          المصروفات
-        </span>
+        <Link href="/admin/finance/expenses">
+        المصروفات
+        </Link>
 
         <span className="financeNavPending" aria-disabled="true">
           التقارير
