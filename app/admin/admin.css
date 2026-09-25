@@ -437,4 +437,37 @@
   }
 }
 
+/* Finance reports */
+.financeReportSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.financeReportSummary > div {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.financeReportSummary span {
+  color: #64748b;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.financeReportSummary strong {
+  font-size: 1.15rem;
+}
+
+@media (max-width: 700px) {
+  .financeReportSummary {
+    grid-template-columns: 1fr;
+  }
+}
+
 }

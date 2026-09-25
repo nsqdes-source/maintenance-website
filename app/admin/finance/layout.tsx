@@ -22,9 +22,9 @@ export default function FinanceLayout({
         المصروفات
         </Link>
 
-        <span className="financeNavPending" aria-disabled="true">
-          التقارير
-        </span>
+        <Link href="/admin/finance/reports">
+        التقارير
+        </Link>
 
         <span className="financeNavPending" aria-disabled="true">
           الإعدادات المالية
