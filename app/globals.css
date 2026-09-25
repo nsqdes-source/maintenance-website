@@ -257,13 +257,213 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 
 
 /* Public footer */
-.footer{margin-top:0;padding:48px 0 24px;border:0;background:#0d2e4f;color:#d5e2f0}.footerInner{display:grid;grid-template-columns:1.25fr .8fr 1fr;align-items:start;gap:44px}.footer .logo{color:#fff}.footerLogo{width:42px;height:42px;object-fit:cover;border-radius:12px;background:#fff}.footerDescription{max-width:390px;margin:14px 0;color:#b9cadc;line-height:1.8}.footerContacts{display:grid;gap:5px;color:#b9cadc;font-size:.92rem}.footerContacts a,.footerLinks a{color:inherit}.footerLinks{display:grid;gap:11px;align-content:start}.footer h3{margin:0 0 13px;color:#fff;font-size:1rem}.footerLinks>a:not(.businessCentreLink){width:max-content;color:#c8d8e8}.businessCentreLink{display:inline-flex;align-items:center;gap:9px;width:max-content;margin-top:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(255,255,255,.07);color:#fff;font-weight:800}.businessCentreLogo{display:grid;place-items:center;width:28px;height:28px;overflow:hidden;border-radius:7px;background:#fff;color:#0d2e4f}.businessCentreLogo img{width:100%;height:100%;object-fit:contain}.footerPayment>p{margin:0 0 13px;color:#b9cadc;font-size:.9rem}.paymentMarks{display:flex;flex-wrap:wrap;gap:8px}.paymentMark{display:inline-flex;align-items:center;min-height:30px;padding:4px 9px;border-radius:7px;background:#fff;color:#133c64;font-size:.74rem;font-weight:900;letter-spacing:.02em}.paymentMark.mastercard{background:linear-gradient(90deg,#ee512c,#f9ba33);color:#101820}.paymentMark.mada{color:#0b8a98}.paymentMark.apple_pay{background:#111;color:#fff}.paymentMark.bank_transfer,.paymentMark.cash{background:#dcecf6}.footerCopyright{display:block;margin-top:19px;color:#9eb4c9;font-size:.8rem}@media(max-width:760px){
+.footer{
+  margin-top:0;
+  padding:48px 0 24px;
+  border:0;
+  background:#0d2e4f;
+  color:#d5e2f0;
+}
+
+.footerInner{
+  display:grid;
+  grid-template-columns:1.25fr .8fr 1fr;
+  align-items:start;
+  gap:44px;
+}
+
+.footerBrand{
+  min-width:0;
+}
+
+.footer .logo{
+  color:#fff;
+}
+
+.footerLogo{
+  width:42px;
+  height:42px;
+  object-fit:cover;
+  border-radius:12px;
+  background:#fff;
+}
+
+.footerDescription{
+  max-width:390px;
+  margin:14px 0;
+  color:#b9cadc;
+  line-height:1.8;
+}
+
+.footerContacts{
+  display:grid;
+  gap:5px;
+  color:#b9cadc;
+  font-size:.92rem;
+}
+
+.footerContacts a,
+.footerLinks a{
+  color:inherit;
+}
+
+.footerLinks,
+.footerPayment{
+  min-width:0;
+}
+
+.footerLinks{
+  display:grid;
+  gap:11px;
+  align-content:start;
+}
+
+.footer h3{
+  margin:0 0 13px;
+  color:#fff;
+  font-size:1rem;
+}
+
+.footerLinks>a:not(.businessCentreLink){
+  width:max-content;
+  color:#c8d8e8;
+}
+
+.businessCentreLink{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  width:max-content;
+  margin-top:7px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:11px;
+  background:rgba(255,255,255,.07);
+  color:#fff;
+  font-weight:800;
+}
+
+.businessCentreLogo{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  overflow:hidden;
+  border-radius:7px;
+  background:#fff;
+  color:#0d2e4f;
+}
+
+.businessCentreLogo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+.footerPayment>p{
+  margin:0 0 13px;
+  color:#b9cadc;
+  font-size:.9rem;
+}
+
+.paymentMarks{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+}
+
+.paymentMark{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:4px 9px;
+  border-radius:7px;
+  background:#fff;
+  color:#133c64;
+  font-size:.74rem;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+.paymentMark.mastercard{
+  background:linear-gradient(90deg,#ee512c,#f9ba33);
+  color:#101820;
+}
+
+.paymentMark.mada{
+  color:#0b8a98;
+}
+
+.paymentMark.apple_pay{
+  background:#111;
+  color:#fff;
+}
+
+.paymentMark.bank_transfer,
+.paymentMark.cash{
+  background:#dcecf6;
+}
+
+.paymentIcon{
+  display:inline-grid;
+  place-items:center;
+  width:48px;
+  height:32px;
+  border-radius:8px;
+  background:#fff;
+  color:#153e67;
+  box-shadow:0 1px 0 rgba(0,0,0,.12);
+}
+
+.paymentIcon svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+.paymentIcon.bank,
+.paymentIcon.cash{
+  background:#e1f3f4;
+  color:#087a82;
+}
+
+.paymentIcon.applePay{
+  background:#111;
+}
+
+.paymentIcon.mastercard,
+.paymentIcon.mada,
+.paymentIcon.visa{
+  background:#fff;
+}
+
+.paymentLogo{
+  display:block;
+  width:48px;
+  height:32px;
+  object-fit:contain;
+  border-radius:7px;
+  background:#fff;
+  padding:3px;
+  box-shadow:0 1px 0 rgba(0,0,0,.12);
+}
+
+.footerCopyright{
+  display:block;
+  margin-top:19px;
+  color:#9eb4c9;
+  font-size:.8rem;
+}
+
+/* Tablet and mobile footer: keep the same three-column structure. */
+@media(max-width:760px){
   .footer{
     padding:30px 0 20px;
   }
 
   .footerInner{
-    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-columns:1.15fr 1fr .9fr;
     align-items:start;
     gap:14px;
     text-align:center;
@@ -276,54 +476,59 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
     max-width:none;
   }
 
+  .footerDescription{
+    max-width:none;
+  }
+
   .footerLinks>a:not(.businessCentreLink){
     width:auto;
   }
 
-  .footerDescription{
-    max-width:none;
+  .footerSocialLinks{
+    justify-content:center;
+  }
+
+  .paymentMarks{
+    justify-content:center;
   }
 }
 
+/* Small phones: compact the three columns without collapsing them. */
 @media(max-width:520px){
   .footer{
     padding:24px 0 18px;
   }
 
+  .footer .container{
+    width:min(100% - 16px,1120px);
+  }
+
   .footerInner{
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:10px;
+    grid-template-columns:1.15fr 1fr .9fr;
+    gap:8px;
     text-align:center;
   }
 
-  .footerBrand,
-  .footerLinks,
-  .footerPayment{
-    min-width:0;
-    max-width:none;
-  }
-
   .footerBrand{
-    font-size:.72rem;
+    font-size:.68rem;
   }
 
   .footer .logo{
     justify-content:center;
     gap:5px;
-    font-size:.74rem;
+    font-size:.78rem;
   }
 
   .footerLogo{
-    width:32px;
-    height:32px;
+    width:34px;
+    height:34px;
     border-radius:9px;
   }
 
-  .footerDescription,
-  .footerPayment>p{
-    font-size:.68rem;
-    line-height:1.5;
-    margin-bottom:8px;
+  .footerDescription{
+    margin:10px 0;
+    font-size:.66rem;
+    line-height:1.45;
   }
 
   .footerContacts{
@@ -332,14 +537,18 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
     overflow-wrap:anywhere;
   }
 
-  .footerLinks{
+  .footerLinks,
+  .footerPayment{
     gap:6px;
-    font-size:.7rem;
+    font-size:.68rem;
   }
 
-  .footer h3{
-    font-size:.82rem;
+  .footer h3,
+  .footerLinks h3,
+  .footerPayment h3{
     margin-bottom:6px;
+    font-size:.82rem;
+    line-height:1.3;
   }
 
   .footerLinks>a:not(.businessCentreLink){
@@ -362,119 +571,45 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
     height:24px;
   }
 
-  .footerSocialLinks{
+  .footerPayment>p{
+    margin-bottom:8px;
+    font-size:.66rem;
+    line-height:1.45;
+  }
+
+  .footer .footerSocialLinks{
     justify-content:center;
     gap:4px;
     margin-top:9px;
   }
 
-  .footerSocialLink{
+  .footer .footerSocialLink{
     width:28px;
     height:28px;
   }
 
-  .footerSocialLink img{
-    width:17px;
-    height:17px;
+  .footer .footerSocialLink img{
+    width:16px;
+    height:16px;
   }
 
-  .paymentMarks{
+  .footer .paymentMarks{
     justify-content:center;
     gap:4px;
   }
 
-  .paymentLogo{
-    width:40px;
+  .footer .paymentLogo{
+    width:42px;
     height:28px;
     padding:2px;
   }
 
   .footerCopyright{
     margin-top:12px;
-    font-size:.62rem;
-    line-height:1.4;
+    font-size:.6rem;
+    line-height:1.35;
   }
-
-  .footerInner{
-  grid-template-columns:1.15fr 1fr .9fr;
-  gap:8px;
 }
-
-.footerBrand{
-  font-size:.68rem;
-}
-
-.footer .logo{
-  gap:5px;
-  font-size:.78rem;
-  justify-content:center;
-}
-
-.footerLogo{
-  width:34px;
-  height:34px;
-}
-
-.footerDescription{
-  font-size:.66rem;
-  line-height:1.45;
-}
-
-.footerContacts{
-  font-size:.68rem;
-}
-
-.footerLinks,
-.footerPayment{
-  font-size:.68rem;
-}
-
-.footerLinks h3,
-.footerPayment h3{
-  font-size:.82rem;
-}
-
-.footerSocialLinks{
-  gap:4px;
-  justify-content:center;
-}
-
-.footerSocialLink{
-  width:28px;
-  height:28px;
-}
-
-.footerSocialLink img{
-  width:16px;
-  height:16px;
-}
-
-.paymentLogo{
-  width:42px;
-  height:28px;
-}
-
-.paymentMarks{
-  gap:4px;
-}
-
-.footerCopyright{
-  font-size:.6rem;
-  line-height:1.35;
-}
-
-.floatingWhatsApp{
-  width:48px;
-  height:48px;
-  bottom:14px;
-  inset-inline-start:14px;
-}
-}
-
-/* Icon-only payment methods */
-.paymentMarks{align-items:center}.paymentIcon{display:inline-grid;place-items:center;width:48px;height:32px;border-radius:8px;background:#fff;color:#153e67;box-shadow:0 1px 0 rgba(0,0,0,.12)}.paymentIcon svg{width:100%;height:100%;display:block}.paymentIcon.bank,.paymentIcon.cash{background:#e1f3f4;color:#087a82}.paymentIcon.applePay{background:#111}.paymentIcon.mastercard,.paymentIcon.mada,.paymentIcon.visa{background:#fff}
-
-.paymentLogo{display:block;width:48px;height:32px;object-fit:contain;border-radius:7px;background:#fff;padding:3px;box-shadow:0 1px 0 rgba(0,0,0,.12)}
 
 /* Phase 1-2: stable portal layout, notification actions, and responsive site navigation. */
 .notificationPanelHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}.notificationPanelHeader button{border:0;background:transparent;color:var(--brand-primary,#07447e);font:inherit;font-size:.75rem;font-weight:800;cursor:pointer}.mobileHeaderMenu{display:none;position:relative}.mobileHeaderTrigger{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #cbd5e1;border-radius:50%;background:#fff;color:#07447e;font-size:1.25rem;cursor:pointer}.mobileHeaderPanel{position:absolute;top:calc(100% + 10px);inset-inline-end:0;width:min(290px,calc(100vw - 24px));padding:14px;border:1px solid #dbe3ee;border-radius:16px;background:#fff;box-shadow:0 18px 44px rgba(15,23,42,.2);z-index:1100}.mobileHeaderPanel nav{display:grid}.mobileHeaderPanel nav a{padding:11px 10px;border-bottom:1px solid #edf1f5;color:#163c53;font-weight:800}.mobileLanguageRow{display:flex;align-items:center;justify-content:space-between;padding:12px 10px 0;color:#64748b;font-size:.85rem}.customerPortal .adminContainer,.techPortal .adminContainer{display:grid;grid-template-columns:205px minmax(0,1fr);gap:22px;padding-inline-start:0}.customerPortal .portalSidebar,.techPortal .portalSidebar{position:sticky;top:104px;grid-column:1;grid-row:1/span 20;align-self:start;width:auto}.customerPortal .adminContainer>:not(.portalSidebar),.techPortal .adminContainer>:not(.portalSidebar){grid-column:2;min-width:0}
@@ -482,10 +617,39 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 @media(max-width:430px){.logo img{width:32px!important;height:32px!important}.logo{font-size:.82rem}.headerActions .navCta{min-height:38px;padding-inline:10px;font-size:.76rem}.headerActions [style*="width: 44"]{width:40px!important;height:40px!important}.mobileHeaderTrigger{width:40px;height:40px}}
 .timePeriodGrid span{gap:3px}.timePeriodGrid span small{color:#64748b;font-size:.72rem;font-weight:500}
 .mobileQuickActions.whatsappOnly{grid-template-columns:1fr}.requestAdminTitle h2 small{display:block;margin-top:4px;color:#64748b;font-size:.72rem;font-weight:700}
-.floatingWhatsApp{position:fixed;z-index:35;inset-inline-start:22px;bottom:22px;display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:#168a5b;color:#fff;font-size:1.7rem;box-shadow:0 12px 28px rgba(16,94,62,.28)}
+.floatingWhatsApp{
+  position:fixed;
+  z-index:35;
+  inset-inline-start:22px;
+  bottom:22px;
+  display:grid;
+  place-items:center;
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background:#168a5b;
+  color:#fff;
+  font-size:1.7rem;
+  box-shadow:0 12px 28px rgba(16,94,62,.28);
+}
+
 @media(max-width:760px){
   .floatingWhatsApp{
     display:grid;
+  }
+}
+
+@media(max-width:520px){
+  .footer .floatingWhatsApp{
+    width:48px;
+    height:48px;
+    bottom:14px;
+    inset-inline-start:14px;
+  }
+
+  .footer .floatingWhatsApp img{
+    width:26px;
+    height:26px;
   }
 }
 @media(max-width:760px){.techPortal .adminTableWrap{overflow:visible;background:transparent;border:0;box-shadow:none}.techPortal .adminTable{display:block;min-width:0}.techPortal .adminTable thead{display:none}.techPortal .adminTable tbody{display:grid;gap:14px}.techPortal .adminTable tr{display:grid;width:100%;padding:16px;border:1px solid #dbe7e8;border-radius:16px;background:#fff;box-sizing:border-box}.techPortal .adminTable td{display:grid;gap:5px;width:auto!important;min-width:0!important;padding:10px 0;border:0;border-bottom:1px solid #edf2f3}.techPortal .adminTable td:last-child{border-bottom:0}.techPortal .adminTable td:before{color:#64748b;font-size:.72rem;font-weight:800}.techPortal .adminTable td:nth-child(1):before{content:"الطلب والعميل"}.techPortal .adminTable td:nth-child(2):before{content:"الموقع والتواصل"}.techPortal .adminTable td:nth-child(3):before{content:"حالة الطلب"}.techPortal .adminTable td:nth-child(4):before{content:"الإسناد"}.techPortal .adminTable td:nth-child(5):before{content:"الإجراء"}.techPortal .adminTable td:nth-child(6):before{content:"التاريخ"}.techPortal .technicianResponseControl{min-width:0}.techPortal .technicianResponseActions{grid-template-columns:1fr}}
