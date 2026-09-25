@@ -7,6 +7,8 @@ type SocialLink = {
   label: string;
   url: string;
   icon_url: string;
+  visible?: boolean;
+  order?: number;
 };
 
 export default async function SiteFooter({ order }: { order?: number }) {
@@ -53,12 +55,19 @@ export default async function SiteFooter({ order }: { order?: number }) {
       : {};
 
   const socialLinks = Array.isArray(data?.social_links)
-    ? (data.social_links as SocialLink[]).filter(
-        (item) =>
-          item &&
-          typeof item.url === "string" &&
-          item.url.trim() !== ""
-      )
+    ? (data.social_links as SocialLink[])
+        .filter(
+          (item) =>
+            item &&
+            typeof item.url === "string" &&
+            item.url.trim() !== "" &&
+            item.visible !== false
+        )
+        .sort(
+          (a, b) =>
+            (typeof a.order === "number" ? a.order : 999) -
+            (typeof b.order === "number" ? b.order : 999)
+        )
     : [];
 
   const phoneDigits = data?.phone?.replace(/\D/g, "");

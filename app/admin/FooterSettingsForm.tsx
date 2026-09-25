@@ -9,6 +9,8 @@ type SocialLink = {
   label: string;
   url: string;
   icon_url: string;
+  visible: boolean;
+  order: number;
 };
 
 type FooterContent = {
@@ -41,30 +43,40 @@ const DEFAULT_SOCIAL_LINKS: SocialLink[] = [
     label: "فيسبوك",
     url: "",
     icon_url: "",
+    visible: true,
+    order: 1,
   },
   {
     id: "instagram",
     label: "انستغرام",
     url: "",
     icon_url: "",
+    visible: true,
+    order: 2,
   },
   {
     id: "x",
     label: "X",
     url: "",
     icon_url: "",
+    visible: true,
+    order: 3,
   },
   {
     id: "snapchat",
     label: "سناب شات",
     url: "",
     icon_url: "",
+    visible: true,
+    order: 4,
   },
   {
     id: "tiktok",
     label: "تيك توك",
     url: "",
     icon_url: "",
+    visible: true,
+    order: 5,
   },
 ];
 
@@ -76,7 +88,24 @@ export default function FooterSettingsForm({
   const initialSocialLinks =
     Array.isArray(initialContent.social_links) &&
     initialContent.social_links.length > 0
-      ? initialContent.social_links
+      ? DEFAULT_SOCIAL_LINKS.map((defaultItem, index) => {
+          const savedItem = initialContent.social_links.find(
+            (item) => item.id === defaultItem.id
+          );
+
+          return {
+            ...defaultItem,
+            ...savedItem,
+            visible:
+              typeof savedItem?.visible === "boolean"
+                ? savedItem.visible
+                : true,
+            order:
+              typeof savedItem?.order === "number"
+                ? savedItem.order
+                : index + 1,
+          };
+        })
       : DEFAULT_SOCIAL_LINKS;
 
   const [form, setForm] = useState({
@@ -118,9 +147,9 @@ export default function FooterSettingsForm({
   }
 
   function updateSocialLink(
-    id: string,
-    field: "label" | "url" | "icon_url",
-    value: string
+  id: string,
+  field: "label" | "url" | "icon_url" | "visible" | "order",
+  value: string | boolean | number
   ) {
     setForm((current) => ({
       ...current,
@@ -330,7 +359,37 @@ export default function FooterSettingsForm({
                   }
                 />
               </label>
+              
+              <label>
+              الترتيب
+              <input
+                type="number"
+                min="1"
+                value={social.order}
+                onChange={(event) =>
+                  updateSocialLink(
+                    social.id,
+                    "order",
+                    Number(event.target.value)
+                  )
+                }
+              />
+            </label>
 
+            <label className="socialVisibility">
+              <input
+                type="checkbox"
+                checked={social.visible}
+                onChange={(event) =>
+                  updateSocialLink(
+                    social.id,
+                    "visible",
+                    event.target.checked
+                  )
+                }
+              />
+              <span>إظهار الأيقونة في الفوتر</span>
+            </label>
               <label>
                 رابط صورة الأيقونة
                 <input
@@ -347,6 +406,8 @@ export default function FooterSettingsForm({
                   }
                 />
               </label>
+
+              
             </div>
           ))}
         </div>
@@ -511,6 +572,23 @@ export default function FooterSettingsForm({
           font:inherit
         }
 
+                .socialVisibility{
+          flex-direction:row!important;
+          align-items:center;
+          align-self:end;
+          min-height:42px;
+        }
+
+        .socialVisibility input{
+          width:auto!important;
+          padding:0!important;
+          margin:0;
+        }
+
+        .socialVisibility span{
+          white-space:nowrap;
+        }
+          
         .paymentOptionGrid{
           display:grid;
           grid-template-columns:1fr 1fr;

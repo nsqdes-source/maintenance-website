@@ -53,13 +53,15 @@ export default async function AdminPage() {
       ? (footerContent.payment_logo_urls as Record<string, string>)
       : {},
   social_links: Array.isArray(footerContent?.social_links)
-    ? (footerContent.social_links as {
-        id: string;
-        label: string;
-        url: string;
-        icon_url: string;
-      }[])
-    : [],
+  ? (footerContent.social_links as {
+      id: string;
+      label: string;
+      url: string;
+      icon_url: string;
+      visible: boolean;
+      order: number;
+    }[])
+  : [],
 };
   return <main className="adminOpsPage"><section className="adminOpsContent"><header className="adminOpsHeader"><div><p>مركز العمليات</p><h1>نظرة عامة</h1></div><Link href="/admin/requests" className="button secondary">كل الطلبات</Link></header>
       <div className="opsStats"><Link href="/admin/requests?status=awaiting_assignment"><small>طلبات جديدة</small><strong>{newRequestsCount ?? 0}</strong><span>تحتاج إسنادًا</span></Link><Link href="/admin/requests"><small>كل الطلبات</small><strong>{requestsCount ?? 0}</strong><span>طلبات نشطة</span></Link><Link href="/admin/requests?status=completed"><small>طلبات منتهية</small><strong>{completedRequestsCount ?? 0}</strong><span>تم اعتماد تنفيذها</span></Link><Link href="/admin/technicians"><small>فنيون متاحون</small><strong>{techniciansCount ?? 0}</strong><span>فني نشط</span></Link>{(profile.role === "admin_manager" || profile.role === "super_admin") ? <Link href="/admin/finance"><small>المالية</small><strong>﷼</strong><span>الفواتير والتحصيل</span></Link> : <Link href="/admin/users"><small>المستخدمون</small><strong>{usersCount ?? 0}</strong><span>حساب مسجل</span></Link>}</div>
