@@ -188,7 +188,11 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 
 /* Secondary WhatsApp CTA and compact mobile actions. */
 .whatsAppLink{display:inline-flex;align-items:center;gap:7px;width:max-content;color:#d7f6eb!important;font-weight:800}.mobileQuickActions{display:none}
-@media(max-width:760px){.mobileQuickActions{position:fixed;z-index:40;right:12px;bottom:12px;left:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border:1px solid rgba(13,46,79,.14);border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 12px 30px rgba(13,46,79,.18);backdrop-filter:blur(12px)}.mobileQuickActions a{display:grid;place-items:center;min-height:46px;border-radius:11px;text-align:center;font-size:.9rem;font-weight:800}.mobileQuickActions .requestQuickAction{background:#0e7490;color:#fff}.mobileQuickActions .whatsappQuickAction{background:#e9f8f1;color:#12653f}}
+@media(max-width:760px){
+  .mobileQuickActions{
+    display:none !important;
+  }
+}
 
 /* Guided request flow inspired by the approved visual reference; the data flow remains unchanged. */
 .requestWizard{max-width:760px;margin:0 auto;padding:30px;border:1px solid #dce7f1;border-radius:24px;background:#fff;box-shadow:0 18px 55px rgba(29,78,116,.08)}
@@ -266,7 +270,12 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 @media(max-width:430px){.logo img{width:32px!important;height:32px!important}.logo{font-size:.82rem}.headerActions .navCta{min-height:38px;padding-inline:10px;font-size:.76rem}.headerActions [style*="width: 44"]{width:40px!important;height:40px!important}.mobileHeaderTrigger{width:40px;height:40px}}
 .timePeriodGrid span{gap:3px}.timePeriodGrid span small{color:#64748b;font-size:.72rem;font-weight:500}
 .mobileQuickActions.whatsappOnly{grid-template-columns:1fr}.requestAdminTitle h2 small{display:block;margin-top:4px;color:#64748b;font-size:.72rem;font-weight:700}
-.floatingWhatsApp{position:fixed;z-index:35;inset-inline-start:22px;bottom:22px;display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:#168a5b;color:#fff;font-size:1.7rem;box-shadow:0 12px 28px rgba(16,94,62,.28)}@media(max-width:760px){.floatingWhatsApp{display:none}}
+.floatingWhatsApp{position:fixed;z-index:35;inset-inline-start:22px;bottom:22px;display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:#168a5b;color:#fff;font-size:1.7rem;box-shadow:0 12px 28px rgba(16,94,62,.28)}
+@media(max-width:760px){
+  .floatingWhatsApp{
+    display:grid;
+  }
+}
 @media(max-width:760px){.techPortal .adminTableWrap{overflow:visible;background:transparent;border:0;box-shadow:none}.techPortal .adminTable{display:block;min-width:0}.techPortal .adminTable thead{display:none}.techPortal .adminTable tbody{display:grid;gap:14px}.techPortal .adminTable tr{display:grid;width:100%;padding:16px;border:1px solid #dbe7e8;border-radius:16px;background:#fff;box-sizing:border-box}.techPortal .adminTable td{display:grid;gap:5px;width:auto!important;min-width:0!important;padding:10px 0;border:0;border-bottom:1px solid #edf2f3}.techPortal .adminTable td:last-child{border-bottom:0}.techPortal .adminTable td:before{color:#64748b;font-size:.72rem;font-weight:800}.techPortal .adminTable td:nth-child(1):before{content:"الطلب والعميل"}.techPortal .adminTable td:nth-child(2):before{content:"الموقع والتواصل"}.techPortal .adminTable td:nth-child(3):before{content:"حالة الطلب"}.techPortal .adminTable td:nth-child(4):before{content:"الإسناد"}.techPortal .adminTable td:nth-child(5):before{content:"الإجراء"}.techPortal .adminTable td:nth-child(6):before{content:"التاريخ"}.techPortal .technicianResponseControl{min-width:0}.techPortal .technicianResponseActions{grid-template-columns:1fr}}
 
 /* Batch 3: guided request funnel and confirmation page. */
