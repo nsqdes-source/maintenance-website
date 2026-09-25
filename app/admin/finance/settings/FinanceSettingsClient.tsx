@@ -108,15 +108,11 @@ export default function FinanceSettingsClient({
 
 
 
-    setMessage(
-
-      error
-
-        ? \`تعذر حفظ المعلومات: ${error.message}\`
-
-        : "تم حفظ الإعدادات المالية."
-
-    );
+  setMessage(
+    error
+      ? `تعذر حفظ المعلومات: ${error.message}`
+      : "تم حفظ الإعدادات المالية."
+  );
 
   }
 
