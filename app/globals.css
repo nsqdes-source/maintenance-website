@@ -394,6 +394,81 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
     font-size:.62rem;
     line-height:1.4;
   }
+
+  .footerInner{
+  grid-template-columns:1.15fr 1fr .9fr;
+  gap:8px;
+}
+
+.footerBrand{
+  font-size:.68rem;
+}
+
+.footer .logo{
+  gap:5px;
+  font-size:.78rem;
+  justify-content:center;
+}
+
+.footerLogo{
+  width:34px;
+  height:34px;
+}
+
+.footerDescription{
+  font-size:.66rem;
+  line-height:1.45;
+}
+
+.footerContacts{
+  font-size:.68rem;
+}
+
+.footerLinks,
+.footerPayment{
+  font-size:.68rem;
+}
+
+.footerLinks h3,
+.footerPayment h3{
+  font-size:.82rem;
+}
+
+.footerSocialLinks{
+  gap:4px;
+  justify-content:center;
+}
+
+.footerSocialLink{
+  width:28px;
+  height:28px;
+}
+
+.footerSocialLink img{
+  width:16px;
+  height:16px;
+}
+
+.paymentLogo{
+  width:42px;
+  height:28px;
+}
+
+.paymentMarks{
+  gap:4px;
+}
+
+.footerCopyright{
+  font-size:.6rem;
+  line-height:1.35;
+}
+
+.floatingWhatsApp{
+  width:48px;
+  height:48px;
+  bottom:14px;
+  inset-inline-start:14px;
+}
 }
 
 /* Icon-only payment methods */
