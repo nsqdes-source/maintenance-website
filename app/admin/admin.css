@@ -470,4 +470,33 @@
   }
 }
 
+/* Finance settings */
+.financeIntegrationList {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.financeIntegrationList > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.financeIntegrationList span {
+  color: #64748b;
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .financeIntegrationList > div {
+    display: grid;
+  }
+}
+
 }

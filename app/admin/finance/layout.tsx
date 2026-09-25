@@ -26,9 +26,9 @@ export default function FinanceLayout({
         التقارير
         </Link>
 
-        <span className="financeNavPending" aria-disabled="true">
-          الإعدادات المالية
-        </span>
+        <Link href="/admin/finance/settings">
+        الإعدادات المالية
+        </Link>
       </nav>
 
       {children}
