@@ -60,6 +60,42 @@ export default function FinanceSettingsClient({
     );
   }
 
+    async function disconnectDrive() {
+    if (
+      !window.confirm(
+        "فصل حساب Google Drive عن الموقع؟"
+      )
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    setMessage("");
+
+    const response = await fetch(
+      "/api/drive/disconnect",
+      {
+        method: "POST",
+      }
+    );
+
+    const result = await response.json();
+
+    setBusy(false);
+
+    if (!response.ok) {
+      setMessage(
+        result.error ||
+          "تعذر فصل حساب Google Drive."
+      );
+      return;
+    }
+
+    setMessage("تم فصل حساب Google Drive.");
+
+    window.location.reload();
+  }
+
   return (
     <>
       {message ? (
@@ -208,32 +244,126 @@ export default function FinanceSettingsClient({
         </button>
       </section>
 
-      <section className="card financePanel">
-        <h2>حالة التكاملات</h2>
+        <section className="card financePanel">
+      <h2>التكاملات</h2>
 
-        <div className="financeIntegrationList">
+      <p>
+        إدارة خدمات البريد والتخزين المرتبطة بالنظام.
+      </p>
+
+      <div className="financeIntegrationCards">
+        <div className="financeIntegrationCard">
           <div>
             <strong>إرسال الفواتير بالبريد</strong>
 
-            <span>
-              {integrationStatus?.invoiceEmailConfigured
-                ? "جاهز"
-                : "غير مفعّل"}
-            </span>
+            <p>
+              تُستخدم خدمة Resend لإرسال الفواتير
+              والمستندات إلى العملاء.
+            </p>
           </div>
 
+          <span
+            className={
+              integrationStatus?.invoiceEmailConfigured
+                ? "financeIntegrationReady"
+                : "financeIntegrationOff"
+            }
+          >
+            {integrationStatus?.invoiceEmailConfigured
+              ? "مفعّل"
+              : "غير مفعّل"}
+          </span>
+
+          {!integrationStatus?.invoiceEmailConfigured ? (
+            <div className="financeIntegrationHelp">
+              <p>
+                لإكمال الربط أضف المفتاح التالي في
+                Environment Variables داخل Vercel:
+              </p>
+
+              <code>RESEND_API_KEY</code>
+
+              <a
+                className="button secondary"
+                href="https://vercel.com/dashboard"
+                target="_blank"
+                rel="noreferrer"
+              >
+                فتح Vercel
+              </a>
+            </div>
+          ) : (
+            <p className="inlineHint">
+              خدمة البريد جاهزة للاستخدام.
+            </p>
+          )}
+        </div>
+
+        <div className="financeIntegrationCard">
           <div>
             <strong>Google Drive</strong>
 
-            <span>
-              {driveConnected
-                ? "الحساب متصل"
-                : integrationStatus?.driveOAuthConfigured
-                  ? "الإعداد جاهز ويحتاج ربط الحساب"
-                  : "غير مفعّل"}
-            </span>
+            <p>
+              حفظ نسخ من الفواتير والملفات في حساب
+              Google Drive الخاص بالمؤسسة.
+            </p>
           </div>
+
+          <span
+            className={
+              driveConnected
+                ? "financeIntegrationReady"
+                : "financeIntegrationOff"
+            }
+          >
+            {driveConnected
+              ? "متصل"
+              : integrationStatus?.driveOAuthConfigured
+                ? "جاهز للربط"
+                : "غير مفعّل"}
+          </span>
+
+          {driveConnected ? (
+            <button
+              type="button"
+              className="button secondary"
+              disabled={busy}
+              onClick={disconnectDrive}
+            >
+              فصل Google Drive
+            </button>
+          ) : integrationStatus?.driveOAuthConfigured ? (
+            <a
+              className="button primary"
+              href="/api/drive/connect"
+            >
+              ربط Google Drive
+            </a>
+          ) : (
+            <div className="financeIntegrationHelp">
+              <p>
+                يجب أولًا إضافة إعدادات Google OAuth
+                في Vercel:
+              </p>
+
+              <code>GOOGLE_DRIVE_CLIENT_ID</code>
+              <code>GOOGLE_DRIVE_CLIENT_SECRET</code>
+              <code>GOOGLE_DRIVE_REDIRECT_URI</code>
+              <code>GOOGLE_DRIVE_TOKEN_ENCRYPTION_KEY</code>
+
+              <a
+                className="button secondary"
+                href="https://vercel.com/dashboard"
+                target="_blank"
+                rel="noreferrer"
+              >
+                فتح Vercel
+              </a>
+            </div>
+          )}
         </div>
+      </div>
+    </section>
 
         {!driveConnected &&
         integrationStatus?.driveOAuthConfigured ? (
