@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getLocale, text } from "@/lib/locale";
+import DraggableWhatsApp from "./DraggableWhatsApp";
 
 type SocialLink = {
   id: string;
@@ -303,31 +304,14 @@ export default async function SiteFooter({ order }: { order?: number }) {
       ) : null}
 
       {whatsappUrl ? (
-        <a
-          className="floatingWhatsApp"
+        <DraggableWhatsApp
           href={whatsappUrl}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={t(
+          iconUrl={whatsappIconUrl}
+          label={t(
             "تواصل عبر واتساب",
             "Contact us on WhatsApp"
           )}
-          title={t(
-            "تواصل عبر واتساب",
-            "Contact us on WhatsApp"
-          )}
-        >
-          <img
-            src={whatsappIconUrl}
-            alt=""
-            width="30"
-            height="30"
-            style={{
-              display: "block",
-              objectFit: "contain",
-            }}
-          />
-        </a>
+        />
       ) : null}
 
       <style>{`

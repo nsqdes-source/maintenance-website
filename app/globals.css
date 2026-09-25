@@ -666,3 +666,13 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 
 /* Batch 5 start: explicit, read-only permission matrix. */
 .permissionIntro{margin-bottom:18px;padding:22px}.permissionIntro h2{margin-top:0}.permissionIntro p{margin-bottom:0;color:#5d7081;line-height:1.8}.rolePermissionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.rolePermissionCard{padding:22px}.rolePermissionCard h2{margin:5px 0}.rolePermissionCard>p:not(.eyebrow){color:#5d7081;line-height:1.7}.rolePermissionCard h3{margin:20px 0 8px;font-size:.95rem}.rolePermissionCard ul{display:grid;gap:7px;margin:0;padding:0;list-style:none}.rolePermissionCard li{line-height:1.65}.roleRestrictions{color:#7a4b24}@media(max-width:760px){.rolePermissionGrid{grid-template-columns:1fr}}
+
+.draggableWhatsApp{
+  touch-action:none;
+  cursor:grab;
+  user-select:none;
+}
+
+.draggableWhatsApp:active{
+  cursor:grabbing;
+}
