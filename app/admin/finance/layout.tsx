@@ -10,9 +10,9 @@ export default function FinanceLayout({
       <nav className="financeNavigation" aria-label="التنقل المالي">
         <Link href="/admin/finance">نظرة عامة</Link>
 
-        <span className="financeNavPending" aria-disabled="true">
-          الفواتير
-        </span>
+        <Link href="/admin/finance/invoices">
+        الفواتير
+        </Link>
 
         <span className="financeNavPending" aria-disabled="true">
           التحصيلات
