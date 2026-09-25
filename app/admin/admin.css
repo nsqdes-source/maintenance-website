@@ -74,3 +74,62 @@
 .adminOpsSignOut { width: 100%; margin-top: 10px; min-height: 42px; border: 1px solid rgba(255,255,255,.25); border-radius: 12px; background: transparent; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
 .adminOpsSignOut:hover { background: rgba(255,255,255,.1); }
 @media (max-width: 820px) { .adminDashboardGrid { grid-template-columns: 1fr; } .adminTable { min-width: 1100px; } .serviceChoiceGrid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } .userRoleServices { grid-template-columns: 1fr 1fr; } }
+/* Finance navigation */
+.financeNavigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px;
+  margin: 0 auto 22px;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(15, 44, 72, 0.06);
+  scrollbar-width: thin;
+}
+
+.financeNavigation a,
+.financeNavPending {
+  flex: 0 0 auto;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.financeNavigation a {
+  background: #0d2e4f;
+  color: #fff;
+  text-decoration: none;
+}
+
+.financeNavigation a:hover {
+  background: #174b78;
+}
+
+.financeNavPending {
+  color: #66788a;
+  background: #f3f6f9;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .financeNavigation {
+    margin-bottom: 16px;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .financeNavigation a,
+  .financeNavPending {
+    min-height: 36px;
+    padding: 7px 11px;
+    font-size: 0.78rem;
+  }
+}
