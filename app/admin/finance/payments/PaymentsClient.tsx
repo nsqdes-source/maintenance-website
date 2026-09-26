@@ -29,13 +29,18 @@ export default function PaymentsClient({
   invoiceNumbers,
   collectedTotal,
   voidedTotal,
+  outstandingTotal,
+  collectedIssuedCount,
 }: {
   invoices: Invoice[];
   payments: Payment[];
   invoiceNumbers: Record<string, number>;
   collectedTotal: number;
   voidedTotal: number;
+  outstandingTotal: number;
+  collectedIssuedCount: number;
 }) {
+
   const router = useRouter();
 
   const [invoiceId, setInvoiceId] = useState("");
@@ -204,6 +209,22 @@ export default function PaymentsClient({
             قيود تحصيل ملغاة
           </p>
           <h2>{money(voidedTotal)}</h2>
+        </section>
+
+        <section className="card">
+          <p className="eyebrow">
+            إجمالي المبالغ غير المحصلة
+          </p>
+
+          <h2>{money(outstandingTotal)}</h2>
+        </section>
+
+        <section className="card">
+          <p className="eyebrow">
+            فواتير صادرة محصلة
+          </p>
+
+          <h2>{collectedIssuedCount}</h2>
         </section>
       </div>
 

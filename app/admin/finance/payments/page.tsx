@@ -91,6 +91,24 @@ export default async function FinancePaymentsPage() {
     })
     .filter((invoice) => invoice.remaining > 0);
 
+  const outstandingTotal = collectibleInvoices.reduce(
+    (sum, invoice) => sum + invoice.remaining,
+    0
+  );
+
+  const collectedIssuedCount = invoiceRows.filter((invoice) => {
+    if (invoice.status !== "issued") {
+       return false;
+    }
+
+    const paid = paidByInvoice.get(invoice.id) ?? 0;
+
+    return (
+      Number(invoice.total) > 0 &&
+      paid >= Number(invoice.total)
+    );
+  }).length;
+
   const collectedTotal = paymentRows
     .filter((payment) => !payment.voided_at)
     .reduce(
@@ -133,6 +151,8 @@ export default async function FinancePaymentsPage() {
           )}
           collectedTotal={collectedTotal}
           voidedTotal={voidedTotal}
+          outstandingTotal={outstandingTotal}
+          collectedIssuedCount={collectedIssuedCount}
         />
       </div>
     </main>
