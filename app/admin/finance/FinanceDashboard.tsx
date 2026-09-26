@@ -6,6 +6,7 @@ type Invoice = {
   customer_name: string;
   customer_email: string;
   total: number;
+  paid: number;
   status: string;
   created_at: string;
   issued_at: string | null;
@@ -32,10 +33,39 @@ export default function FinanceDashboard({
       currency: "SAR",
     }).format(Number(value));
 
-  const statusLabel = (status: string) => {
-    if (status === "issued") return "صادرة";
-    if (status === "void") return "ملغاة";
-    return "مسودة";
+  const statusLabel = (invoice: Invoice) => {
+    if (invoice.status === "void") {
+      return "ملغاة";
+    }
+
+    const paid = Number(invoice.paid);
+    const total = Number(invoice.total);
+
+    if (invoice.status === "draft") {
+      if (total > 0 && paid >= total) {
+        return "مسودة — مدفوعة بالكامل";
+      }
+
+      if (paid > 0) {
+        return "مسودة — مدفوعة جزئيًا";
+      }
+
+      return "مسودة";
+    }
+
+    if (invoice.status === "issued") {
+      if (total > 0 && paid >= total) {
+        return "صادرة — مدفوعة";
+      }
+
+      if (paid > 0) {
+        return "صادرة — مدفوعة جزئيًا";
+      }
+
+      return "صادرة — غير مدفوعة";
+    }
+
+    return invoice.status;
   };
 
   return (
@@ -133,7 +163,7 @@ export default function FinanceDashboard({
 
                     <td>{money(Number(invoice.total))}</td>
 
-                    <td>{statusLabel(invoice.status)}</td>
+                    <td>{statusLabel(invoice)}</td>
 
                     <td>
                       {new Date(

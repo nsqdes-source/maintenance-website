@@ -80,6 +80,11 @@ export default async function FinancePage() {
     }
   ).length;
 
+  const latestInvoices = (invoices ?? []).map((invoice) => ({
+    ...invoice,
+    paid: paidByInvoice.get(invoice.id) ?? 0,
+  }));
+
   return (
     <main className="adminPage financePortal">
       <div className="container adminContainer">
@@ -95,7 +100,7 @@ export default async function FinancePage() {
         </div>
 
         <FinanceDashboard
-          invoices={invoices ?? []}
+          invoices={latestInvoices}
           collectedIssuedCount={collectedIssuedCount}
           summary={
             (summary as {
