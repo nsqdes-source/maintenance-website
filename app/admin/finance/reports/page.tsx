@@ -89,6 +89,10 @@ export default async function FinanceReportsPage() {
     (invoice) => invoice.status === "issued"
   );
 
+  const issuedInvoiceIds = new Set(
+    issuedInvoices.map((invoice) => invoice.id)
+  );
+
   const issuedTotal = issuedInvoices.reduce(
     (sum, invoice) => sum + Number(invoice.total),
     0
@@ -99,16 +103,23 @@ export default async function FinanceReportsPage() {
     0
   );
 
+  const issuedCollectedTotal = activePayments
+    .filter((payment) => issuedInvoiceIds.has(payment.invoice_id))
+    .reduce(
+      (sum, payment) => sum + Number(payment.amount),
+      0
+    );
+
   const expenseTotal = activeExpenses.reduce(
     (sum, expense) => sum + Number(expense.amount),
     0
   );
 
-  const netProfit = collectedTotal - expenseTotal;
+  const netCashFlow = collectedTotal - expenseTotal;
 
   const outstandingTotal = Math.max(
     0,
-    issuedTotal - collectedTotal
+    issuedTotal - issuedCollectedTotal
   );
 
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -130,7 +141,7 @@ export default async function FinanceReportsPage() {
       0
     );
 
-  const currentMonthProfit =
+  const currentMonthCashFlow =
     currentMonthRevenue - currentMonthExpenses;
 
   const categoryTotals = new Map<string, number>();
@@ -180,7 +191,7 @@ export default async function FinanceReportsPage() {
 
         <div className="grid">
           <section className="card">
-            <p className="eyebrow">الإيرادات المحصّلة</p>
+            <p className="eyebrow">إجمالي التحصيلات النشطة</p>
             <h2>{money(collectedTotal)}</h2>
           </section>
 
@@ -190,8 +201,8 @@ export default async function FinanceReportsPage() {
           </section>
 
           <section className="card">
-            <p className="eyebrow">صافي الربح</p>
-            <h2>{money(netProfit)}</h2>
+            <p className="eyebrow">صافي التدفق النقدي</p>
+            <h2>{money(netCashFlow)}</h2>
           </section>
         </div>
 
@@ -202,7 +213,12 @@ export default async function FinanceReportsPage() {
           </section>
 
           <section className="card">
-            <p className="eyebrow">الرصيد غير المحصّل</p>
+            <p className="eyebrow">المحصّل من الفواتير الصادرة</p>
+            <h2>{money(issuedCollectedTotal)}</h2>
+          </section>
+
+          <section className="card">
+            <p className="eyebrow">إجمالي المبالغ غير المحصلة</p>
             <h2>{money(outstandingTotal)}</h2>
           </section>
 
@@ -217,7 +233,7 @@ export default async function FinanceReportsPage() {
 
           <div className="financeReportSummary">
             <div>
-              <span>الإيرادات</span>
+              <span>التحصيلات</span>
               <strong>{money(currentMonthRevenue)}</strong>
             </div>
 
@@ -227,8 +243,8 @@ export default async function FinanceReportsPage() {
             </div>
 
             <div>
-              <span>صافي الربح</span>
-              <strong>{money(currentMonthProfit)}</strong>
+              <span>صافي التدفق النقدي</span>
+              <strong>{money(currentMonthCashFlow)}</strong>
             </div>
           </div>
         </section>
