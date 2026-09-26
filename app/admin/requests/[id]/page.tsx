@@ -1,95 +1,122 @@
-import Link from "next/link";
-
-import { notFound, redirect } from "next/navigation";
-
-import { createClient } from "@/lib/supabase/server";
-
-import RequestTechnicianControl from "@/app/admin/RequestTechnicianControl";
-
-import WorkflowAdvanceControl from "@/app/admin/WorkflowAdvanceControl";
-
-import QuoteAdminControl from "@/app/admin/QuoteAdminControl";
-
-import ServiceRequestPaymentControl from "@/app/admin/ServiceRequestPaymentControl";
-
-import RequestWorkflowActions from "@/app/admin/RequestWorkflowActions";
-
-import RequestImages from "@/app/components/RequestImages";
 
 
 
-export const dynamic = "force-dynamic";
+          .assignmentHistoryItem > div {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+          }
 
 
 
-const ADMIN_ROLES = new Set([
+          .assignmentHistoryItem span {
 
-  "maintenance_manager",
+            color: #6b7280;
 
-  "admin_manager",
+            font-size: 0.86rem;
 
-  "super_admin",
-
-]);
+          }
 
 
 
-const WORKFLOW_LABELS: Record<string, string> = {
+          .assignmentHistoryItem p {
 
-  awaiting_assignment: "بانتظار الإسناد",
+            margin: 0;
 
-  assigned: "تم إسناده",
+            white-space: pre-wrap;
 
-  technician_accepted: "وافق الفني",
+            line-height: 1.7;
 
-  in_progress: "قيد التنفيذ",
-
-  awaiting_completion_review: "بانتظار مراجعة الإدارة",
-
-  reschedule_requested: "طلب إعادة جدولة",
-
-  unable_to_complete: "تعذر التنفيذ",
-
-  awaiting_admin_quote: "بانتظار عرض الإدارة",
-
-  awaiting_customer_approval: "بانتظار موافقة العميل",
-
-  quote_approved: "وافق العميل",
-
-  completed: "تم التنفيذ",
-
-  needs_followup: "بحاجة إلى قطعة / تعديل",
-
-  customer_rejected: "العميل رفض الإصلاح",
-
-  cancelled: "ملغي",
-
-  customer_cancelled: "ألغاه العميل",
-
-};
+          }
 
 
 
-const ASSIGNMENT_LABELS: Record<string, string> = {
+          .requestItemsTotal {
 
-  pending: "قيد الانتظار",
+            display: flex;
 
-  accepted: "مقبول",
+            justify-content: space-between;
 
-  rejected: "مرفوض",
+            align-items: center;
 
-  completed: "مكتمل",
+            gap: 16px;
 
-  cancelled: "ملغي",
+            padding: 14px;
 
-  customer_cancelled: "ألغاه العميل",
+            border: 1px solid rgba(0, 0, 0, 0.1);
 
-};
+            border-radius: 12px;
+
+            font-size: 0.95rem;
+
+          }
 
 
 
-type PageProps = {
+          .requestItemsTotal strong {
 
-  params: Promise<{ id: string }>;
+            font-size: 1.05rem;
 
-};
+          }
+
+
+
+          @media (max-width: 800px) {
+
+            .requestDetailGrid {
+
+              grid-template-columns: 1fr;
+
+            }
+
+
+
+            .detailFields {
+
+              grid-template-columns: 1fr;
+
+            }
+
+
+
+            .detailWide {
+
+              grid-column: auto;
+
+            }
+
+
+
+            .detailCardHeader {
+
+              flex-direction: column;
+
+            }
+
+
+
+            .requestItemsTotal {
+
+              align-items: flex-start;
+
+              flex-direction: column;
+
+            }
+
+          }
+
+        `}</style>
+
+      </div>
+
+    </main>
+
+  );
+
+}
