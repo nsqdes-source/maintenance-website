@@ -59,9 +59,20 @@ export default function PaymentsClient({
   const filteredPayments = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if (!query) return payments;
-
     return payments.filter((payment) => {
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && !payment.voided_at) ||
+        (statusFilter === "voided" && payment.voided_at);
+
+      if (!matchesStatus) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
       const invoiceNumber =
         invoiceNumbers[payment.invoice_id];
 
@@ -71,7 +82,12 @@ export default function PaymentsClient({
         payment.method.toLowerCase().includes(query)
       );
     });
-  }, [payments, search, invoiceNumbers]);
+  }, [
+    payments,
+    search,
+    statusFilter,
+    invoiceNumbers,
+  ]);
 
   async function recordPayment() {
     if (!invoiceId) {
@@ -312,6 +328,32 @@ export default function PaymentsClient({
               setSearch(event.target.value)
             }
           />
+
+          <div>
+            <button
+              type="button"
+              className="button secondary compactButton"
+              onClick={() => setStatusFilter("all")}
+            >
+              الكل
+            </button>
+
+            <button
+              type="button"
+              className="button secondary compactButton"
+              onClick={() => setStatusFilter("active")}
+            >
+              النشطة
+            </button>
+
+            <button
+              type="button"
+              className="button secondary compactButton"
+              onClick={() => setStatusFilter("voided")}
+            >
+              الملغاة
+            </button>
+          </div>
         </div>
 
         {filteredPayments.length ? (
