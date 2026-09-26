@@ -194,7 +194,7 @@ export default function PaymentsClient({
 
         <section className="card">
           <p className="eyebrow">
-            فواتير لها رصيد مستحق
+            فواتير صادرة لها رصيد مستحق
           </p>
           <h2>{invoices.length}</h2>
         </section>
