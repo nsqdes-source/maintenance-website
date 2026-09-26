@@ -28,7 +28,12 @@ export default async function FinancePage() {
     redirect("/admin");
   }
 
-  const [{ data: invoices }, { data: summary }] = await Promise.all([
+  const [
+    { data: invoices },
+    { data: summary },
+    { data: issuedInvoices },
+    { data: payments },
+  ] = await Promise.all([
     supabase
       .from("invoices")
       .select(
@@ -38,7 +43,42 @@ export default async function FinancePage() {
       .limit(5),
 
     supabase.rpc("finance_get_summary").single(),
+
+    supabase
+      .from("invoices")
+      .select("id,total")
+      .eq("status", "issued"),
+
+    supabase
+      .from("invoice_payments")
+      .select("invoice_id,amount,voided_at"),
   ]);
+
+  const paidByInvoice = new Map<string, number>();
+
+  for (const payment of payments ?? []) {
+    if (payment.voided_at) {
+      continue;
+    }
+
+    paidByInvoice.set(
+      payment.invoice_id,
+      (paidByInvoice.get(payment.invoice_id) ?? 0) +
+        Number(payment.amount)
+    );
+  }
+
+  const collectedIssuedCount = (issuedInvoices ?? []).filter(
+    (invoice) => {
+      const paid =
+        paidByInvoice.get(invoice.id) ?? 0;
+
+      return (
+        Number(invoice.total) > 0 &&
+        paid >= Number(invoice.total)
+      );
+    }
+  ).length;
 
   return (
     <main className="adminPage financePortal">
@@ -56,6 +96,7 @@ export default async function FinancePage() {
 
         <FinanceDashboard
           invoices={invoices ?? []}
+          collectedIssuedCount={collectedIssuedCount}
           summary={
             (summary as {
               issued_total: number;

@@ -20,9 +20,11 @@ type Summary = {
 export default function FinanceDashboard({
   invoices,
   summary,
+  collectedIssuedCount,
 }: {
   invoices: Invoice[];
   summary: Summary;
+  collectedIssuedCount: number;
 }) {
   const money = (value: number) =>
     new Intl.NumberFormat("ar-SA", {
@@ -53,9 +55,17 @@ export default function FinanceDashboard({
           <p className="eyebrow">اجمالي المبالغ غير المحصلة</p>
           <h2>{money(Number(summary.outstanding_total))}</h2>
         </section>
+
+        <section className="card">
+          <p className="eyebrow">
+            فواتير صادرة محصلة
+          </p>
+
+          <h2>{collectedIssuedCount}</h2>
+        </section>
       </div>
 
-      <section className="card financePanel">
+/      <section className="card financePanel">
         <h2>اختصارات سريعة</h2>
         <p>الوصول المباشر إلى أقسام الإدارة المالية.</p>
 
