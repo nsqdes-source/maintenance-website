@@ -108,15 +108,32 @@ export default async function FinanceInvoicesPage() {
       };
     }
 
+    const received =
+      paidByInvoice.get(invoice.id) ?? 0;
+
     if (invoice.status === "draft") {
+      if (
+        received >= Number(invoice.total) &&
+        Number(invoice.total) > 0
+      ) {
+        return {
+          key: "draft" as const,
+          label: "مسودة — مدفوعة بالكامل",
+        };
+      }
+
+      if (received > 0) {
+        return {
+          key: "draft" as const,
+          label: "مسودة — مدفوعة جزئيًا",
+        };
+      }
+
       return {
         key: "draft" as const,
         label: "مسودة",
       };
     }
-
-    const received =
-      paidByInvoice.get(invoice.id) ?? 0;
 
     if (
       received >= Number(invoice.total)
