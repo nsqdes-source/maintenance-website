@@ -181,7 +181,7 @@ export default async function FinanceInvoicesPage() {
     );
 
   const outstandingTotal =
-    issuedTotal - collectedTotal;
+    Math.max(0, issuedTotal - collectedTotal);
 
   const fullyPaidDraftCount = invoiceRows.filter((invoice) => {
   if (invoice.status !== "draft") {
@@ -290,7 +290,7 @@ export default async function FinanceInvoicesPage() {
 
           <section className="card">
             <p className="eyebrow">
-              المبلغ المتبقي
+              إجمالي المبالغ غير المحصلة
             </p>
 
             <h2>
