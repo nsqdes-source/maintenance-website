@@ -65,7 +65,7 @@ export default function FinanceDashboard({
         </section>
       </div>
 
-/      <section className="card financePanel">
+      {/* <section className="card financePanel"> */}
         <h2>اختصارات سريعة</h2>
         <p>الوصول المباشر إلى أقسام الإدارة المالية.</p>
 
