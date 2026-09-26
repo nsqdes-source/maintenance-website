@@ -71,7 +71,16 @@ export default async function FinanceExpensesPage() {
     (expense) => !expense.voided_at
   );
 
+  const voidedExpenses = expenseRows.filter(
+    (expense) => expense.voided_at
+  );
+
   const totalExpenses = activeExpenses.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
+  );
+
+  const voidedExpensesTotal = voidedExpenses.reduce(
     (sum, expense) => sum + Number(expense.amount),
     0
   );
@@ -117,6 +126,7 @@ export default async function FinanceExpensesPage() {
           totalExpenses={totalExpenses}
           monthExpenses={monthExpenses}
           partsExpenses={partsExpenses}
+          voidedExpensesTotal={voidedExpensesTotal}
         />
       </div>
     </main>
