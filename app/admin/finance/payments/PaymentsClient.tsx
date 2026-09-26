@@ -188,7 +188,7 @@ export default function PaymentsClient({
     <>
       <div className="grid">
         <section className="card">
-          <p className="eyebrow">المحصّل الفعلي</p>
+          <p className="eyebrow">إجمالي التحصيلات النشطة</p>
           <h2>{money(collectedTotal)}</h2>
         </section>
 
