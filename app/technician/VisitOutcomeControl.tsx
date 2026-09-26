@@ -65,7 +65,7 @@ const outcomes: {
 ];
 
 function relationName(
-  relation: CatalogRelation
+  relation: CatalogRelation | undefined
 ) {
   if (!relation) {
     return "";
