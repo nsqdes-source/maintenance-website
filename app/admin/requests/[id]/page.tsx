@@ -224,17 +224,74 @@ export default async function AdminRequestDetailsPage({
         ascending: true,
       });
 
-  const requestItemsTotal = (
-    requestItems ?? []
-  ).reduce(
-    (total, item) =>
-      total +
-      Number(item.gross_total ?? 0),
-    0
-  );
+const requestItemsTotal = (
+  requestItems ?? []
+).reduce(
+  (total, item) =>
+    total +
+    Number(item.gross_total ?? 0),
+  0
+);
 
-  const { data: quotes } =
+const { data: changeRequest } =
+  await supabase
+    .from(
+      "service_request_change_requests"
+    )
+    .select(
+      "id,status,notes,created_at"
+    )
+    .eq(
+      "service_request_id",
+      id
+    )
+    .eq("status", "submitted")
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+let changeRequestItems: {
+  id: string;
+  item_type:
+    | "service"
+    | "part"
+    | "other";
+  catalog_service_id:
+    | string
+    | null;
+  catalog_part_id:
+    | string
+    | null;
+  item_name: string;
+  quantity: number;
+  gross_unit_price: number;
+}[] = [];
+
+if (changeRequest?.id) {
+  const { data: items } =
     await supabase
+      .from(
+        "service_request_change_items"
+      )
+      .select(
+        "id,item_type,catalog_service_id,catalog_part_id,item_name,quantity,gross_unit_price"
+      )
+      .eq(
+        "change_request_id",
+        changeRequest.id
+      )
+      .order("created_at", {
+        ascending: true,
+      });
+
+  changeRequestItems =
+    (items ?? []) as typeof changeRequestItems;
+}
+
+const { data: quotes } =
+  await supabase
       .from("service_request_quotes")
       .select(
         "id, description, parts_description, parts_cost, labor_cost, line_items, status, created_at, customer_notes"
@@ -660,6 +717,13 @@ export default async function AdminRequestDetailsPage({
                         quantity?: number;
                       }[])
                     : []
+                }
+                changeRequestItems={
+                  changeRequestItems
+                }
+                changeRequestNotes={
+                  changeRequest?.notes ??
+                  null
                 }
               />
 
