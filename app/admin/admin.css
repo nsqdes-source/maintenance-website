@@ -582,4 +582,45 @@
   }
 }
 
+/* Finance dashboard quick links */
+.financeQuickLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.financeSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.financeSectionHeader h2 {
+  margin: 0 0 4px;
+}
+
+.financeSectionHeader p {
+  margin: 0;
+  color: #64748b;
+}
+
+@media (max-width: 700px) {
+  .financeQuickLinks {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .financeSectionHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .financeSectionHeader .button {
+    width: fit-content;
+  }
+}
+
 }
