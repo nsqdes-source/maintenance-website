@@ -174,6 +174,11 @@ export default function QuoteAdminControl({
     useState("");
 
   const [
+    visitCreditApplied,
+    setVisitCreditApplied,
+  ] = useState(false);
+
+  const [
     categories,
     setCategories,
   ] = useState<
@@ -227,10 +232,18 @@ export default function QuoteAdminControl({
         )
         .eq("is_active", true)
         .order("sort_order"),
+
+      db
+        .from(
+          "service_catalog_services"
+        )
+        .select("id")
+        .eq("is_visit_service", true),
     ]).then(
       ([
         categoryResult,
         partResult,
+        visitServiceResult,
       ]) => {
         const loadedCategories =
           (categoryResult.data ??
@@ -244,6 +257,34 @@ export default function QuoteAdminControl({
           (partResult.data ??
             []) as CatalogPart[]
         );
+
+        const visitServiceIds =
+          new Set(
+            (
+              visitServiceResult.data ??
+              []
+            ).map(
+              (item) => item.id
+            )
+          );
+
+        setLines((current) => {
+          const filtered =
+            current.filter(
+              (line) =>
+                !line.catalogServiceId ||
+                !visitServiceIds.has(
+                  line.catalogServiceId
+                )
+            );
+
+          setVisitCreditApplied(
+            filtered.length <
+              current.length
+          );
+
+          return filtered;
+        });
 
         setServiceId(
           loadedCategories.find(
@@ -496,6 +537,16 @@ export default function QuoteAdminControl({
               راجعها وعدّل الأسعار
               عند الحاجة قبل إرسال
               العرض للعميل.
+            </div>
+          ) : null}
+
+          {visitCreditApplied ? (
+            <div className="detailMuted">
+              تم استبعاد رسوم الزيارة
+              من عرض الإصلاح. أي مبلغ
+              زيارة تم تحصيله يبقى
+              رصيدًا للعميل ويُرحّل
+              إلى الفاتورة النهائية.
             </div>
           ) : null}
 
