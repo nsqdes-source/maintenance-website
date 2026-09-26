@@ -45,12 +45,12 @@ export default function FinanceDashboard({
         </section>
 
         <section className="card">
-          <p className="eyebrow">المحصّل فعليًا</p>
+          <p className="eyebrow">المحصّل من الفواتير الصادرة</p>
           <h2>{money(Number(summary.collected_total))}</h2>
         </section>
 
         <section className="card">
-          <p className="eyebrow">الرصيد المستحق</p>
+          <p className="eyebrow">اجمالي المبالغ غير المحصلة</p>
           <h2>{money(Number(summary.outstanding_total))}</h2>
         </section>
       </div>
