@@ -86,9 +86,17 @@ export default function ServiceRequestPaymentControl({
     setBusy(false);
 
     if (error) {
-      setMessage(
-        `تعذر تسجيل الدفعة: ${error.message}`
-      );
+      const errorMessage =
+        error.message === "payment_exceeds_invoice_remaining"
+          ? "مبلغ الدفعة يتجاوز المبلغ المتبقي على الفاتورة."
+          : error.message === "request_invoice_already_issued"
+            ? "تم إصدار الفاتورة بالفعل، ويجب تسجيل التحصيل من الفاتورة مباشرة."
+            : error.message === "completed_request_invoice_draft_required"
+              ? "لا توجد فاتورة مسودة مرتبطة بهذا الطلب المكتمل."
+              : error.message;
+
+      setMessage(`تعذر تسجيل الدفعة: ${errorMessage}`);
+      setBusy(false);
       return;
     }
 
