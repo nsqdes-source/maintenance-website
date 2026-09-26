@@ -119,8 +119,8 @@ export default async function InvoicePage({
               : invoice.status === "void"
                 ? "ملغاة"
                 : invoice.vat_registered
-                  ? "مسودة ضريبية غير صالحة للإصدار"
-                  : "مستند غير ضريبي"}
+                  ? "فاتورة ضريبية"
+                  : "فاتورة غير ضريبية"}
             </p>
 
             <h1>فاتورة #{invoice.invoice_number}</h1>
@@ -151,7 +151,6 @@ export default async function InvoicePage({
               <p>{invoice.customer_phone || "—"}</p>
               <p>{invoice.customer_email || "—"}</p>
               <p>الخدمة: {invoice.service_type || "—"}</p>
-              <p>الطلب: {invoice.service_request_id.slice(0, 8)}</p>
             </div>
           </div>
 
@@ -165,9 +164,9 @@ export default async function InvoicePage({
               <tr>
                 <th>البيان</th>
                 <th>الكمية</th>
-                <th>السعر</th>
+                <th>السعر شامل الضريبة</th>
                 <th>الضمان</th>
-                <th>الإجمالي</th>
+                <th>الإجمالي شامل الضريبة</th>
               </tr>
             </thead>
 
@@ -205,12 +204,17 @@ export default async function InvoicePage({
               )}
 
               <tr>
-                <td colSpan={4}>الضريبة ({invoice.tax_rate}%)</td>
+                <td colSpan={4}>الإجمالي قبل الضريبة</td>
+                <td>{money(invoice.subtotal)}</td>
+              </tr>
+
+              <tr>
+                <td colSpan={4}>ضريبة القيمة المضافة ({invoice.tax_rate}%)</td>
                 <td>{money(invoice.tax_amount)}</td>
               </tr>
 
               <tr>
-                <th colSpan={4}>الإجمالي</th>
+                <th colSpan={4}>الإجمالي شامل الضريبة</th>
                 <th>{money(invoice.total)}</th>
               </tr>
 
