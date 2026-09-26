@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PrintInvoice from "./PrintInvoice";
 import InvoiceDraftEditor from "./InvoiceDraftEditor";
+import PrintInvoice from "./PrintInvoice";
+import InvoiceDraftEditor from "./InvoiceDraftEditor";
+import InvoiceActions from "./InvoiceActions";
 
 export const dynamic = "force-dynamic";
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +22,20 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   if (!invoice) notFound();
   const money = (n: number) => new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR" }).format(Number(n));
   return <main className="adminPage"><div className="container adminContainer">
-    <div className="invoiceToolbar"><Link className="button secondary" href="/admin/finance">العودة للمالية</Link><PrintInvoice /></div>
+  <div className="invoiceToolbar">
+  <Link className="button secondary" href="/admin/finance">
+    العودة للمالية
+  </Link>
+
+  <PrintInvoice />
+
+  {invoice.status === "issued" ? (
+    <InvoiceActions
+      invoiceId={invoice.id}
+      customerEmail={invoice.customer_email || ""}
+    />
+  ) : null}
+</div>
     <article className="invoiceSheet" dir="rtl"><header><p className="eyebrow">{invoice.status === "draft" ? "مسودة غير صادرة" : invoice.status === "void" ? "ملغاة" : invoice.vat_registered ? "مسودة ضريبية غير صالحة للإصدار" : "مستند غير ضريبي"}</p><h1>فاتورة #{invoice.invoice_number}</h1><p>تاريخ {new Date(invoice.issued_at || invoice.created_at).toLocaleDateString("ar-SA")}</p></header>
       <div className="invoiceParties"><div><h2>من</h2><strong>{invoice.business_name}</strong><p>{invoice.business_address || "—"}</p><p>{invoice.business_email || "—"}</p>{invoice.business_tax_number ? <p>الرقم الضريبي: {invoice.business_tax_number}</p> : null}</div><div><h2>إلى</h2><strong>{invoice.customer_name}</strong><p>{invoice.customer_phone || "—"}</p><p>{invoice.customer_email || "—"}</p><p>الخدمة: {invoice.service_type || "—"}</p><p>الطلب: {invoice.service_request_id.slice(0, 8)}</p></div></div>
       <p><strong>العمل المنجز:</strong> {invoice.work_summary || invoice.description}</p>
