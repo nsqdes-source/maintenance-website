@@ -183,6 +183,19 @@ export default async function FinanceInvoicesPage() {
   const outstandingTotal =
     issuedTotal - collectedTotal;
 
+  const fullyPaidDraftCount = invoiceRows.filter((invoice) => {
+  if (invoice.status !== "draft") {
+    return false;
+  }
+
+  const paid = paidByInvoice.get(invoice.id) ?? 0;
+
+  return (
+    Number(invoice.total) > 0 &&
+    paid >= Number(invoice.total)
+  );
+  }).length;
+
   const preparedInvoices =
     invoiceRows.map((invoice) => {
       const paid =
@@ -267,6 +280,16 @@ export default async function FinanceInvoicesPage() {
 
           <section className="card">
             <p className="eyebrow">
+              المحصّل من الفواتير الصادرة
+            </p>
+
+            <h2>
+              {money(collectedTotal)}
+            </h2>
+          </section>
+
+          <section className="card">
+            <p className="eyebrow">
               المبلغ المتبقي
             </p>
 
@@ -274,6 +297,16 @@ export default async function FinanceInvoicesPage() {
               {money(
                 outstandingTotal
               )}
+            </h2>
+          </section>
+
+          <section className="card">
+            <p className="eyebrow">
+              مسودات مدفوعة بالكامل
+            </p>
+
+            <h2>
+              {fullyPaidDraftCount}
             </h2>
           </section>
         </div>
