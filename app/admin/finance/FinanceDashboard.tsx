@@ -82,7 +82,7 @@ export default function FinanceDashboard({
         </section>
 
         <section className="card">
-          <p className="eyebrow">اجمالي المبالغ غير المحصلة</p>
+          <p className="eyebrow">إجمالي المبالغ غير المحصلة</p>
           <h2>{money(Number(summary.outstanding_total))}</h2>
         </section>
 
