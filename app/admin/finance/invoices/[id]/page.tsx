@@ -119,8 +119,8 @@ export default async function InvoicePage({
               : invoice.status === "void"
                 ? "ملغاة"
                 : invoice.vat_registered
-                  ? "فاتورة ضريبية"
-                  : "فاتورة غير ضريبية"}
+                  ? "مسودة فاتورة ضريبية — غير صالحة للإصدار"
+                  : "مسودة فاتورة غير ضريبية"}
             </p>
 
             <h1>فاتورة #{invoice.invoice_number}</h1>
