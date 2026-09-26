@@ -34,10 +34,30 @@ const money = (value: number) =>
     currency: "SAR",
   }).format(Number(value));
 
-const monthKey = (date: string) => date.slice(0, 7);
+const dateKey = (date: string) => date.slice(0, 10);
 
-export default async function FinanceReportsPage() {
+export default async function FinanceReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
   const supabase = await createClient();
+  const params = await searchParams;
+
+  const from =
+    params.from && /^\d{4}-\d{2}-\d{2}$/.test(params.from)
+      ? params.from
+      : "";
+
+  const to =
+    params.to && /^\d{4}-\d{2}-\d{2}$/.test(params.to)
+      ? params.to
+      : "";
+
+  const inRange = (date: string) => {
+    const key = dateKey(date);
+    return (!from || key >= from) && (!to || key <= to);
+  };
 
   const {
     data: { user },
@@ -86,7 +106,17 @@ export default async function FinanceReportsPage() {
   );
 
   const issuedInvoices = invoiceRows.filter(
-    (invoice) => invoice.status === "issued"
+    (invoice) =>
+      invoice.status === "issued" &&
+      inRange(invoice.issued_at || invoice.created_at)
+  );
+
+  const periodPayments = activePayments.filter(
+    (payment) => inRange(payment.paid_at)
+  );
+
+  const periodExpenses = activeExpenses.filter(
+    (expense) => inRange(expense.expense_date)
   );
 
   const issuedInvoiceIds = new Set(
@@ -98,7 +128,7 @@ export default async function FinanceReportsPage() {
     0
   );
 
-  const collectedTotal = activePayments.reduce(
+  const collectedTotal = periodPayments.reduce(
     (sum, payment) => sum + Number(payment.amount),
     0
   );
@@ -110,7 +140,7 @@ export default async function FinanceReportsPage() {
       0
     );
 
-  const expenseTotal = activeExpenses.reduce(
+  const expenseTotal = periodExpenses.reduce(
     (sum, expense) => sum + Number(expense.amount),
     0
   );
@@ -122,31 +152,11 @@ export default async function FinanceReportsPage() {
     issuedTotal - issuedCollectedTotal
   );
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
-
-  const currentMonthRevenue = activePayments
-    .filter((payment) => monthKey(payment.paid_at) === currentMonth)
-    .reduce(
-      (sum, payment) => sum + Number(payment.amount),
-      0
-    );
-
-  const currentMonthExpenses = activeExpenses
-    .filter(
-      (expense) =>
-        monthKey(expense.expense_date) === currentMonth
-    )
-    .reduce(
-      (sum, expense) => sum + Number(expense.amount),
-      0
-    );
-
-  const currentMonthCashFlow =
-    currentMonthRevenue - currentMonthExpenses;
+  const periodCashFlow = collectedTotal - expenseTotal;
 
   const categoryTotals = new Map<string, number>();
 
-  for (const expense of activeExpenses) {
+  for (const expense of periodExpenses) {
     categoryTotals.set(
       expense.category,
       (categoryTotals.get(expense.category) ?? 0) +
@@ -189,62 +199,94 @@ export default async function FinanceReportsPage() {
           </Link>
         </div>
 
+        <section className="card financePanel">
+          <h2>الفترة المالية</h2>
+
+          <form method="get" className="financeFilters">
+            <label>
+              من
+              <input type="date" name="from" defaultValue={from} />
+            </label>
+
+            <label>
+              إلى
+              <input type="date" name="to" defaultValue={to} />
+            </label>
+
+            <div className="filterActions">
+              <button className="button primary compactButton" type="submit">
+                تطبيق
+              </button>
+
+              <Link className="button secondary compactButton" href="/admin/finance/reports">
+                كل الفترات
+              </Link>
+            </div>
+          </form>
+
+          <p className="detailMuted">
+            التحصيلات حسب تاريخ الدفع، والمصروفات حسب تاريخ المصروف،
+            والفواتير حسب تاريخ الإصدار. رصيد فواتير الفترة يحسب ما تم
+            تحصيله عليها حتى الآن.
+          </p>
+        </section>
+
         <div className="grid">
           <section className="card">
-            <p className="eyebrow">إجمالي التحصيلات النشطة</p>
+            <p className="eyebrow">تحصيلات الفترة النشطة</p>
             <h2>{money(collectedTotal)}</h2>
           </section>
 
           <section className="card">
-            <p className="eyebrow">إجمالي المصروفات</p>
+            <p className="eyebrow">مصروفات الفترة</p>
             <h2>{money(expenseTotal)}</h2>
           </section>
 
           <section className="card">
-            <p className="eyebrow">صافي التدفق النقدي</p>
+            <p className="eyebrow">صافي التدفق النقدي للفترة</p>
             <h2>{money(netCashFlow)}</h2>
           </section>
         </div>
 
         <div className="grid">
           <section className="card">
-            <p className="eyebrow">إجمالي الفواتير الصادرة</p>
+            <p className="eyebrow">فواتير الفترة الصادرة</p>
             <h2>{money(issuedTotal)}</h2>
           </section>
 
           <section className="card">
-            <p className="eyebrow">المحصّل من الفواتير الصادرة</p>
+            <p className="eyebrow">المحصّل حتى الآن من فواتير الفترة</p>
             <h2>{money(issuedCollectedTotal)}</h2>
           </section>
 
           <section className="card">
-            <p className="eyebrow">إجمالي المبالغ غير المحصلة</p>
+            <p className="eyebrow">غير المحصّل من فواتير الفترة</p>
             <h2>{money(outstandingTotal)}</h2>
           </section>
 
           <section className="card">
-            <p className="eyebrow">عدد الفواتير الصادرة</p>
+            <p className="eyebrow">عدد فواتير الفترة الصادرة</p>
             <h2>{issuedInvoices.length}</h2>
           </section>
         </div>
 
         <section className="card financePanel">
-          <h2>هذا الشهر</h2>
+          <h2>ملخص الفترة</h2>
 
           <div className="financeReportSummary">
             <div>
               <span>التحصيلات</span>
-              <strong>{money(currentMonthRevenue)}</strong>
+              <strong>{money(collectedTotal)}</strong>
             </div>
 
             <div>
               <span>المصروفات</span>
-              <strong>{money(currentMonthExpenses)}</strong>
+              <strong>{money(expenseTotal)}</strong>
             </div>
 
             <div>
               <span>صافي التدفق النقدي</span>
-              <strong>{money(currentMonthCashFlow)}</strong>
+              <strong>{money(periodCashFlow)}</strong>
             </div>
           </div>
         </section>
