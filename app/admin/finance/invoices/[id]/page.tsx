@@ -110,13 +110,17 @@ export default async function InvoicePage({
         <article className="invoiceSheet" dir="rtl">
           <header>
             <p className="eyebrow">
-              {invoice.status === "draft"
-                ? "مسودة غير صادرة"
-                : invoice.status === "void"
-                  ? "ملغاة"
-                  : invoice.vat_registered
-                    ? "مسودة ضريبية غير صالحة للإصدار"
-                    : "مستند غير ضريبي"}
+            {invoice.status === "draft"
+              ? paidTotal >= Number(invoice.total) && Number(invoice.total) > 0
+                ? "مسودة غير صادرة — مدفوعة بالكامل"
+                : paidTotal > 0
+                  ? "مسودة غير صادرة — مدفوعة جزئيًا"
+                  : "مسودة غير صادرة"
+              : invoice.status === "void"
+                ? "ملغاة"
+                : invoice.vat_registered
+                  ? "مسودة ضريبية غير صالحة للإصدار"
+                  : "مستند غير ضريبي"}
             </p>
 
             <h1>فاتورة #{invoice.invoice_number}</h1>
