@@ -34,12 +34,7 @@ export default function InvoiceDraftEditor({ invoiceId, status, initialWorkSumma
       p_work_summary: workSummary.trim(),
       p_lines: lines.map(line => ({ description: line.description.trim(), quantity: Number(line.quantity), unit_price: Number(line.unitPrice), warranty_days: Number(line.warrantyDays) || 0, warranty_terms: line.warrantyTerms.trim() })),
     });
-    if (error) {
-    console.error("Invoice draft save failed", error);
-    setBusy(false);
-    setMessage(`تعذر حفظ المسودة: ${error.message}`);
-    return;
-    }
+    if (error) { setBusy(false); setMessage("تعذر حفظ المسودة. راجع البيانات وحاول مجددًا."); return; }
     if (issue) {
       const { error: issueError } = await supabase.rpc("finance_set_invoice_status", { p_invoice_id: invoiceId, p_status: "issued" });
       setBusy(false);
