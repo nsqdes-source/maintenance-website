@@ -43,6 +43,9 @@ export default function PaymentsClient({
   const [method, setMethod] = useState("bank_transfer");
   const [note, setNote] = useState("");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "voided"
+  > ("all");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
