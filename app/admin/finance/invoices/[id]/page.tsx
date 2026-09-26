@@ -3,8 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PrintInvoice from "./PrintInvoice";
 import InvoiceDraftEditor from "./InvoiceDraftEditor";
-import PrintInvoice from "./PrintInvoice";
-import InvoiceDraftEditor from "./InvoiceDraftEditor";
 import InvoiceActions from "./InvoiceActions";
 
 export const dynamic = "force-dynamic";
