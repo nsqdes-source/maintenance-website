@@ -29,7 +29,12 @@ export default function WorkflowAdvanceControl({ requestId, stage }: { requestId
     });
     setBusy(false);
     if (resultError) {
-      setError("تعذر تحديث مرحلة الطلب.");
+      console.error("Workflow advance failed", resultError);
+
+      setError(
+        `تعذر تحديث مرحلة الطلب: ${resultError.message}`
+      );
+
       return;
     }
     router.refresh();
