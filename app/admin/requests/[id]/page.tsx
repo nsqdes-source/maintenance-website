@@ -56,7 +56,14 @@ type TechnicianOption = {
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
 
-  return new Date(value).toLocaleString("ar-SA");
+  return new Date(value).toLocaleString("ar-SA", {
+    timeZone: "Asia/Riyadh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function eventLabel(
