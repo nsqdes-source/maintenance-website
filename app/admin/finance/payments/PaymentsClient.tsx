@@ -377,7 +377,12 @@ export default function PaymentsClient({
               <tbody>
                 {filteredPayments.map(
                   (payment) => (
-                    <tr key={payment.id}>
+                    <tr
+                      key={payment.id}
+                      style={{
+                        opacity: payment.voided_at ? 0.55 : 1,
+                      }}
+                      >
                       <td>
                         #
                         {invoiceNumbers[
