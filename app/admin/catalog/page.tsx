@@ -52,24 +52,29 @@ export default async function CatalogPage() {
     supabase
       .from("service_catalog_parts")
       .select(
-      "id,service_catalog_item_id,name,default_price,tax_rate,gross_price,is_active,sort_order"
+        "id,service_catalog_item_id,name,default_price,tax_rate,gross_price,is_active,sort_order"
       )
       .order("sort_order"),
   ]);
 
   return (
     <main className="adminPage">
-        <div className="container adminContainer">
-          <nav
-            className={styles.navigation}
-            aria-label="التنقل داخل كتالوج الخدمة"
-          >
-            <a href="#catalog-categories">تصنيف الخدمات</a>
-            <a href="#catalog-services">الخدمات الفرعية</a>
-            <a href="#catalog-parts">القطع</a>
-          </nav>
+      <div className="container adminContainer">
+        <nav
+          className={styles.navigation}
+          aria-label="التنقل داخل كتالوج الخدمة"
+        >
+          <a href="#catalog-categories">تصنيف الخدمات</a>
+          <a href="#catalog-services">الخدمات الفرعية</a>
+          <a href="#catalog-parts">القطع</a>
+        </nav>
 
-            <div className="adminTopbar">
+        <div className="adminTopbar">
+          <div>
+            <p className="eyebrow">كتالوج الخدمة</p>
+            <h1>الخدمات والأسعار</h1>
+          </div>
+        </div>
 
         <CatalogManager
           initialItems={items ?? []}
