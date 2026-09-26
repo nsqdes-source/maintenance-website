@@ -393,14 +393,6 @@ export default function CatalogManager({
 
   return (
     <section className="catalogSplit">
-    <nav
-      className={styles.navigation}
-      aria-label="التنقل داخل كتالوج الخدمة"
-    >
-      <a href="#catalog-categories">تصنيف الخدمات</a>
-      <a href="#catalog-services">الخدمات الفرعية</a>
-      <a href="#catalog-parts">القطع</a>
-    </nav>
 
       {/* التصنيفات الرئيسية */}
       <section

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CatalogManager from "./CatalogManager";
+import styles from "./CatalogManager.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -58,13 +59,17 @@ export default async function CatalogPage() {
 
   return (
     <main className="adminPage">
-      <div className="container adminContainer">
-        <div className="adminTopbar">
-          <div>
-            <p className="eyebrow">كتالوج الخدمة</p>
-            <h1>الخدمات والأسعار</h1>
-          </div>
-        </div>
+        <div className="container adminContainer">
+          <nav
+            className={styles.navigation}
+            aria-label="التنقل داخل كتالوج الخدمة"
+          >
+            <a href="#catalog-categories">تصنيف الخدمات</a>
+            <a href="#catalog-services">الخدمات الفرعية</a>
+            <a href="#catalog-parts">القطع</a>
+          </nav>
+
+            <div className="adminTopbar">
 
         <CatalogManager
           initialItems={items ?? []}
