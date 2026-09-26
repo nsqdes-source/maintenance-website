@@ -48,12 +48,14 @@ export default function ExpensesClient({
   totalExpenses,
   monthExpenses,
   partsExpenses,
+  voidedExpensesTotal,
 }: {
   expenses: Expense[];
   requests: RequestRow[];
   totalExpenses: number;
   monthExpenses: number;
   partsExpenses: number;
+  voidedExpensesTotal: number;
 }) {
   const router = useRouter();
 
@@ -72,6 +74,9 @@ export default function ExpensesClient({
 
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "voided"
+  >("all");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -97,6 +102,11 @@ export default function ExpensesClient({
         filterCategory === "all" ||
         expense.category === filterCategory;
 
+      const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "active" && !expense.voided_at) ||
+        (filterStatus === "voided" && Boolean(expense.voided_at));
+
       const matchesSearch =
         !query ||
         expense.description.toLowerCase().includes(query) ||
@@ -104,9 +114,9 @@ export default function ExpensesClient({
         expense.reference.toLowerCase().includes(query) ||
         expense.notes.toLowerCase().includes(query);
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesStatus && matchesSearch;
     });
-  }, [expenses, search, filterCategory]);
+  }, [expenses, search, filterCategory, filterStatus]);
 
   async function recordExpense() {
     if (!description.trim()) {
@@ -142,9 +152,18 @@ export default function ExpensesClient({
     setBusy(false);
 
     if (error) {
-      setMessage(
-        `تعذر تسجيل المصروف: ${error.message}`
-      );
+      const errorMessage =
+        error.message === "expense_description_required"
+          ? "وصف المصروف مطلوب."
+          : error.message === "invalid_expense_amount"
+            ? "مبلغ المصروف غير صالح."
+            : error.message === "invalid_expense_category"
+              ? "تصنيف المصروف غير صالح."
+              : error.message === "invalid_payment_method"
+                ? "طريقة الدفع غير صالحة."
+                : error.message;
+
+      setMessage(`تعذر تسجيل المصروف: ${errorMessage}`);
       return;
     }
 
@@ -180,9 +199,12 @@ export default function ExpensesClient({
     setBusy(false);
 
     if (error) {
-      setMessage(
-        `تعذر إلغاء المصروف: ${error.message}`
-      );
+      const errorMessage =
+        error.message === "expense_not_found_or_voided"
+          ? "المصروف غير موجود أو سبق إلغاؤه."
+          : error.message;
+
+      setMessage(`تعذر إلغاء المصروف: ${errorMessage}`);
       return;
     }
 
@@ -195,7 +217,7 @@ export default function ExpensesClient({
       <div className="grid">
         <section className="card">
           <p className="eyebrow">
-            إجمالي المصروفات الفعلية
+            إجمالي المصروفات النشطة
           </p>
           <h2>{money(totalExpenses)}</h2>
         </section>
@@ -212,6 +234,13 @@ export default function ExpensesClient({
             مصروفات قطع الغيار
           </p>
           <h2>{money(partsExpenses)}</h2>
+        </section>
+
+        <section className="card">
+          <p className="eyebrow">
+            قيود مصروفات ملغاة
+          </p>
+          <h2>{money(voidedExpensesTotal)}</h2>
         </section>
       </div>
 
@@ -392,6 +421,32 @@ export default function ExpensesClient({
                 setSearch(event.target.value)
               }
             />
+
+            <div>
+              <button
+                type="button"
+                className="button secondary compactButton"
+                onClick={() => setFilterStatus("all")}
+              >
+                الكل
+              </button>
+
+              <button
+                type="button"
+                className="button secondary compactButton"
+                onClick={() => setFilterStatus("active")}
+              >
+                النشطة
+              </button>
+
+              <button
+                type="button"
+                className="button secondary compactButton"
+                onClick={() => setFilterStatus("voided")}
+              >
+                الملغاة
+              </button>
+            </div>
           </div>
 
           <label className="financeExpenseFilter">
@@ -438,7 +493,12 @@ export default function ExpensesClient({
               <tbody>
                 {filteredExpenses.map(
                   (expense) => (
-                    <tr key={expense.id}>
+                    <tr
+                      key={expense.id}
+                      style={{
+                        opacity: expense.voided_at ? 0.55 : 1,
+                      }}
+                    >
                       <td>
                         {new Date(
                           `${expense.expense_date}T00:00:00`
