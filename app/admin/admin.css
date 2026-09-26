@@ -623,4 +623,77 @@
   }
 }
 
+/* Catalog sticky navigation */
+.catalogNavigation {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  width: 100%;
+  overflow-x: auto;
+
+  padding: 10px;
+  margin: 0 0 18px;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+
+  box-shadow: 0 6px 20px rgba(15, 44, 72, 0.06);
+
+  scrollbar-width: thin;
+
+  grid-column: 1 / -1;
+}
+
+.catalogNavigation a {
+  flex: 0 0 auto;
+
+  padding: 9px 14px;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #0f2c48;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.catalogNavigation a:hover {
+  background: #f8fafc;
+  border-color: #b8c7d8;
+}
+
+#catalog-categories,
+#catalog-services,
+#catalog-parts {
+  scroll-margin-top: 90px;
+}
+
+@media (max-width: 700px) {
+  .catalogNavigation {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .catalogNavigation a {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
 }

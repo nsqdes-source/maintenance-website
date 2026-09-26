@@ -392,8 +392,14 @@ export default function CatalogManager({
 
   return (
     <section className="catalogSplit">
+    <nav className="catalogNavigation" aria-label="التنقل داخل كتالوج الخدمة">
+      <a href="#catalog-categories">تصنيف الخدمات</a>
+      <a href="#catalog-services">الخدمات الفرعية</a>
+      <a href="#catalog-parts">القطع</a>
+    </nav>
+
       {/* التصنيفات الرئيسية */}
-      <section className="catalogPane">
+      <section className="catalogPane" id="catalog-categories">
         <div className="catalogPaneHeader">
           <div>
             <p className="eyebrow">التصنيفات الرئيسية</p>
@@ -510,7 +516,7 @@ export default function CatalogManager({
       </section>
 
       {/* الخدمات الفرعية المسعرة */}
-      <section className="catalogPane">
+      <section className="catalogPane" id="catalog-services">
         <div className="catalogPaneHeader">
           <div>
             <p className="eyebrow">الأسعار شاملة الضريبة للعميل</p>
@@ -708,7 +714,7 @@ export default function CatalogManager({
       </section>
 
       {/* القطع */}
-      <section className="catalogPane">
+      <section className="catalogPane" id="catalog-parts">
         <div className="catalogPaneHeader">
           <div>
             <p className="eyebrow">الأسعار شاملة الضريبة للعميل</p>
