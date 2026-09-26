@@ -62,7 +62,7 @@ export default function InvoiceDraftEditor({ invoiceId, status, initialWorkSumma
     router.refresh();
   }
 
-  return <section className="card financePanel">
+  return <section className="card financePanel invoiceEditorPanel">
     <h2>{editable ? "مراجعة مسودة الفاتورة" : "بنود الفاتورة"}</h2>
     <p>{editable ? "راجع العمل المنجز، أضف البنود والأسعار، ثم احفظ أو أصدر الفاتورة." : "الفاتورة صادرة ولا يمكن تعديلها."}</p>
     <label>العمل المنجز<textarea value={workSummary} onChange={event => setWorkSummary(event.target.value)} disabled={!editable || busy} rows={4} /></label>
