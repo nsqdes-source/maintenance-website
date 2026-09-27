@@ -24,6 +24,18 @@ export default function UpdatePasswordPage() {
       if (code) {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) {
+          // createBrowserClient may already have exchanged the PKCE recovery code.
+          // In that case the one-time code is consumed, but the recovery session is valid.
+          const { data: { session: recoveredSession } } = await supabase.auth.getSession();
+          if (recoveredSession) {
+            if (active) {
+              window.history.replaceState({}, document.title, window.location.pathname);
+              setReady(true);
+              setChecking(false);
+            }
+            return;
+          }
+
           if (active) {
             setError(t("رابط الاستعادة غير صالح أو منتهي. اطلب رابطًا جديدًا.", "The recovery link is invalid or expired. Request a new one."));
             setChecking(false);
