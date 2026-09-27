@@ -135,7 +135,7 @@ export default async function TechnicianPage() {
     supabase
       .from("service_request_assignments")
       .select(
-        "id, service_request_id, status, assigned_at, responded_at, notes, service_request:service_requests(customer_name, phone, service_type, problem_description, city, address, latitude, longitude, workflow_stage, visit_notes, created_at)"
+        "id, service_request_id, status, assigned_at, responded_at, notes, service_request:service_requests(customer_name, phone, service_type, problem_description, city, address, latitude, longitude, workflow_stage, visit_notes, confirmed_date, confirmed_time_period, created_at)"
       )
       .eq("technician_id", technician.id)
       .order("assigned_at", {
@@ -583,6 +583,21 @@ export default async function TechnicianPage() {
                                   "Open Google Maps"
                                 )}
                               </a>
+                            </small>
+                          ) : null}
+
+                          {request?.confirmed_date ? (
+                            <small>
+                              <strong>
+                                {t(
+                                  "الموعد المؤكد:",
+                                  "Confirmed appointment:"
+                                )}
+                              </strong>{" "}
+                              {request.confirmed_date}
+                              {request.confirmed_time_period
+                                ? ` · ${request.confirmed_time_period}`
+                                : ""}
                             </small>
                           ) : null}
                         </td>
