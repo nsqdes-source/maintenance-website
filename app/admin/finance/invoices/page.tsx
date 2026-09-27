@@ -157,44 +157,21 @@ export default async function FinanceInvoicesPage() {
     };
   };
 
-  const issuedInvoices =
-    invoiceRows.filter(
-      (invoice) =>
-        invoice.status === "issued"
-    );
+  const summary = summaryRows?.[0] ?? {
+    total_invoice_count: invoiceRows.length,
+    issued_invoice_count: 0,
+    issued_total: 0,
+    issued_collected_total: 0,
+    issued_outstanding_total: 0,
+    fully_paid_draft_count: 0,
+  };
 
-  const issuedTotal =
-    issuedInvoices.reduce(
-      (sum, invoice) =>
-        sum + Number(invoice.total),
-      0
-    );
-
-  const collectedTotal =
-    issuedInvoices.reduce(
-      (sum, invoice) =>
-        sum +
-        (paidByInvoice.get(
-          invoice.id
-        ) ?? 0),
-      0
-    );
-
-  const outstandingTotal =
-    Math.max(0, issuedTotal - collectedTotal);
-
-  const fullyPaidDraftCount = invoiceRows.filter((invoice) => {
-  if (invoice.status !== "draft") {
-    return false;
-  }
-
-  const paid = paidByInvoice.get(invoice.id) ?? 0;
-
-  return (
-    Number(invoice.total) > 0 &&
-    paid >= Number(invoice.total)
-  );
-  }).length;
+  const totalInvoiceCount = Number(summary.total_invoice_count ?? 0);
+  const issuedInvoiceCount = Number(summary.issued_invoice_count ?? 0);
+  const issuedTotal = Number(summary.issued_total ?? 0);
+  const collectedTotal = Number(summary.issued_collected_total ?? 0);
+  const outstandingTotal = Number(summary.issued_outstanding_total ?? 0);
+  const fullyPaidDraftCount = Number(summary.fully_paid_draft_count ?? 0);
 
   const preparedInvoices =
     invoiceRows.map((invoice) => {
@@ -260,7 +237,7 @@ export default async function FinanceInvoicesPage() {
             </p>
 
             <h2>
-              {invoiceRows.length}
+              {totalInvoiceCount}
             </h2>
           </section>
 
@@ -270,7 +247,7 @@ export default async function FinanceInvoicesPage() {
             </p>
 
             <h2>
-              {issuedInvoices.length}
+              {issuedInvoiceCount}
             </h2>
 
             <p>
