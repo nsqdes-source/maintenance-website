@@ -10,6 +10,15 @@ type SupabaseCookie = {
 type SupabaseHeaders = Record<string, string>;
 
 export async function updateSession(request: NextRequest) {
+  const recoveryPending = request.cookies.get("password_recovery_pending")?.value === "1";
+  const recoveryAllowedPath =
+    request.nextUrl.pathname === "/update-password" ||
+    request.nextUrl.pathname === "/forgot-password";
+
+  if (recoveryPending && !recoveryAllowedPath) {
+    return NextResponse.redirect(new URL("/update-password", request.url));
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
