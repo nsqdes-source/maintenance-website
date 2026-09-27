@@ -56,6 +56,7 @@ export default async function FinanceInvoicesPage() {
   const [
     { data: invoices },
     { data: payments },
+    { data: summaryRows },
   ] = await Promise.all([
     supabase
       .from("invoices")
@@ -72,6 +73,8 @@ export default async function FinanceInvoicesPage() {
       .select(
         "invoice_id,amount,voided_at"
       ),
+
+    supabase.rpc("finance_get_invoice_list_summary"),
   ]);
 
   const invoiceRows =
