@@ -280,7 +280,7 @@ export default async function AdminRequestDetailsPage({
 
       .select(
 
-        "id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, requested_parts, created_at, workflow_updated_at, archived_at, confirmed_date, confirmed_time_period, appointment_notes, cancellation_reason"
+        "id, customer_name, phone, customer_email, service_type, problem_description, city, address, latitude, longitude, status, workflow_stage, visit_outcome, visit_notes, requested_parts, created_at, workflow_updated_at, archived_at, preferred_date, preferred_time_period, confirmed_date, confirmed_time_period, appointment_notes, cancellation_reason"
 
       )
 
@@ -1260,6 +1260,10 @@ const { data: quotes } =
                   request.workflow_stage
 
                 }
+
+                preferredDate={request.preferred_date}
+
+                preferredTimePeriod={request.preferred_time_period}
 
               />
 
