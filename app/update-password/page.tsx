@@ -18,6 +18,8 @@ export default function UpdatePasswordPage() {
   useEffect(() => {
     let active = true;
     const supabase = createClient();
+    const recoveryCookie = "password_recovery_pending=1; Path=/; Max-Age=1800; SameSite=Lax";
+    const clearRecoveryCookie = "password_recovery_pending=; Path=/; Max-Age=0; SameSite=Lax";
 
     async function prepareRecovery() {
       const code = new URLSearchParams(window.location.search).get("code");
@@ -29,6 +31,7 @@ export default function UpdatePasswordPage() {
           const { data: { session: recoveredSession } } = await supabase.auth.getSession();
           if (recoveredSession) {
             if (active) {
+              document.cookie = recoveryCookie;
               window.history.replaceState({}, document.title, window.location.pathname);
               setReady(true);
               setChecking(false);
@@ -42,14 +45,20 @@ export default function UpdatePasswordPage() {
           }
           return;
         }
+        document.cookie = recoveryCookie;
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!active) return;
 
-      setReady(Boolean(session));
-      if (!session) {
+      const recoveryPending = document.cookie
+        .split("; ")
+        .some((item) => item === "password_recovery_pending=1");
+
+      setReady(Boolean(session) && recoveryPending);
+      if (!session || !recoveryPending) {
+        document.cookie = clearRecoveryCookie;
         setError(t("لا توجد جلسة استعادة صالحة. اطلب رابطًا جديدًا من صفحة استعادة كلمة المرور.", "No valid recovery session. Request a new link from the password recovery page."));
       }
       setChecking(false);
@@ -86,12 +95,9 @@ export default function UpdatePasswordPage() {
       return;
     }
 
-    await supabase.auth.signOut();
-    setPassword("");
-    setConfirmation("");
-    setMessage(t("تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.", "Password updated. You can now sign in with your new password."));
-    setReady(false);
-    setPending(false);
+    document.cookie = "password_recovery_pending=; Path=/; Max-Age=0; SameSite=Lax";
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.href = "/login";
   }
 
   return (
