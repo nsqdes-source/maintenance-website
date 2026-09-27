@@ -1247,6 +1247,10 @@ const { data: quotes } =
 
                 }
 
+                confirmedDate={request.confirmed_date}
+
+                confirmedTimePeriod={request.confirmed_time_period}
+
               />
 
 
