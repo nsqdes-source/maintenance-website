@@ -54,9 +54,11 @@ export default async function FinanceReportsPage({
       ? params.to
       : "";
 
+  const invalidRange = Boolean(from && to && from > to);
+
   const inRange = (date: string) => {
     const key = dateKey(date);
-    return (!from || key >= from) && (!to || key <= to);
+    return !invalidRange && (!from || key >= from) && (!to || key <= to);
   };
 
   const {
@@ -205,12 +207,22 @@ export default async function FinanceReportsPage({
           <form method="get" className="financeFilters">
             <label>
               من
-              <input type="date" name="from" defaultValue={from} />
+              <input
+                type="date"
+                name="from"
+                defaultValue={from}
+                max={to || undefined}
+              />
             </label>
 
             <label>
               إلى
-              <input type="date" name="to" defaultValue={to} />
+              <input
+                type="date"
+                name="to"
+                defaultValue={to}
+                min={from || undefined}
+              />
             </label>
 
             <div className="filterActions">
@@ -231,6 +243,16 @@ export default async function FinanceReportsPage({
           </p>
         </section>
 
+        {invalidRange ? (
+          <section className="card financePanel">
+            <h2>الفترة غير صحيحة</h2>
+            <p>
+              يجب أن يكون تاريخ «من» أقدم من أو مساويًا لتاريخ «إلى».
+              صحح الفترة ثم اضغط «تطبيق».
+            </p>
+          </section>
+        ) : (
+          <>
         <div className="grid">
           <section className="card">
             <p className="eyebrow">تحصيلات الفترة النشطة</p>
@@ -329,6 +351,8 @@ export default async function FinanceReportsPage({
             <p>لا توجد مصروفات مسجلة بعد.</p>
           )}
         </section>
+          </>
+        )}
       </div>
     </main>
   );
