@@ -6,10 +6,27 @@ import { createClient } from "@/lib/supabase/client";
 
 const CLOSED = new Set(["completed", "customer_rejected", "customer_cancelled", "cancelled"]);
 
-export default function RequestWorkflowActions({ requestId, stage }: { requestId: string; stage: string }) {
+export default function RequestWorkflowActions({
+  requestId,
+  stage,
+  preferredDate = "",
+  preferredTimePeriod = "",
+}: {
+  requestId: string;
+  stage: string;
+  preferredDate?: string | null;
+  preferredTimePeriod?: string | null;
+}) {
   const router = useRouter();
-  const [date, setDate] = useState("");
-  const [period, setPeriod] = useState("");
+  const periodLabels: Record<string, string> = {
+    morning: "صباحًا",
+    afternoon: "ظهرًا",
+    evening: "مساءً",
+  };
+  const [date, setDate] = useState(preferredDate ?? "");
+  const [period, setPeriod] = useState(
+    preferredTimePeriod ? periodLabels[preferredTimePeriod] ?? preferredTimePeriod : ""
+  );
   const [notes, setNotes] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [busy, setBusy] = useState(false);
