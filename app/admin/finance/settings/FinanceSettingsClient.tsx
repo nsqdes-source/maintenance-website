@@ -23,6 +23,7 @@ export default function FinanceSettingsClient({
   const [settings, setSettings] = useState(initialSettings);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageContext, setMessageContext] = useState<"settings" | "drive" | null>(null);
 
   const [integrationStatus, setIntegrationStatus] = useState<{
     invoiceEmailConfigured: boolean;
@@ -39,6 +40,7 @@ export default function FinanceSettingsClient({
   async function saveSettings() {
     setBusy(true);
     setMessage("");
+    setMessageContext("settings");
 
     const { error } = await createClient().rpc("finance_save_settings", {
       p_name: settings.legal_name,
@@ -65,6 +67,7 @@ export default function FinanceSettingsClient({
 
     setBusy(true);
     setMessage("");
+    setMessageContext("drive");
 
     const response = await fetch("/api/drive/disconnect", {
       method: "POST",
@@ -85,12 +88,6 @@ export default function FinanceSettingsClient({
 
   return (
     <>
-      {message ? (
-        <p className="formMessage" role="status">
-          {message}
-        </p>
-      ) : null}
-
       <section className="card financePanel">
         <h2>بيانات المنشأة</h2>
 
@@ -225,12 +222,24 @@ export default function FinanceSettingsClient({
         >
           {busy ? "جارٍ الحفظ..." : "حفظ الإعدادات"}
         </button>
+
+        {message && messageContext === "settings" ? (
+          <p className="formMessage" role="status">
+            {message}
+          </p>
+        ) : null}
       </section>
 
       <section className="card financePanel">
         <h2>التكاملات</h2>
 
         <p>إدارة خدمات البريد والتخزين المرتبطة بالنظام.</p>
+
+        {message && messageContext === "drive" ? (
+          <p className="formMessage" role="status">
+            {message}
+          </p>
+        ) : null}
 
         <div className={styles.integrationCards}>
           <div className={styles.integrationCard}>
