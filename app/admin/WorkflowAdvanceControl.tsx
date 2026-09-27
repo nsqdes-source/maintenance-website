@@ -13,12 +13,26 @@ const NEXT_STAGE: Record<string, { value: string; label: string }> = {
   unable_to_complete: { value: "in_progress", label: "استئناف التنفيذ" },
 };
 
-export default function WorkflowAdvanceControl({ requestId, stage }: { requestId: string; stage: string }) {
+export default function WorkflowAdvanceControl({
+  requestId,
+  stage,
+  confirmedDate = null,
+  confirmedTimePeriod = null,
+}: {
+  requestId: string;
+  stage: string;
+  confirmedDate?: string | null;
+  confirmedTimePeriod?: string | null;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const next = NEXT_STAGE[stage];
   if (!next) return null;
+
+  const appointmentRequired =
+    stage === "technician_accepted" &&
+    (!confirmedDate || !confirmedTimePeriod);
 
   async function advance() {
     setBusy(true);
@@ -41,9 +55,13 @@ export default function WorkflowAdvanceControl({ requestId, stage }: { requestId
   }
 
   return <div>
-    <button type="button" className="button primary compactButton" disabled={busy} onClick={advance}>
-      {busy ? "جارٍ التحديث..." : next.label}
-    </button>
+    {appointmentRequired ? (
+      <p className="detailMuted">أكد الموعد أولًا قبل بدء التنفيذ.</p>
+    ) : (
+      <button type="button" className="button primary compactButton" disabled={busy} onClick={advance}>
+        {busy ? "جارٍ التحديث..." : next.label}
+      </button>
+    )}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
   </div>;
 }
