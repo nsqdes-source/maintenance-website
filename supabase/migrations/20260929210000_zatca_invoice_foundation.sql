@@ -89,6 +89,8 @@ create table public.zatca_invoice_documents (
 
   constraint zatca_invoice_documents_invoice_uniq
     unique (invoice_id),
+  constraint zatca_invoice_documents_id_invoice_uniq
+    unique (id, invoice_id),
   constraint zatca_invoice_documents_uuid_uniq
     unique (invoice_uuid),
   constraint zatca_invoice_documents_invoice_kind_chk
@@ -97,6 +99,8 @@ create table public.zatca_invoice_documents (
     check (document_kind in ('invoice', 'credit_note', 'debit_note')),
   constraint zatca_invoice_documents_icv_chk
     check (icv is null or icv > 0),
+  constraint zatca_invoice_documents_icv_requires_egs_chk
+    check (icv is null or egs_unit_id is not null),
   constraint zatca_invoice_documents_integration_status_chk
     check (integration_status in (
       'draft',
@@ -147,7 +151,7 @@ comment on column public.zatca_invoice_documents.response_payload is
 
 create table public.zatca_invoice_events (
   id uuid primary key default gen_random_uuid(),
-  zatca_document_id uuid not null references public.zatca_invoice_documents(id) on delete restrict,
+  zatca_document_id uuid not null,
   invoice_id uuid not null references public.invoices(id) on delete restrict,
   event_type text not null,
   from_status text,
@@ -156,6 +160,9 @@ create table public.zatca_invoice_events (
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
 
+  constraint zatca_invoice_events_document_invoice_fk
+    foreign key (zatca_document_id, invoice_id)
+    references public.zatca_invoice_documents(id, invoice_id) on delete restrict,
   constraint zatca_invoice_events_event_nonempty_chk
     check (nullif(trim(event_type), '') is not null),
   constraint zatca_invoice_events_details_object_chk
