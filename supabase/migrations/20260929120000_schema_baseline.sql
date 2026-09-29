@@ -603,6 +603,23 @@ alter table warranty_claims add constraint "warranty_claims_invoice_id_fkey" FOR
 alter table warranty_claims add constraint "warranty_claims_invoice_line_item_id_fkey" FOREIGN KEY (invoice_line_item_id) REFERENCES invoice_line_items(id) ON DELETE RESTRICT;
 alter table warranty_claims add constraint "warranty_claims_service_request_id_fkey" FOREIGN KEY (service_request_id) REFERENCES service_requests(id) ON DELETE CASCADE;
 
+-- Index expression dependency: define the immutable phone normalizer before indexes.
+CREATE OR REPLACE FUNCTION public.normalized_sa_mobile(raw_phone text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$
+ select case
+  when regexp_replace(coalesce(raw_phone,''),'[^0-9]','','g') ~ '^05[0-9]{8}$'
+   then '966' || substr(regexp_replace(raw_phone,'[^0-9]','','g'),2)
+  when regexp_replace(coalesce(raw_phone,''),'[^0-9]','','g') ~ '^9665[0-9]{8}$'
+   then regexp_replace(raw_phone,'[^0-9]','','g')
+  when regexp_replace(coalesce(raw_phone,''),'[^0-9]','','g') ~ '^5[0-9]{8}$'
+   then '966' || regexp_replace(raw_phone,'[^0-9]','','g')
+  else null end
+$function$;
+
 -- 9. Non-constraint indexes
 CREATE INDEX finance_expenses_category_idx ON public.finance_expenses USING btree (category, expense_date DESC);
 CREATE INDEX finance_expenses_date_idx ON public.finance_expenses USING btree (expense_date DESC);
@@ -2870,22 +2887,6 @@ begin
  if not found then raise exception 'notification_not_found'; end if;
 end; $function$;
 
-CREATE OR REPLACE FUNCTION public.normalized_sa_mobile(raw_phone text)
- RETURNS text
- LANGUAGE sql
- IMMUTABLE
- SET search_path TO 'public'
-AS $function$
- select case
-  when regexp_replace(coalesce(raw_phone,''),'[^0-9]','','g') ~ '^05[0-9]{8}$'
-   then '966' || substr(regexp_replace(raw_phone,'[^0-9]','','g'),2)
-  when regexp_replace(coalesce(raw_phone,''),'[^0-9]','','g') ~ '^9665[0-9]{8}$'
-   then regexp_replace(raw_phone,'[^0-9]','','g')
-  when regexp_replace(coalesce(raw_phone,''),'[^0-9]','','g') ~ '^5[0-9]{8}$'
-   then '966' || regexp_replace(raw_phone,'[^0-9]','','g')
-  else null end
-$function$;
-
 CREATE OR REPLACE FUNCTION public.notify_service_request_event()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -4115,7 +4116,6 @@ grant usage on schema private to anon, authenticated;
 -- service_role retains DML for server-side integrations; no TRUNCATE/TRIGGER grants.
 grant SELECT on public."service_catalog_items" to anon;
 grant SELECT on public."service_catalog_services" to anon;
-grant INSERT on public."service_requests" to anon;
 grant SELECT on public."site_footer_content" to anon;
 grant SELECT on public."site_section_items" to anon;
 grant SELECT on public."site_sections" to anon;
@@ -4142,7 +4142,7 @@ grant SELECT on public."service_request_events" to authenticated;
 grant SELECT on public."service_request_items" to authenticated;
 grant SELECT on public."service_request_payments" to authenticated;
 grant SELECT on public."service_request_quotes" to authenticated;
-grant SELECT, UPDATE, INSERT on public."service_requests" to authenticated;
+grant SELECT, UPDATE on public."service_requests" to authenticated;
 grant SELECT, INSERT, UPDATE, DELETE on public."site_editor_versions" to authenticated;
 grant INSERT, UPDATE, SELECT on public."site_footer_content" to authenticated;
 grant SELECT, INSERT, UPDATE, DELETE on public."site_section_items" to authenticated;
@@ -4158,8 +4158,6 @@ grant usage, select on sequence public.invoices_invoice_number_seq to service_ro
 grant execute on function private."can_upload_request_image"(object_name text),
   public."attach_service_request_image"(target_request_id uuid, target_upload_token uuid, target_storage_path text, target_content_type text),
   public."normalized_sa_mobile"(raw_phone text),
-  public."set_site_footer_content_updated_at"(),
-  public."set_technicians_updated_at"(),
   public."submit_contact_message"(sender_name text, sender_phone text, sender_email text, message_subject text, message_body text),
   public."submit_service_request_v4"(input_name text, input_phone text, input_email text, input_catalog_item_id uuid, input_catalog_services jsonb, input_issue_type text, input_problem text, input_city text, input_address text, input_latitude double precision, input_longitude double precision, input_preferred_date date, input_preferred_time_period text, input_landing_page text, input_referrer text, input_utm_source text, input_utm_medium text, input_utm_campaign text, input_utm_content text, input_utm_term text, input_gclid text, input_wbraid text, input_gbraid text, input_first_touch_at timestamp with time zone) to anon;
 grant execute on function private."can_upload_request_image"(object_name text),
@@ -4173,7 +4171,6 @@ grant execute on function private."can_upload_request_image"(object_name text),
   public."admin_reassign_service_request"(target_service_request_id uuid, target_technician_id uuid, reassignment_reason text),
   public."admin_set_service_request_archive"(target_service_request_id uuid, should_archive boolean),
   public."admin_submit_service_request_quote"(target_service_request_id uuid, quote_description text, quote_line_items jsonb),
-  public."admin_submit_service_request_quote"(target_service_request_id uuid, quote_description text, quote_parts_description text, quote_parts_cost numeric, quote_labor_cost numeric),
   public."admin_update_contact_message_status"(target_message_id uuid, new_status text),
   public."admin_update_technician"(target_technician_id uuid, target_service_types text[], target_is_active boolean, target_notes text),
   public."admin_update_user_role"(target_user_id uuid, new_role app_role, new_service_types text[]),
@@ -4185,9 +4182,6 @@ grant execute on function private."can_upload_request_image"(object_name text),
   public."customer_decide_service_request_quote"(target_quote_id uuid, approve boolean, decision_notes text),
   public."customer_get_active_warranty_items"(),
   public."customer_reject_repair"(target_service_request_id uuid, rejection_notes text),
-  public."customer_reject_service_request"(target_service_request_id uuid, rejection_reason text),
-  public."finance_create_invoice"(p_request_id uuid, p_description text, p_subtotal numeric),
-  public."finance_ensure_invoice_draft"(p_request_id uuid),
   public."finance_get_invoice_list_summary"(),
   public."finance_get_summary"(),
   public."finance_mark_invoice_emailed"(p_invoice_id uuid),
@@ -4203,14 +4197,10 @@ grant execute on function private."can_upload_request_image"(object_name text),
   public."mark_all_notifications_read"(),
   public."mark_notification_read"(target_notification_id uuid),
   public."normalized_sa_mobile"(raw_phone text),
-  public."set_site_footer_content_updated_at"(),
-  public."set_technicians_updated_at"(),
   public."submit_contact_message"(sender_name text, sender_phone text, sender_email text, message_subject text, message_body text),
   public."submit_service_request_v4"(input_name text, input_phone text, input_email text, input_catalog_item_id uuid, input_catalog_services jsonb, input_issue_type text, input_problem text, input_city text, input_address text, input_latitude double precision, input_longitude double precision, input_preferred_date date, input_preferred_time_period text, input_landing_page text, input_referrer text, input_utm_source text, input_utm_medium text, input_utm_campaign text, input_utm_content text, input_utm_term text, input_gclid text, input_wbraid text, input_gbraid text, input_first_touch_at timestamp with time zone),
   public."submit_warranty_claim"(target_service_request_id uuid, target_invoice_line_item_id uuid, claim_description text),
-  public."sync_service_request_workflow"(target_request_id uuid),
   public."technician_attach_service_request_image"(target_request_id uuid, target_stage text, target_storage_path text, target_content_type text),
-  public."technician_record_visit_outcome"(target_service_request_id uuid, new_outcome text, outcome_notes text),
   public."technician_record_visit_outcome"(target_service_request_id uuid, new_outcome text, outcome_notes text, selected_parts jsonb),
   public."technician_respond_to_assignment"(target_assignment_id uuid, new_status text, response_notes text),
   public."technician_submit_change_request"(target_service_request_id uuid, change_notes text, selected_items jsonb) to authenticated;
