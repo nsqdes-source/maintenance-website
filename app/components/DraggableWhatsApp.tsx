@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 type Position = {
   x: number;
@@ -21,12 +21,16 @@ export default function DraggableWhatsApp({
   const movedRef = useRef(false);
   const pointerOffsetRef = useRef({ x: 0, y: 0 });
 
-  const [position, setPosition] = useState<Position | null>(null);
+  const [position, setPosition] = useState<Position | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
 
-  useEffect(() => {
     const saved = sessionStorage.getItem("whatsapp-floating-position");
 
-    if (!saved) return;
+    if (!saved) {
+      return null;
+    }
 
     try {
       const parsed = JSON.parse(saved) as Position;
@@ -35,12 +39,14 @@ export default function DraggableWhatsApp({
         typeof parsed.x === "number" &&
         typeof parsed.y === "number"
       ) {
-        setPosition(parsed);
+        return parsed;
       }
     } catch {
       // Ignore invalid stored values.
     }
-  }, []);
+
+    return null;
+  });
 
   function clampPosition(x: number, y: number) {
     const button = buttonRef.current;
