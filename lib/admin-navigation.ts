@@ -57,7 +57,7 @@ export const adminNavigationSections: readonly AdminNavigationSection[] = [
   {
     id: "site", label: "إعدادات الموقع", routes: [
       { href: "/admin/site", label: "محرر الموقع", roles: ["super_admin"] },
-      { href: "/admin/dashboard", label: "عرض اللوحات" },
+      { href: "/admin/dashboard", label: "إعدادات اللوحات" },
     ],
   },
 ];
