@@ -26,7 +26,14 @@ export const adminNavigationSections: readonly AdminNavigationSection[] = [
       { href: "/admin/roles", label: "الأدوار والصلاحيات", roles: ["super_admin"] },
     ],
   },
-  { id: "catalog", label: "الخدمات والأسعار", routes: [{ href: "/admin/catalog", label: "نظرة عامة" }] },
+  {
+    id: "catalog", label: "الخدمات والأسعار", routes: [
+      { href: "/admin/catalog", label: "نظرة عامة" },
+      { href: "/admin/catalog#catalog-categories", label: "التصنيفات الرئيسية" },
+      { href: "/admin/catalog#catalog-services", label: "الخدمات الفرعية" },
+      { href: "/admin/catalog#catalog-parts", label: "القطع والأسعار" },
+    ],
+  },
   {
     id: "finance", label: "المالية", roles: seniorRoles, routes: [
       { href: "/admin/finance", label: "نظرة عامة", exact: true },
