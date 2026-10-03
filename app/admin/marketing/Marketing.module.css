@@ -46,3 +46,9 @@
 .pendingBadge { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: .76rem; font-weight: 800; white-space: nowrap; }
 .offBadge { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: #e5e7eb; color: #475569; font-size: .76rem; font-weight: 800; white-space: nowrap; }
 @media (max-width: 800px) { .integrationGrid { grid-template-columns: 1fr; } }
+
+.settingsList { display: grid; gap: 10px; }
+.settingRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.settingRow h3 { margin: 0 0 6px; font-size: 1rem; }
+.settingRow p { margin: 0; color: #64748b; line-height: 1.7; }
+@media (max-width: 700px) { .settingRow { display: grid; } }
