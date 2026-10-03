@@ -676,3 +676,11 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 .draggableWhatsApp:active{
   cursor:grabbing;
 }
+/* Optional analytics consent gate */
+.analyticsConsent { position: fixed; inset: auto 18px 18px 18px; z-index: 1200; display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 980px; margin-inline: auto; padding: 18px 20px; border: 1px solid #cbd5e1; border-radius: 16px; background: #fff; box-shadow: 0 18px 50px rgba(15,23,42,.18); }
+.analyticsConsent strong { display: block; margin-bottom: 6px; }
+.analyticsConsent p { max-width: 700px; margin: 0 0 6px; color: #64748b; line-height: 1.7; font-size: .9rem; }
+.analyticsConsent a { text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+.analyticsConsentActions { display: flex; gap: 8px; flex: 0 0 auto; }
+.analyticsConsentManage { position: fixed; inset: auto auto 14px 14px; z-index: 1190; min-height: 36px; padding: 7px 11px; border: 1px solid #cbd5e1; border-radius: 999px; background: #fff; color: #334155; box-shadow: 0 8px 24px rgba(15,23,42,.12); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
+@media (max-width: 760px) { .analyticsConsent { display: grid; inset: auto 10px 10px 10px; } .analyticsConsentActions { display: grid; grid-template-columns: 1fr 1fr; } .analyticsConsentActions .button { width: 100%; padding-inline: 12px; } .analyticsConsentManage { inset: auto 10px 10px auto; } }

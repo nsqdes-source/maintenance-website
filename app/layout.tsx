@@ -3,11 +3,11 @@ import { Tajawal } from "next/font/google";
 import { getLocale, text, type Locale } from "@/lib/locale";
 import { LocaleProvider, LanguageSwitcher } from "./components/LocaleContext";
 import Link from "next/link";
-import Script from "next/script";
 import "./globals.css";
 import "./admin/admin.css";
 import HeaderAccountControl from "./components/HeaderAccountControl";
 import AnalyticsBootstrap from "./components/AnalyticsBootstrap";
+import AnalyticsConsent from "./components/AnalyticsConsent";
 import MobileHeaderMenu from "./components/MobileHeaderMenu";
 import { createClient } from "@/lib/supabase/server";
 
@@ -75,8 +75,8 @@ export default async function RootLayout({
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body className={tajawal.variable} style={{ "--brand-primary": theme.primary_color || "#0f172a", "--brand-accent": theme.accent_color || "#f59e0b", "--site-background": theme.background_color || "#f8fafc" } as React.CSSProperties}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-        {gaMeasurementId ? <><Script src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} strategy="afterInteractive" /><Script id="google-analytics" strategy="afterInteractive">{`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} window.gtag = gtag; gtag('js', new Date()); gtag('config', '${gaMeasurementId}', { send_page_view: true });`}</Script></> : null}
         <AnalyticsBootstrap />
+        <AnalyticsConsent locale={locale} gaMeasurementId={gaMeasurementId} />
         <LocaleProvider locale={locale}>
           <SiteHeader logoText={locale === "en" ? theme.logo_text_en || theme.logo_text || "Mueen" : theme.logo_text || "معين"} logoImage={theme.logo_image_url || "/mueen-logo.png"} ctaText={locale === "en" ? theme.header_cta_text_en || "Sign in" : theme.header_cta_text || "تسجيل الدخول"} requestCtaText={locale === "en" ? theme.request_cta_text_en || "Request service" : theme.request_cta_text || "اطلب خدمة"} showRequestCta={theme.header_request_cta_visible !== "false"} locale={locale} />
           {children}

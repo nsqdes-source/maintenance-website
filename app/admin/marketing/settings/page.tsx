@@ -60,7 +60,7 @@ export default function MarketingSettingsPage() {
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}><span>سياسة الخصوصية</span><strong className={styles.statusText}>منشورة</strong></div>
-          <div className={styles.summaryCard}><span>إدارة موافقة Analytics</span><strong className={styles.statusText}>غير مطبقة بعد</strong></div>
+          <div className={styles.summaryCard}><span>إدارة موافقة Analytics</span><strong className={styles.statusText}>مطبقة</strong></div>
           <div className={styles.summaryCard}><span>Pixels إعلانية مفعلة</span><strong>0</strong></div>
           <div className={styles.summaryCard}><span>JavaScript خام</span><strong className={styles.statusText}>محظور</strong></div>
         </div>
@@ -80,7 +80,7 @@ export default function MarketingSettingsPage() {
 
         <section className={styles.panel}>
           <h2>الموافقة والخصوصية</h2>
-          <p className={styles.muted}>الموقع لديه سياسة خصوصية منشورة، لكن واجهة موافقة مستقلة على Analytics وPixels لم تُنفذ بعد. لذلك لا ينبغي تفعيل Pixels الإعلانية قبل إضافة طبقة موافقة واضحة وربطها بمنع التحميل قبل الموافقة.</p>
+          <p className={styles.muted}>الموقع لديه طبقة موافقة فعلية تمنع تحميل Google Analytics قبل موافقة المستخدم، وتتيح رفض التحليلات أو تغيير القرار لاحقًا من إعدادات الخصوصية. Pixels الإعلانية ما زالت غير مفعلة، ويجب ربطها بطبقة الموافقة نفسها قبل تشغيلها.</p>
           <div className={styles.actions}>
             <Link className="button secondary" href="/privacy" target="_blank">فتح سياسة الخصوصية</Link>
             <Link className="button secondary" href="/admin/marketing/integrations">مراجعة التكاملات</Link>
