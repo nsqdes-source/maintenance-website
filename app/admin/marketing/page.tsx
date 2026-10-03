@@ -1,29 +1,22 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-
-export const dynamic = "force-dynamic";
-
-const roles = new Set(["admin_manager", "super_admin"]);
-
-export default async function MarketingPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) redirect("/admin/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile || !roles.has(profile.role)) redirect("/admin");
-
+export default function MarketingPage() {
   return (
     <main className="adminPage">
       <div className="container adminContainer">
-        <div className="adminTopbar"><h1>التسويق</h1></div>
-        <p>سيتم تجهيز أدوات التسويق في مرحلة لاحقة.</p>
+        <div className="adminTopbar">
+          <div>
+            <p className="eyebrow">إدارة التسويق</p>
+            <h1>التسويق</h1>
+          </div>
+        </div>
+
+        <div className="adminWelcomeCard">
+          <h2>نظرة عامة</h2>
+          <p>
+            هذه المرحلة تجهّز بنية قسم التسويق فقط. سيتم ربط بيانات الحملات
+            والتحليلات والتحويلات والتكاملات في مراحل لاحقة بعد اعتماد آلية
+            التتبع والخصوصية.
+          </p>
+        </div>
       </div>
     </main>
   );

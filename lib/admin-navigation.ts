@@ -44,7 +44,16 @@ export const adminNavigationSections: readonly AdminNavigationSection[] = [
       { href: "/admin/finance/settings", label: "الإعدادات" },
     ],
   },
-  { id: "marketing", label: "التسويق", roles: seniorRoles, routes: [{ href: "/admin/marketing", label: "نظرة عامة" }] },
+  {
+    id: "marketing", label: "التسويق", roles: seniorRoles, routes: [
+      { href: "/admin/marketing", label: "نظرة عامة", exact: true },
+      { href: "/admin/marketing/campaigns", label: "الحملات" },
+      { href: "/admin/marketing/analytics", label: "التحليلات" },
+      { href: "/admin/marketing/conversions", label: "التحويلات والأحداث" },
+      { href: "/admin/marketing/integrations", label: "التكاملات" },
+      { href: "/admin/marketing/settings", label: "الإعدادات" },
+    ],
+  },
   {
     id: "site", label: "إعدادات الموقع", routes: [
       { href: "/admin/site", label: "محرر الموقع", roles: ["super_admin"] },
