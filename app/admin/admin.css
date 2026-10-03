@@ -583,3 +583,116 @@
 }
 
 }
+
+/* Admin shell only: keep page content and its existing styles intact. */
+.adminShell.adminSharedLayout {
+  display: block;
+  direction: rtl;
+  padding-right: 250px;
+  min-height: 100vh;
+}
+.adminShell .adminSharedSidebar {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 50;
+  width: 250px;
+  height: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 20px;
+  padding: 24px 18px;
+  background: #1c3636;
+  color: #e9f1ec;
+}
+.adminShell .adminSharedSidebar nav {
+  display: grid;
+  width: 100%;
+  gap: 5px;
+  padding: 0;
+  overflow: visible;
+}
+.adminShell .adminSharedSidebar nav a {
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #d7e4df;
+  font-weight: 700;
+}
+.adminShell .adminSharedSidebar nav a:hover { background: #314b4a; }
+.adminShell .adminSharedSidebar nav a.active { background: #d7a52c; color: #203334; }
+.adminShell .adminOpsActions { display: grid; gap: 10px; margin-top: auto; }
+.adminShell .adminOpsNew { display: block; margin: 0; }
+.adminShell .adminOpsSignOut { margin: 0; flex-shrink: 0; }
+.adminShell .adminOpsSignOut:disabled { opacity: .65; cursor: wait; }
+.adminShell .adminSharedContent { min-width: 0; }
+.adminShell .adminContextTopbar {
+  display: grid;
+  gap: 8px;
+  padding: 16px 24px 0;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+.adminContextLabel { color: #526472; font-size: .82rem; font-weight: 800; }
+.adminContextTabs {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.adminContextTabs a {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 8px 14px;
+  border-bottom: 3px solid transparent;
+  color: #526472;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.adminContextTabs a:hover { background: #f7f6f0; }
+.adminContextTabs a.active { border-color: #d7a52c; background: #fbf5e5; color: #203334; }
+.adminShell a:focus-visible, .adminShell .adminOpsSignOut:focus-visible {
+  outline: 3px solid #d7a52c;
+  outline-offset: -3px;
+}
+/* The central contextual tabs replace the existing finance-only navigation. */
+.adminShell .financeNavigation { display: none; }
+@media (max-width: 980px) {
+  .adminShell.adminSharedLayout { padding-right: 0; }
+  .adminShell .adminSharedSidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+  .adminShell .adminSharedSidebar .adminOpsBrand strong { display: inline; }
+  .adminShell .adminSharedSidebar .adminOpsUser { display: grid; grid-column: 1 / -1; }
+  .adminShell .adminSharedSidebar nav {
+    display: flex;
+    grid-column: 1 / -1;
+    order: 0;
+    overflow-x: auto;
+  }
+  .adminShell .adminSharedSidebar nav a { flex: 0 0 auto; white-space: nowrap; }
+  .adminShell .adminOpsActions {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 0;
+  }
+  .adminShell .adminContextTopbar { padding: 12px 14px 0; }
+  .adminContextTabs a { padding: 8px 11px; font-size: .88rem; }
+}
+@media print {
+  .adminShell .adminContextTopbar { display: none; }
+  .adminShell.adminSharedLayout { padding-right: 0; }
+}
