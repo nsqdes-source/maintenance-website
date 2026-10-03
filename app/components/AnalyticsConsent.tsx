@@ -6,14 +6,10 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/locale";
 
 type Consent = "granted" | "denied" | null;
-
 const storageKey = "mueen:analytics-consent:v1";
 
 declare global {
-  interface Window {
-    dataLayer?: unknown[];
-    gtag?: (...args: unknown[]) => void;
-  }
+  interface Window { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void; }
 }
 
 function clearAnalyticsCookies() {
@@ -31,13 +27,15 @@ export default function AnalyticsConsent({ locale, gaMeasurementId }: { locale: 
   const [consent, setConsent] = useState<Consent>(null);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
-
+  const [customizing, setCustomizing] = useState(false);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const t = (ar: string, en: string) => locale === "ar" ? ar : en;
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
     const next: Consent = saved === "granted" || saved === "denied" ? saved : null;
     setConsent(next);
+    setAnalyticsEnabled(next === "granted");
     setOpen(next === null);
     setReady(true);
   }, []);
@@ -45,8 +43,9 @@ export default function AnalyticsConsent({ locale, gaMeasurementId }: { locale: 
   function choose(next: Exclude<Consent, null>) {
     window.localStorage.setItem(storageKey, next);
     setConsent(next);
+    setAnalyticsEnabled(next === "granted");
     setOpen(false);
-
+    setCustomizing(false);
     if (next === "denied") {
       window.gtag?.("consent", "update", { analytics_storage: "denied" });
       clearAnalyticsCookies();
@@ -72,19 +71,36 @@ export default function AnalyticsConsent({ locale, gaMeasurementId }: { locale: 
       ) : null}
 
       {open ? (
-        <section className="analyticsConsent" role="dialog" aria-modal="false" aria-labelledby="analytics-consent-title">
-          <div>
-            <strong id="analytics-consent-title">{t("خصوصيتك واستخدام التحليلات", "Your privacy and analytics")}</strong>
-            <p>{t("نستخدم أدوات التحليل الاختيارية لفهم أداء الموقع وتحسين تجربة طلب الخدمة. لن يتم تحميل Google Analytics قبل موافقتك. يمكنك الرفض والاستمرار في استخدام الموقع بشكل طبيعي.", "We use optional analytics to understand site performance and improve the service-request experience. Google Analytics will not load before you consent. You can decline and continue using the site normally.")}</p>
-            <Link href="/privacy">{t("سياسة الخصوصية", "Privacy policy")}</Link>
+        <section className="cookieConsent" role="dialog" aria-modal="false" aria-labelledby="cookie-consent-title">
+          <div className="cookieConsentMain">
+            <div>
+              <strong id="cookie-consent-title">{t("نستخدم ملفات تعريف الارتباط", "We use cookies")}</strong>
+              <p>{t("نستخدم ملفات تعريف الارتباط الضرورية لتشغيل الموقع، ويمكنك السماح بملفات التحليلات لمساعدتنا على فهم استخدام الموقع وتحسينه. يمكنك تغيير اختيارك لاحقًا.", "We use necessary cookies to run the site. You can also allow analytics cookies to help us understand and improve usage. You can change your choice later.")}</p>
+              <div className="cookieConsentLinks"><Link href="/privacy">{t("سياسة الخصوصية", "Privacy policy")}</Link></div>
+            </div>
+            <div className="cookieConsentActions">
+              <button type="button" className="button primary" onClick={() => choose("granted")}>{t("قبول الكل", "Accept all")}</button>
+              <button type="button" className="button secondary" onClick={() => choose("denied")}>{t("رفض غير الضروري", "Reject non-essential")}</button>
+              <button type="button" className="cookieCustomizeButton" onClick={() => setCustomizing((value) => !value)}>{t("تخصيص", "Customize")}</button>
+            </div>
           </div>
-          <div className="analyticsConsentActions">
-            <button type="button" className="button secondary" onClick={() => choose("denied")}>{t("رفض التحليلات", "Decline analytics")}</button>
-            <button type="button" className="button primary" onClick={() => choose("granted")}>{t("السماح بالتحليلات", "Allow analytics")}</button>
-          </div>
+
+          {customizing ? (
+            <div className="cookiePreferences">
+              <div className="cookiePreferenceRow">
+                <div><strong>{t("ملفات ضرورية", "Necessary cookies")}</strong><p>{t("مطلوبة لتشغيل الموقع ولا يمكن تعطيلها.", "Required for the site to function and cannot be disabled.")}</p></div>
+                <span className="cookieAlwaysOn">{t("دائمًا مفعلة", "Always on")}</span>
+              </div>
+              <div className="cookiePreferenceRow">
+                <div><strong>{t("ملفات التحليلات", "Analytics cookies")}</strong><p>{t("تساعدنا على قياس أداء الموقع دون إرسال بياناتك الشخصية ضمن أحداث القياس.", "Help us measure site performance without sending your personal data in analytics events.")}</p></div>
+                <label className="cookieToggle"><input type="checkbox" checked={analyticsEnabled} onChange={(e) => setAnalyticsEnabled(e.target.checked)} /><span>{analyticsEnabled ? t("مفعلة", "On") : t("متوقفة", "Off")}</span></label>
+              </div>
+              <div className="cookiePreferencesActions"><button type="button" className="button primary" onClick={() => choose(analyticsEnabled ? "granted" : "denied")}>{t("حفظ التفضيلات", "Save preferences")}</button></div>
+            </div>
+          ) : null}
         </section>
       ) : (
-        <button type="button" className="analyticsConsentManage" onClick={() => setOpen(true)}>{t("إعدادات الخصوصية", "Privacy settings")}</button>
+        <button type="button" className="cookieConsentManage" onClick={() => { setOpen(true); setCustomizing(true); }}>{t("إعدادات ملفات الارتباط", "Cookie settings")}</button>
       )}
     </>
   );
