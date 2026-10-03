@@ -19,7 +19,6 @@ const tajawal = Tajawal({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl || "http://localhost:3000"),
@@ -61,6 +60,7 @@ export default async function RootLayout({
   const supabase = await createClient();
   const { data: settings } = await supabase.from("site_settings").select("key,value");
   const theme = Object.fromEntries((settings ?? []).map(item => [item.key, item.value]));
+  const gaMeasurementId = theme.marketing_ga_measurement_id || undefined;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",

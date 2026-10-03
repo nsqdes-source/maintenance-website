@@ -52,3 +52,13 @@
 .settingRow h3 { margin: 0 0 6px; font-size: 1rem; }
 .settingRow p { margin: 0; color: #64748b; line-height: 1.7; }
 @media (max-width: 700px) { .settingRow { display: grid; } }
+
+.integrationField { display: grid; gap: 7px; margin-top: 14px; }
+.integrationField > span { color: #475569; font-size: .8rem; font-weight: 800; }
+.integrationField input { width: 100%; min-height: 43px; padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; font: inherit; }
+.integrationField input:focus { outline: 2px solid color-mix(in srgb, var(--brand-primary) 28%, transparent); border-color: var(--brand-primary); }
+.integrationField input:disabled { background: #f1f5f9; color: #64748b; }
+.integrationActions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.integrationActions .button { min-height: 40px; padding-inline: 15px; border: 0; cursor: pointer; }
+.integrationMessage, .readOnlyNotice { margin: 0 0 16px; padding: 11px 13px; border-radius: 10px; background: #f1f5f9; color: #334155; font-size: .88rem; }
+.readOnlyNotice { border: 1px solid #e2e8f0; }
