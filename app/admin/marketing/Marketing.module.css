@@ -30,3 +30,6 @@
 .empty { padding: 24px; color: #64748b; text-align: center; }
 @media (max-width: 900px) { .summaryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .builderGrid { grid-template-columns: 1fr; } .fieldFull { grid-column: auto; } }
 @media (max-width: 560px) { .summaryGrid { grid-template-columns: 1fr; } }
+
+.readyBadge { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: .76rem; font-weight: 800; }
+.statusText { font-size: 1.05rem !important; }

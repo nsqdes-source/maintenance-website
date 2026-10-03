@@ -344,6 +344,10 @@ export default function RequestFunnel({
       );
     }
 
+    if (step === 2) {
+      trackFunnelEvent("select_issue");
+    }
+
     setMessage("");
     setStep((current) => Math.min(current + 1, 5));
   }

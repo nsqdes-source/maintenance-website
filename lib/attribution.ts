@@ -1,5 +1,7 @@
 "use client";
 
+import type { MarketingFunnelEventName } from "@/lib/marketing-events";
+
 export type Attribution = {
   landingPage: string;
   referrer: string;
@@ -44,7 +46,7 @@ export function getAttribution(): Attribution {
 
 export function initializeAttribution() { getAttribution(); }
 
-export function trackFunnelEvent(eventName: "view_service" | "select_service" | "start_request" | "select_issue" | "upload_photo" | "select_location" | "select_preferred_time" | "generate_lead", parameters: Record<string, string | number | boolean> = {}) {
+export function trackFunnelEvent(eventName: MarketingFunnelEventName, parameters: Record<string, string | number | boolean> = {}) {
   // Deliberately send operational labels only: never name, phone, email, address, photos, or request IDs.
   window.gtag?.("event", eventName, parameters);
 }
