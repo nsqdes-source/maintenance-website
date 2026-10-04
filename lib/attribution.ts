@@ -20,7 +20,12 @@ const storageKey = "mueen:first-attribution:v1";
 const trackedParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "wbraid", "gbraid"] as const;
 
 declare global {
-  interface Window { gtag?: (...args: unknown[]) => void; }
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    __mueenAnalyticsEnabled?: boolean;
+    __mueenAdvertisingEnabled?: boolean;
+    __mueenGoogleAdsDestination?: string;
+  }
 }
 
 function clean(value: string | null, max = 512) { return (value || "").trim().slice(0, max); }
@@ -48,7 +53,19 @@ export function initializeAttribution() { getAttribution(); }
 
 export function trackFunnelEvent(eventName: MarketingFunnelEventName, parameters: Record<string, string | number | boolean> = {}) {
   // Deliberately send operational labels only: never name, phone, email, address, photos, or request IDs.
-  window.gtag?.("event", eventName, parameters);
+  if (window.__mueenAnalyticsEnabled) {
+    window.gtag?.("event", eventName, parameters);
+  }
+
+  if (
+    eventName === "generate_lead" &&
+    window.__mueenAdvertisingEnabled &&
+    window.__mueenGoogleAdsDestination
+  ) {
+    window.gtag?.("event", "conversion", {
+      send_to: window.__mueenGoogleAdsDestination,
+    });
+  }
 }
 
 export function hasCampaignParameters() {

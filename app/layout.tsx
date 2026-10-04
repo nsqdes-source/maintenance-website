@@ -61,6 +61,7 @@ export default async function RootLayout({
   const { data: settings } = await supabase.from("site_settings").select("key,value");
   const theme = Object.fromEntries((settings ?? []).map(item => [item.key, item.value]));
   const gaMeasurementId = theme.marketing_ga_measurement_id || undefined;
+  const googleAdsDestination = theme.marketing_google_ads_id || undefined;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -76,7 +77,7 @@ export default async function RootLayout({
       <body className={tajawal.variable} style={{ "--brand-primary": theme.primary_color || "#0f172a", "--brand-accent": theme.accent_color || "#f59e0b", "--site-background": theme.background_color || "#f8fafc" } as React.CSSProperties}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
         <AnalyticsBootstrap />
-        <AnalyticsConsent locale={locale} gaMeasurementId={gaMeasurementId} />
+        <AnalyticsConsent locale={locale} gaMeasurementId={gaMeasurementId} googleAdsDestination={googleAdsDestination} />
         <LocaleProvider locale={locale}>
           <SiteHeader logoText={locale === "en" ? theme.logo_text_en || theme.logo_text || "Mueen" : theme.logo_text || "معين"} logoImage={theme.logo_image_url || "/mueen-logo.png"} ctaText={locale === "en" ? theme.header_cta_text_en || "Sign in" : theme.header_cta_text || "تسجيل الدخول"} requestCtaText={locale === "en" ? theme.request_cta_text_en || "Request service" : theme.request_cta_text || "اطلب خدمة"} showRequestCta={theme.header_request_cta_visible !== "false"} locale={locale} />
           {children}
