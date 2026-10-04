@@ -505,29 +505,56 @@ export default function SiteEditor({
             {["hero", "services"].includes(selected.slug) && (
               <details>
                 <summary>صور الخدمات من Catalog</summary>
-                <p>الاسم والهوية من Catalog؛ هنا تتحكم بالصورة فقط.</p>
+                <p>
+                  الاسم والهوية من Catalog؛ إعدادات العرض لا تغير بيانات الخدمات.
+                </p>
                 {catalog.map((row) => (
-                  <ImageUploadField
-                    key={row.id}
-                    label={row.name}
-                    value={
-                      (
-                        style.catalog_images as
-                          Record<string, string> | undefined
-                      )?.[row.id] ?? null
-                    }
-                    onChange={(url) =>
-                      patchStyle({
-                        catalog_images: {
-                          ...((style.catalog_images as Record<
-                            string,
-                            string
-                          >) ?? {}),
-                          [row.id]: url,
-                        },
-                      })
-                    }
-                  />
+                  <div key={row.id}>
+                    {selected.slug === "hero" && (
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={
+                            (style.catalog_icon_visibility as
+                              Record<string, boolean> | undefined)?.[row.id] !==
+                            false
+                          }
+                          onChange={(e) =>
+                            patchStyle({
+                              catalog_icon_visibility: {
+                                ...((style.catalog_icon_visibility as Record<
+                                  string,
+                                  boolean
+                                >) ?? {}),
+                                [row.id]: e.target.checked,
+                              },
+                            })
+                          }
+                        />
+                        إظهار أيقونة {row.name}
+                      </label>
+                    )}
+                    <ImageUploadField
+                      label={row.name}
+                      value={
+                        (
+                          style.catalog_images as
+                            Record<string, string> | undefined
+                        )?.[row.id] ?? null
+                      }
+                      onChange={(url) =>
+                        patchStyle({
+                          catalog_images: {
+                            ...((style.catalog_images as Record<
+                              string,
+                              string
+                            >) ?? {}),
+                            [row.id]: url,
+                          },
+                        })
+                      }
+                    />
+                  </div>
                 ))}
               </details>
             )}

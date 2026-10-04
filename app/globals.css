@@ -901,3 +901,18 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
   .homeCompact .managedCard { padding:min(var(--card-padding),24px); }
   .homeCompact .managedSection .managedHeading { flex-direction:column; align-items:stretch; }
 }
+
+/* Bounded section title sizing shared by the public page and editor preview. */
+.homeCompact .managed-title_size-small { --managed-title-size:clamp(1.25rem,2.5vw,1.75rem); }
+.homeCompact .managed-title_size-medium { --managed-title-size:clamp(1.5rem,3vw,2.25rem); }
+.homeCompact .managed-title_size-large { --managed-title-size:clamp(1.75rem,3.5vw,2.75rem); }
+.homeCompact .managed-title_size-xlarge { --managed-title-size:clamp(2rem,4vw,3.5rem); }
+.homeCompact .managedSection[class*="managed-title_size-"] .heroContent h1,
+.homeCompact .managedSection[class*="managed-title_size-"] .managedHeading h2,
+.homeCompact .managedSection[class*="managed-title_size-"] .heroPanel h2 { font-size:var(--managed-title-size); overflow-wrap:anywhere; }
+.homeCompact .heroPanel .heroCatalogVisuals { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:0 0 20px; }
+.homeCompact .heroPanel .heroCatalogVisuals a { padding:8px 4px; color:#173c38; text-align:center; font-size:.8rem; overflow-wrap:anywhere; }
+.homeCompact .heroPanel .heroCatalogVisuals .managedImage { width:min(64px,100%); height:64px; }
+@media(max-width:520px) {
+  .homeCompact .heroPanel .heroCatalogVisuals { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

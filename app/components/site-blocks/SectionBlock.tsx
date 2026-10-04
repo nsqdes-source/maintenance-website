@@ -55,6 +55,10 @@ export default function SectionBlock({
     items.filter((i) => i.section_id === section.id && i.is_visible),
   );
   const images = (style.catalog_images ?? {}) as Record<string, string>;
+  const iconVisibility = (style.catalog_icon_visibility ?? {}) as Record<
+    string,
+    boolean
+  >;
   const cols = option(
     "columns",
     ["services", "process", "warranty", "why-us"].includes(slug) ? "4" : "2",
@@ -125,21 +129,20 @@ export default function SectionBlock({
                   </span>
                 ))}
               </div>
-              <div className="managedItems heroCatalogVisuals">
-                {ordered(catalog).map((row) => (
-                  <Link href={serviceHref(row.service_key)} key={row.id}>
-                    {image(images[row.id])}
-                    <span>{row.name}</span>
-                  </Link>
-                ))}
-              </div>
             </div>
             <div className="heroPanel">
               {image(section.image_url, "managedHeroBackground")}
               <div className="heroPanelGlow" />
               <div className="heroPanelContent">
-                <div className="panelIcon" aria-hidden>
-                  ⚒
+                <div className="managedItems heroCatalogVisuals">
+                  {ordered(catalog)
+                    .filter((row) => iconVisibility[row.id] !== false)
+                    .map((row) => (
+                      <Link href={serviceHref(row.service_key)} key={row.id}>
+                        {image(images[row.id])}
+                        <span>{row.name}</span>
+                      </Link>
+                    ))}
                 </div>
                 <p className="panelLabel">
                   {copy(

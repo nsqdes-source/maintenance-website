@@ -68,6 +68,7 @@ export const STYLE_OPTIONS = {
   image_ratio: ["square", "landscape", "portrait"],
   variant: ["default", "split", "stacked"],
   background: ["default", "white", "muted", "brand"],
+  title_size: ["small", "medium", "large", "xlarge"],
   show_image: ["yes", "no"],
   show_description: ["yes", "no"],
 } as const;
@@ -86,6 +87,7 @@ export const STYLE_LABELS: Record<StyleKey, string> = {
   image_ratio: "نسبة الصورة",
   variant: "تخطيط العرض",
   background: "خلفية القسم",
+  title_size: "حجم العنوان",
   show_image: "عرض الصور",
   show_description: "عرض وصف العناصر",
 };
@@ -97,6 +99,7 @@ export const VALUE_LABELS: Record<string, string> = {
   small: "صغير",
   medium: "متوسط",
   large: "كبير",
+  xlarge: "كبير جدًا",
   tight: "ضيقة",
   wide: "واسعة",
   narrow: "ضيق",
@@ -161,6 +164,14 @@ export function sanitizeStyle(value: unknown): Record<string, unknown> {
       Object.entries(images)
         .filter(([id, url]) => /^[0-9a-f-]{36}$/i.test(id) && safeImage(url))
         .map(([id, url]) => [id, safeImage(url)]),
+    );
+  }
+  const visibility = input.catalog_icon_visibility;
+  if (visibility && typeof visibility === "object" && !Array.isArray(visibility)) {
+    result.catalog_icon_visibility = Object.fromEntries(
+      Object.entries(visibility).filter(
+        ([id, visible]) => /^[0-9a-f-]{36}$/i.test(id) && typeof visible === "boolean",
+      ),
     );
   }
   return result;
