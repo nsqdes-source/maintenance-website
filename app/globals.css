@@ -896,7 +896,7 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
   .homeCompact .managedSection.managed-variant-split .managedHeading { grid-template-columns:1fr; }
 }
 @media(max-width:520px) {
-  .homeCompact .managedItems { grid-template-columns:1fr; }
+  .homeCompact .managedItems { grid-template-columns:repeat(var(--mobile-columns,1),minmax(0,1fr)); }
   .homeCompact .managedSection .managedContainer { padding:min(var(--content-padding),20px); }
   .homeCompact .managedCard { padding:min(var(--card-padding),24px); }
   .homeCompact .managedSection .managedHeading { flex-direction:column; align-items:stretch; }
@@ -910,9 +910,26 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 .homeCompact .managedSection[class*="managed-title_size-"] .heroContent h1,
 .homeCompact .managedSection[class*="managed-title_size-"] .managedHeading h2,
 .homeCompact .managedSection[class*="managed-title_size-"] .heroPanel h2 { font-size:var(--managed-title-size); overflow-wrap:anywhere; }
-.homeCompact .heroPanel .heroCatalogVisuals { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:0 0 20px; }
-.homeCompact .heroPanel .heroCatalogVisuals a { padding:8px 4px; color:#173c38; text-align:center; font-size:.8rem; overflow-wrap:anywhere; }
-.homeCompact .heroPanel .heroCatalogVisuals .managedImage { width:min(64px,100%); height:64px; }
+.homeCompact .heroPanel .heroCatalogVisuals { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:0 0 14px; }
+.homeCompact .heroPanel .heroCatalogVisuals a { padding:8px 4px; color:#173c38; text-align:center; font-size:.8rem; overflow-wrap:anywhere; justify-content:flex-start; height:100%; }
+.homeCompact .heroPanel .heroCatalogVisuals .managedImage { width:min(56px,100%); height:56px; flex-shrink:0; object-fit:contain; }
 @media(max-width:520px) {
-  .homeCompact .heroPanel .heroCatalogVisuals { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .homeCompact .heroPanel .heroCatalogVisuals { grid-template-columns:repeat(var(--hero-mobile-columns,2),minmax(0,1fr)); }
+}
+
+/* Hero polish: natural height, bounded spacing and uniform service labels. */
+.homeCompact .managed-hero .heroPanel { min-height:0; align-self:start; }
+.homeCompact .managed-hero .heroPanelContent { min-height:0; padding:24px; justify-content:flex-start; }
+.homeCompact .managed-hero .panelLabel { margin-bottom:8px; }
+.homeCompact .managed-hero .heroPanel h2 { max-width:100%; margin-bottom:10px; line-height:1.25; overflow-wrap:anywhere; }
+.homeCompact .managed-hero .heroPanelContent > p:not(.panelLabel) { line-height:1.65; }
+.homeCompact .managed-hero .panelLink { margin-top:16px; }
+.homeCompact .heroPanel .heroCatalogVisuals a span { display:flex; align-items:center; justify-content:center; width:100%; min-height:2.8em; line-height:1.4; }
+.homeCompact .managed-hero .heroContent h1 { overflow-wrap:anywhere; }
+@media(max-width:520px) {
+  .homeCompact .managed-hero .heroPanelContent { padding:18px; }
+  .homeCompact .managed-hero.managed-title_size-small { --managed-title-size:clamp(1.2rem,4vw,1.4rem); }
+  .homeCompact .managed-hero.managed-title_size-medium { --managed-title-size:clamp(1.35rem,4.5vw,1.65rem); }
+  .homeCompact .managed-hero.managed-title_size-large { --managed-title-size:clamp(1.5rem,5vw,1.9rem); }
+  .homeCompact .managed-hero.managed-title_size-xlarge { --managed-title-size:clamp(1.65rem,5.5vw,2.1rem); }
 }

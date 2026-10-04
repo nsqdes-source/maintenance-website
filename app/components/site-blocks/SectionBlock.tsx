@@ -70,6 +70,8 @@ export default function SectionBlock({
     "--card-padding": `${padding[option("card_padding", "medium") as keyof typeof padding]}px`,
     "--item-gap": `${gaps[option("item_gap", "normal") as keyof typeof gaps]}px`,
     "--container-width": `${widths[option("container_width", "standard") as keyof typeof widths]}px`,
+    "--mobile-columns": option("mobile_columns", "1"),
+    "--hero-mobile-columns": option("mobile_columns", "2"),
     "--columns": cols,
     "--tablet-columns": String(Math.min(Number(cols), 2)),
   } as CSSProperties;

@@ -179,3 +179,14 @@ test("text is escaped; CTA URLs remain fixed despite unsupported configuration",
   assert.doesNotMatch(html, /<script>|javascript:|<img onerror/);
   assert.match(html, /href="\/request"/);
 });
+
+test("mobile columns accept only 1–4 and preserve desktop columns", () => {
+  for (const value of ["1", "2", "3", "4"]) {
+    assert.deepEqual(model.sanitizeStyle({ columns: "4", mobile_columns: value }), {
+      columns: "4", mobile_columns: value,
+    });
+  }
+  for (const value of [0, 5, "2px", "repeat(4, 1fr)", "auto", null]) {
+    assert.deepEqual(model.sanitizeStyle({ mobile_columns: value }), {});
+  }
+});
