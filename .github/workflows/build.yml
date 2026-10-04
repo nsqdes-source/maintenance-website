@@ -5,6 +5,7 @@ on:
     branches:
       - feature/service-request
       - feature/admin-console
+      - codex/phase-0-2-stabilization
       - main
   pull_request:
     branches:
@@ -32,6 +33,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Guard anonymous public-read policies
+        run: npm run check:public-read-policies
 
       - name: Build
         run: npm run build
