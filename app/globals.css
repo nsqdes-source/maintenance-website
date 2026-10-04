@@ -836,3 +836,68 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
   .homeCompact .ctaBox{align-items:flex-start;flex-direction:column;padding:26px 20px}
   .homeCompact .ctaBox .button{width:100%}
 }
+/* Structured homepage blocks: every value comes from the central enum allowlist. */
+.homeCompact .managedSection { padding-block:var(--section-top) var(--section-bottom); }
+.homeCompact .managedSection .managedContainer { width:min(calc(100% - 24px),var(--container-width)); padding:var(--content-padding); box-sizing:border-box; }
+.homeCompact .managedItems { display:grid; grid-template-columns:repeat(var(--columns),minmax(0,1fr)); gap:var(--item-gap); }
+.homeCompact .managedHeroGrid { gap:var(--item-gap); }
+.homeCompact .managedCard { padding:var(--card-padding); min-width:0; min-height:0; overflow-wrap:anywhere; }
+.homeCompact .managedHeading { margin-bottom:var(--item-gap); }
+.homeCompact .managedSection .managedImage { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:12px; }
+.homeCompact .managedSection .managedSectionImage { display:block; width:100%; max-height:380px; object-fit:cover; border-radius:16px; margin-bottom:var(--item-gap); }
+.homeCompact .managedHeroBackground { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.homeCompact .heroCatalogVisuals { margin-top:var(--item-gap); }
+.homeCompact .heroCatalogVisuals a { display:flex; flex-direction:column; align-items:center; padding:12px; border:1px solid #dce6e2; border-radius:12px; background:#fff; min-width:0; }
+.homeCompact .heroCatalogVisuals .managedImage { width:64px; height:64px; aspect-ratio:1; object-fit:contain; }
+.homeCompact .managedStep { display:inline-flex; padding:8px 12px; border-radius:8px; background:#edf5f2; color:#2f8178; margin-bottom:12px; }
+.homeCompact .managedPrice { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; margin-top:14px; border-top:1px solid #dce6e2; padding-top:12px; }
+.homeCompact .managedPrice p { flex-basis:100%; margin:0; }
+.homeCompact .managedSection.managed-alignment-center { text-align:center; }
+.homeCompact .managed-alignment-center .managedHeading { justify-content:center; align-items:center; }
+.homeCompact .managedSection.managed-variant-stacked .managedHeroGrid,
+.homeCompact .managedSection.managed-variant-stacked .managedHeading { display:flex; flex-direction:column; align-items:stretch; }
+.homeCompact .managedSection.managed-variant-split .managedHeading { display:grid; grid-template-columns:1fr 1fr; align-items:center; }
+.homeCompact .managedSection.managed-background-white { background:#fff; background-image:none; }
+.homeCompact .managedSection.managed-background-muted { background:#f1f5f3; background-image:none; }
+.homeCompact .managedSection.managed-background-brand { background:#214e49; background-image:none; color:#fff; }
+.homeCompact .managed-background-brand .managedHeading>p,.homeCompact .managed-background-brand .eyebrow { color:#d8e7e4; }
+.homeCompact .managed-background-brand .managedCard { color:#173c38; background:#fff; }
+.homeCompact .managed-card_style-soft .managedCard { background:#edf5f2; border:0; box-shadow:none; }
+.homeCompact .managed-card_style-plain .managedCard { background:transparent; border:0; box-shadow:none; color:inherit; }
+.homeCompact .managed-card_style-outlined .managedCard { border:1px solid #dce6e2; box-shadow:none; }
+.homeCompact .managed-image_ratio-square .managedImage { aspect-ratio:1; }
+.homeCompact .managed-image_ratio-landscape .managedImage { aspect-ratio:16/9; }
+.homeCompact .managed-image_ratio-portrait .managedImage { aspect-ratio:3/4; }
+.homeCompact .managed-density-compact .managedCard h3 { margin-block:0 6px; font-size:1rem; }
+.homeCompact .managed-density-compact .managedCard p { margin-block:4px; line-height:1.5; font-size:.85rem; }
+.homeCompact .managed-density-comfortable .managedCard h3 { margin-block:8px 18px; }
+.homeCompact .managed-density-comfortable .managedCard p { line-height:1.9; margin-block:14px; }
+.homeCompact .managedItems.heroTrust span { white-space:normal; }
+.builderFieldset { border:0; margin:0; padding:0; min-width:0; }
+.builderSectionRow { display:flex; gap:4px; align-items:center; margin-bottom:8px; }
+.builderSectionRow .blockRow { display:flex; flex-direction:column; align-items:flex-start; cursor:pointer; flex:1; margin:0; min-width:0; }
+.builderSectionRow>button,.builderMoveButtons button,.builderItemToolbar button { min-width:32px; min-height:36px; border:1px solid #dce6e2; border-radius:6px; background:#fff; cursor:pointer; }
+.builderMoveButtons { display:flex; flex-direction:column; gap:4px; }
+.builderItemToolbar { display:flex; gap:8px; margin-bottom:10px; }
+.siteBuilder .builderItem { display:flex; flex-direction:column; align-items:stretch; cursor:auto; }
+.siteBuilder .builderItemToolbar button { color:#214e49; border:1px solid #dce6e2; }
+.builderPreviewScroll { width:100%; overflow:auto; background:#e8eeeb; padding:12px; }
+.builderPreviewFrame { height:720px; border:0; background:#fff; display:block; margin-inline:auto; }
+.builderPreviewFrame.desktop { width:1120px; }
+.builderPreviewFrame.tablet { width:768px; }
+.builderPreviewFrame.mobile { width:390px; }
+.builderActualPreview { margin:0; }
+.siteBuilderGrid>*,.builderCanvas { min-width:0; }
+.builderPanel select { width:100%; border:1px solid #dce6e2; border-radius:8px; padding:9px; background:#fff; }
+.siteBuilder button:focus-visible,.siteBuilder select:focus-visible { outline:3px solid #2f8178; outline-offset:3px; }
+@media(max-width:1000px) {
+  .homeCompact .managedItems { grid-template-columns:repeat(var(--tablet-columns),minmax(0,1fr)); }
+  .homeCompact .managedHeroGrid { grid-template-columns:1fr; }
+  .homeCompact .managedSection.managed-variant-split .managedHeading { grid-template-columns:1fr; }
+}
+@media(max-width:520px) {
+  .homeCompact .managedItems { grid-template-columns:1fr; }
+  .homeCompact .managedSection .managedContainer { padding:min(var(--content-padding),20px); }
+  .homeCompact .managedCard { padding:min(var(--card-padding),24px); }
+  .homeCompact .managedSection .managedHeading { flex-direction:column; align-items:stretch; }
+}
