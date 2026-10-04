@@ -405,3 +405,30 @@ Current baseline is accepted for starting visual redesign because:
 - no immediate Vercel runtime errors were detected after production deployment.
 
 The next task should therefore be treated as a **public UI redesign phase**, not as a backend, marketing, database, or admin refactor.
+
+---
+
+## 13. Protected invariant — anonymous public content must stay independent from role helper execution
+
+A regression was found where anonymous visitors could not read public homepage/catalog content because public SELECT policies called `current_user_has_role(...)`, while the `anon` role did not have EXECUTE permission on that helper.
+
+Permanent fix:
+- Migration: `supabase/migrations/20261004100500_fix_anon_public_read_policies.sql`
+- Applied migration: `fix_anon_public_read_policies`
+- Fix commit: `0fc9b75769d109f878f9de7e92d52b5d73eb8e1d`
+
+Protected public-read predicates:
+- `site_sections` → `is_visible`
+- `site_section_items` → item visible and parent section visible
+- `service_catalog_items` → `is_visible`
+- `service_catalog_services` → `is_active`
+
+**Invariant:** do not reintroduce `current_user_has_role(...)` into these anonymous/public SELECT policies. Admin access to hidden or inactive content remains handled by separate authenticated admin-management policies.
+
+Regression protection is now enforced by:
+- `scripts/check-public-read-policy-guard.mjs`
+- npm script `check:public-read-policies`
+- GitHub Actions before the application build on `codex/phase-0-2-stabilization`.
+
+This invariant is part of the homepage/request UI safety baseline and must remain intact during future migrations or RLS changes.
+
