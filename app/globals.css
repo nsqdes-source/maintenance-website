@@ -933,3 +933,9 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
   .homeCompact .managed-hero.managed-title_size-large { --managed-title-size:clamp(1.5rem,5vw,1.9rem); }
   .homeCompact .managed-hero.managed-title_size-xlarge { --managed-title-size:clamp(1.65rem,5.5vw,2.1rem); }
 }
+/* Keep contact form text readable inside its light card on dark sections. */
+.contactCard .contactForm label { color:#173c38; }
+.contactCard .contactForm input,
+.contactCard .contactForm textarea { color:#173c38; background:#fff; }
+.contactCard .contactForm input::placeholder,
+.contactCard .contactForm textarea::placeholder { color:#64748b; opacity:1; }
