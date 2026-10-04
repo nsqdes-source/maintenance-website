@@ -63,7 +63,7 @@ export default async function Home() {
   const benefitItems = itemsFor("why-us");
   const workItems = itemsFor("works");
   return (
-    <main style={{ display: "flex", flexDirection: "column" }}>
+    <main className="homeCompact" style={{ display: "flex", flexDirection: "column" }}>
       {sectionIsVisible("hero") ? <section id="top" className="hero" style={{ order: (sectionBySlug.get("hero")?.sort_order ?? 0) * 10 }}>
         <div className="container heroGrid">
           <div className="heroContent">
@@ -109,11 +109,21 @@ export default async function Home() {
           <div className="grid serviceGrid">
             {(sectionBySlug.has("services") ? serviceItems.map(item => [locale === "en" ? item.title_en || item.title : item.title, locale === "en" ? item.description_en || item.description : item.description] as [string, string]) : services).map(([title, description], index) => (
               <article className="card serviceCard" key={title}>
-                {serviceItems[index]?.image_url ? <img src={serviceItems[index].image_url!} alt="" style={{ width: "100%", height: 110, objectFit: "cover", borderRadius: 8, marginBottom: 10 }} /> : null}
-                <div className="serviceNumber">0{index + 1}</div>
-                <h3>{title}</h3>
-                <p>{description}</p>
-                <div className="serviceCardActions"><Link href={serviceRouteByTitle[title] ?? "/services"} className="cardLink">{t("تفاصيل الخدمة","Service details")}</Link><Link href="/request" className="cardLink">{t("اطلب الخدمة ←","Request service →")}</Link></div>
+                <div className="serviceCardVisual">
+                  {serviceItems[index]?.image_url ? (
+                    <img src={serviceItems[index].image_url!} alt="" />
+                  ) : (
+                    <span aria-hidden="true">0{index + 1}</span>
+                  )}
+                </div>
+                <div className="serviceCardBody">
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </div>
+                <div className="serviceCardActions">
+                  <Link href={serviceRouteByTitle[title] ?? "/services"} className="cardLink">{t("تفاصيل الخدمة","Service details")}</Link>
+                  <Link href="/request" className="cardLink serviceRequestLink">{t("اطلب الخدمة ←","Request service →")}</Link>
+                </div>
               </article>
             ))}
           </div>

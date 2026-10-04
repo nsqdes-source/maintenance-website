@@ -729,3 +729,110 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
   .cookieConsent { max-height: 40dvh; }
   .cookieConsent p { max-width: none; }
 }
+
+
+/* Homepage compact redesign — 2026-10-04 */
+.homeCompact .hero{padding:56px 0 50px;background:radial-gradient(circle at 12% 18%,#dfe9e5 0,transparent 27%),linear-gradient(135deg,#fff 0%,#f7faf8 58%,#edf4f1 100%)}
+.homeCompact .heroGrid{grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);gap:38px}
+.homeCompact .hero h1{max-width:700px;margin-bottom:16px;font-size:clamp(2.45rem,5.3vw,4.65rem)}
+.homeCompact .heroText{max-width:640px;font-size:1.04rem;line-height:1.75}
+.homeCompact .actions{margin-top:22px}
+.homeCompact .heroTrust{gap:10px 18px;margin-top:18px;font-size:.84rem}
+.homeCompact .heroPanel{min-height:330px;border-radius:22px;box-shadow:0 22px 55px rgba(15,23,42,.14)}
+.homeCompact .heroPanelContent{min-height:328px;padding:27px}
+.homeCompact .panelIcon{width:48px;height:48px;border-radius:13px;font-size:1.35rem}
+.homeCompact .heroPanel h2{font-size:clamp(1.6rem,3.4vw,2.15rem)}
+.homeCompact .section{padding:56px 0}
+.homeCompact .sectionHeading{gap:28px;margin-bottom:24px}
+.homeCompact .sectionHeading h2,.homeCompact .compactSectionHeading h2{font-size:clamp(1.75rem,3.2vw,2.45rem)}
+.homeCompact .sectionIntro{line-height:1.65}
+.homeCompact .serviceGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.homeCompact .serviceCard{display:flex;flex-direction:column;min-height:300px;padding:14px;border-radius:16px}
+.homeCompact .serviceCardVisual{height:112px;display:grid;place-items:center;overflow:hidden;border-radius:12px;background:linear-gradient(135deg,#e7f0ed,#f8fbfa);color:#46635e;font-weight:900;font-size:1.15rem}
+.homeCompact .serviceCardVisual img{width:100%;height:100%;object-fit:cover}
+.homeCompact .serviceCardBody{padding:14px 4px 8px}
+.homeCompact .serviceCardBody h3{margin:0 0 6px}
+.homeCompact .serviceCardBody p{font-size:.9rem;line-height:1.6}
+.homeCompact .serviceCardActions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding:10px 4px 2px;border-top:1px solid #eef2f1}
+.homeCompact .serviceCardActions .cardLink{margin:0;font-size:.82rem}
+.homeCompact .serviceRequestLink{color:#2f8178}
+.homeCompact .benefitGrid{gap:12px;margin-top:28px}
+.homeCompact .benefit{padding:16px;gap:12px}
+.homeCompact .benefit p{font-size:.86rem;line-height:1.55}
+.homeCompact .trustBarInner{gap:12px}
+.homeCompact .trustBarInner span{white-space:nowrap}
+.homeCompact .compactSectionHeading{display:flex;align-items:end;justify-content:space-between;gap:32px;margin-bottom:22px}
+.homeCompact .compactSectionHeading h2{max-width:650px;margin:0}
+.homeCompact .compactSectionHeading>p{max-width:430px;margin:0;color:#64748b;line-height:1.65}
+.homeCompact .marketingGrid{gap:12px}
+.homeCompact .processGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.homeCompact .processCard{min-height:170px;padding:18px}
+.homeCompact .processCard>strong{display:inline-grid;place-items:center;width:34px;height:34px;margin-bottom:16px;border-radius:10px;background:#edf5f2;color:#2f8178;font-size:.78rem}
+.homeCompact .processCard h3{margin-bottom:6px}
+.homeCompact .processCard p{font-size:.88rem;line-height:1.55}
+.homeCompact .warrantyBand{background:linear-gradient(135deg,#173c38,#214e49);color:#fff}
+.homeCompact .compactSectionHeading.light .eyebrow{color:#b9d5d0}
+.homeCompact .compactSectionHeading.light>p{color:#d8e7e4}
+.homeCompact .warrantyGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.homeCompact .warrantyCard{min-height:auto;padding:16px 18px;background:rgba(255,255,255,.96);border:0;color:#173c38}
+.homeCompact .warrantyCard h3{margin:0;font-size:.95rem}
+.homeCompact .warrantyBand .policyNote{margin:16px 0 0;color:#c9ddda}
+.homeCompact .compactFaqGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.homeCompact .compactFaqGrid details{margin:0}
+.homeCompact .compactPromoSection{padding:22px 0;background:#fff}
+.homeCompact .compactPromo{padding:28px 34px;border-radius:20px}
+.homeCompact .compactPromo h2{font-size:clamp(1.6rem,3vw,2.2rem)}
+.homeCompact .compactPricingSection{padding-top:46px}
+.homeCompact .pricingCompactGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.homeCompact .pricingCompactGrid .marketingCard{min-height:130px;padding:18px}
+.homeCompact .compactServiceArea{padding:22px 0 44px}
+.homeCompact .serviceAreaCompactBox{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:28px;align-items:center;padding:22px 26px;border:1px solid #dce6e2;border-radius:18px;background:#fff}
+.homeCompact .serviceAreaCompactBox h2{margin:0;font-size:1.55rem}
+.homeCompact .serviceAreaCompactBox p:last-child{margin:0;color:#64748b;line-height:1.65}
+.homeCompact .ctaSection{padding:22px 0}
+.homeCompact .ctaBox{padding:34px 38px}
+.homeCompact .contactSection{padding-top:50px}
+.homeCompact .contactGrid{gap:28px}
+.homeCompact .contactCard{padding:22px}
+
+@media(max-width:900px){
+  .homeCompact .hero{padding:42px 0}
+  .homeCompact .heroGrid{grid-template-columns:1fr;gap:24px}
+  .homeCompact .heroPanel{min-height:280px}
+  .homeCompact .heroPanelContent{min-height:278px}
+  .homeCompact .serviceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .homeCompact .benefitGrid,.homeCompact .processGrid,.homeCompact .warrantyGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .homeCompact .compactSectionHeading{align-items:start;flex-direction:column;gap:10px}
+  .homeCompact .compactFaqGrid,.homeCompact .pricingCompactGrid{grid-template-columns:1fr}
+  .homeCompact .serviceAreaCompactBox{grid-template-columns:1fr;gap:8px}
+}
+@media(max-width:560px){
+  .homeCompact .container{width:min(100% - 22px,1120px)}
+  .homeCompact .hero{padding:30px 0 28px}
+  .homeCompact .hero h1{font-size:clamp(2rem,11vw,3rem)}
+  .homeCompact .heroText{font-size:.96rem}
+  .homeCompact .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .homeCompact .largeButton{min-height:48px;padding-inline:12px;font-size:.9rem}
+  .homeCompact .heroTrust{display:grid;grid-template-columns:1fr;gap:7px;margin-top:16px}
+  .homeCompact .heroPanel{min-height:250px;border-radius:18px}
+  .homeCompact .heroPanelContent{min-height:248px;padding:20px}
+  .homeCompact .section{padding:38px 0}
+  .homeCompact .sectionHeading{align-items:start;flex-direction:column;gap:10px;margin-bottom:18px}
+  .homeCompact .serviceGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .homeCompact .serviceCard{min-height:255px;padding:10px;border-radius:14px}
+  .homeCompact .serviceCardVisual{height:86px}
+  .homeCompact .serviceCardBody{padding:10px 2px 6px}
+  .homeCompact .serviceCardBody h3{font-size:1rem}
+  .homeCompact .serviceCardBody p{font-size:.8rem}
+  .homeCompact .serviceCardActions{align-items:flex-start;flex-direction:column;gap:5px;padding-inline:2px}
+  .homeCompact .benefitGrid,.homeCompact .processGrid,.homeCompact .warrantyGrid{grid-template-columns:1fr}
+  .homeCompact .benefit{padding:14px}
+  .homeCompact .trustBarInner{display:grid;grid-template-columns:1fr;gap:6px;text-align:center}
+  .homeCompact .trustBarInner span{white-space:normal}
+  .homeCompact .processCard{min-height:auto;padding:15px}
+  .homeCompact .compactPromo{align-items:flex-start;flex-direction:column;padding:24px 20px}
+  .homeCompact .compactPromo .lightButton{width:100%}
+  .homeCompact .serviceAreaCompactBox{padding:18px}
+  .homeCompact .ctaBox{align-items:flex-start;flex-direction:column;padding:26px 20px}
+  .homeCompact .ctaBox .button{width:100%}
+}
