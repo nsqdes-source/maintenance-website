@@ -7,8 +7,8 @@ import styles from "../Marketing.module.css";
 type Values = Record<string, string>;
 
 const integrations = [
-  { key: "marketing_ga_measurement_id", name: "Google Analytics 4", category: "التحليلات", placeholder: "G-XXXXXXXXXX", pattern: /^G-[A-Z0-9]+$/i, active: true, note: "يعمل بعد موافقة المستخدم على ملفات التحليلات." },
-  { key: "marketing_gtm_id", name: "Google Tag Manager", category: "إدارة الوسوم", placeholder: "GTM-XXXXXXX", pattern: /^GTM-[A-Z0-9]+$/i, active: false, note: "يُحفظ المعرّف فقط. حقن GTM غير مفعّل بعد." },
+  { key: "marketing_ga_measurement_id", name: "Google Analytics 4", category: "التحليلات", placeholder: "G-XXXXXXXXXX", pattern: /^G-[A-Z0-9]+$/i, active: true, note: "يُحمّل Google tag مع Consent Mode افتراضي denied، وتُفعّل ملفات التحليلات فقط وفق اختيار المستخدم." },
+  { key: "marketing_gtm_id", name: "Google Tag Manager", category: "إدارة الوسوم", placeholder: "GTM-XXXXXXX", pattern: /^GTM-[A-Z0-9]+$/i, active: true, note: "يحمّل الموقع حاوية GTM عند حفظ معرّف صحيح، مع إبقاء Consent Mode الافتراضي على denied حتى يختار المستخدم." },
   { key: "marketing_google_ads_id", name: "Google Ads", category: "الإعلانات والتحويلات", placeholder: "AW-123456789/AbCdEfGhIj", pattern: /^AW-[0-9]+\/[A-Z0-9_-]+$/i, active: true, note: "أدخل وجهة التحويل الكاملة من Google Ads بصيغة AW-.../ConversionLabel. سيتم إرسال conversion عند نجاح طلب الخدمة وبعد موافقة المستخدم على ملفات الإعلانات." },
   { key: "marketing_meta_pixel_id", name: "Meta Pixel", category: "الإعلانات", placeholder: "رقم Pixel", pattern: /^[0-9]+$/, active: false, note: "لن يتم تشغيله قبل ربطه بطبقة الموافقة." },
   { key: "marketing_tiktok_pixel_id", name: "TikTok Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
@@ -64,7 +64,7 @@ export default function IntegrationsManager({ initialValues, canEdit }: { initia
 
         <section className={styles.panel}>
           <h2>مدير تكاملات التسويق</h2>
-          <p className={styles.muted}>أدخل المعرّفات العامة فقط. لا تقبل هذه الصفحة أكواد JavaScript أو مفاتيح سرية. Google Analytics يعمل بعد موافقة المستخدم، أما بقية المنصات فتظل محفوظة فقط حتى يتم ربطها برمجيًا بشكل آمن.</p>
+          <p className={styles.muted}>أدخل المعرّفات العامة فقط. لا تقبل هذه الصفحة أكواد JavaScript أو مفاتيح سرية. Google Analytics وGoogle Ads وGoogle Tag Manager مرتبطة بطبقة Consent Mode، أما بقية المنصات فتظل محفوظة فقط حتى يتم ربطها برمجيًا بشكل آمن.</p>
           {!canEdit ? <div className={styles.readOnlyNotice}>يمكنك مراجعة الحالة، لكن تعديل معرّفات التكاملات متاح للمدير الأعلى فقط.</div> : null}
           {message ? <p className={styles.integrationMessage} role="status">{message}</p> : null}
 
