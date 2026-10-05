@@ -266,6 +266,21 @@ export default function RequestFunnel({
     return "";
   }
 
+  function receivePhotos(newFiles: File[]) {
+    if (!newFiles.length) return;
+
+    const files = [...photos, ...newFiles];
+    const error = photoError(files);
+
+    if (error) {
+      setMessage(error);
+      return;
+    }
+
+    setPhotos(files);
+    setMessage("");
+  }
+
   function chooseCategory(id: string) {
     if (id === categoryId) return;
     if (selectedServiceIds.length && !window.confirm(t(
@@ -761,33 +776,54 @@ export default function RequestFunnel({
         </div>
 
         <div className="form-group photoUploadField">
-          <label htmlFor="photos">
+          <label>
             {t(
               "صور المشكلة (اختياري، حتى 5)",
               "Issue photos (optional, up to 5)"
             )}
           </label>
 
-          <input
-            id="photos"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            onChange={(event) => {
-              const files = Array.from(
-                event.target.files ?? []
-              );
+          <div>
+            <label htmlFor="camera-photo">
+              {t("التقاط صورة", "Take a photo")}
+            </label>
 
-              const error = photoError(files);
+            <input
+              id="camera-photo"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(event) => {
+                const files = Array.from(
+                  event.target.files ?? []
+                );
 
-              if (error) {
-                setMessage(error);
-              } else {
-                setPhotos(files);
-                setMessage("");
-              }
-            }}
-          />
+                receivePhotos(files);
+                event.target.value = "";
+              }}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="photos">
+              {t("اختيار من الصور", "Choose from photos")}
+            </label>
+
+            <input
+              id="photos"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={(event) => {
+                const files = Array.from(
+                  event.target.files ?? []
+                );
+
+                receivePhotos(files);
+                event.target.value = "";
+              }}
+            />
+          </div>
 
           <small>
             {t(
