@@ -106,6 +106,7 @@ export default function RequestFunnel({
   });
 
   const [categoryId, setCategoryId] = useState("");
+  const [availableServiceId, setAvailableServiceId] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -264,6 +265,12 @@ export default function RequestFunnel({
   }
 
   function chooseCategory(id: string) {
+    if (id === categoryId) return;
+    if (selectedServiceIds.length && !window.confirm(t(
+      "تغيير التصنيف سيزيل الخدمات المختارة الحالية. هل تريد المتابعة؟",
+      "Changing the category will remove the selected services. Continue?"
+    ))) return;
+    setAvailableServiceId("");
     setCategoryId(id);
     setSelectedServiceIds([]);
     setQuantities({});
@@ -278,20 +285,17 @@ export default function RequestFunnel({
     }
   }
 
-  function toggleService(id: string) {
-    setSelectedServiceIds((current) => {
-      if (current.includes(id)) {
-        return current.filter((serviceId) => serviceId !== id);
-      }
+  function addService() {
+    const id = availableServiceId;
+    if (!activeServices.some((service) => service.id === id)) return;
+    if (selectedServiceIds.includes(id)) return;
+    setSelectedServiceIds((current) => current.includes(id) ? current : [...current, id]);
+    setQuantities((current) => ({ ...current, [id]: current[id] ?? 1 }));
+    setMessage("");
+  }
 
-      return [...current, id];
-    });
-
-    setQuantities((current) => ({
-      ...current,
-      [id]: current[id] ?? 1,
-    }));
-
+  function removeService(id: string) {
+    setSelectedServiceIds((current) => current.filter((serviceId) => serviceId !== id));
     setMessage("");
   }
 
@@ -631,75 +635,32 @@ export default function RequestFunnel({
 
         {categoryId ? (
           <>
-            <div className="form-group issueTypeGroup">
-              <label>
-                {t(
-                  "الخدمات المتاحة *",
-                  "Available services *"
-                )}
-              </label>
+            <div className="form-group issueTypeGroup requestServicePicker">
+              <label htmlFor="available_service">{t("الخدمات المتاحة *", "Available services *")}</label>
+              <div className="requestServicePickerControls">
+                <select id="available_service" value={availableServiceId}
+                  onChange={(event) => setAvailableServiceId(event.target.value)}
+                  disabled={!activeServices.length}>
+                  <option value="">{t("اختر خدمة", "Choose a service")}</option>
+                  {activeServices.map((service) => (
+                    <option key={service.id} value={service.id}>
+                      {service.name} — {Number(service.gross_price).toFixed(2)} ر.س
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="button primary" disabled={!availableServiceId} onClick={addService}>
+                  {t("إضافة", "Add")}
+                </button>
+              </div>
+              {!activeServices.length && <div className="appointmentNotice">{t("لا توجد خدمات مفعلة ضمن هذا التصنيف حاليًا.", "There are currently no active services in this category.")}</div>}
             </div>
-
-            {activeServices.length > 0 ? (
-              <div className="serviceChoiceGrid">
-                {activeServices.map((service) => {
-                  const selected =
-                    selectedServiceIds.includes(service.id);
-
-                  return (
-                    <button
-                      key={service.id}
-                      type="button"
-                      className={
-                        selected
-                          ? "serviceChoice selected"
-                          : "serviceChoice"
-                      }
-                      aria-pressed={selected}
-                      onClick={() =>
-                        toggleService(service.id)
-                      }
-                    >
-                      <strong>{service.name}</strong>
-
-                      {service.description ? (
-                        <small>
-                          {service.description}
-                        </small>
-                      ) : null}
-
-                      <span>
-                        {Number(
-                          service.gross_price
-                        ).toFixed(2)}{" "}
-                        ر.س
-                      </span>
-
-                      {service.is_visit_service ? (
-                        <small>
-                          {t(
-                            "خدمة زيارة",
-                            "Visit service"
-                          )}
-                        </small>
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="appointmentNotice">
-                {t(
-                  "لا توجد خدمات مفعلة ضمن هذا التصنيف حاليًا.",
-                  "There are currently no active services in this category."
-                )}
-              </div>
-            )}
+            <h3 className="requestSelectedHeading">{t("الخدمات المختارة", "Selected services")}</h3>
+            {!selectedServices.length && <p className="requestSelectedEmpty">{t("لم تضف خدمات بعد. اختر خدمة ثم اضغط إضافة.", "No services added yet. Choose a service, then press Add.")}</p>}
 
             {selectedServices.length > 0 ? (
-              <div className="reviewSummary">
+              <div className="reviewSummary requestSelectedServices">
                 {selectedServices.map((service) => (
-                  <div key={service.id}>
+                  <div key={service.id} className="requestSelectedService">
                     <span>{service.name}</span>
 
                     <strong>
@@ -728,6 +689,9 @@ export default function RequestFunnel({
                         }
                       />
                     </label>
+                    <button type="button" className="requestRemoveService" onClick={() => removeService(service.id)} aria-label={`${t("إزالة", "Remove")} ${service.name}`}>
+                      {t("إزالة", "Remove")}
+                    </button>
                   </div>
                 ))}
 

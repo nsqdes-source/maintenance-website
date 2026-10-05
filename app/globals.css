@@ -939,3 +939,17 @@ body, .innerPage, .adminPage, .request-page { background: var(--site-background,
 .contactCard .contactForm textarea { color:#173c38; background:#fff; }
 .contactCard .contactForm input::placeholder,
 .contactCard .contactForm textarea::placeholder { color:#64748b; opacity:1; }
+
+/* Request service selection: scoped presentation, existing pricing unchanged. */
+.requestWizard .requestServicePickerControls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.requestWizard .requestServicePickerControls select{min-width:0;max-width:100%;font:inherit;color:#172238}
+.requestWizard .requestSelectedHeading{margin:20px 0 8px;font-size:1.05rem}
+.requestWizard .requestSelectedEmpty{color:#526779;line-height:1.7}
+.requestWizard .requestSelectedServices{min-width:0}
+.requestWizard .requestSelectedServices>.requestSelectedService{display:grid;grid-template-columns:minmax(0,1fr) auto 90px auto;align-items:center;gap:12px}
+.requestWizard .requestSelectedService>span{overflow-wrap:anywhere;min-width:0}
+.requestWizard .requestSelectedService>strong{white-space:nowrap;font-size:.9rem}
+.requestWizard .requestSelectedService label{display:grid;gap:5px;font-size:.85rem;min-width:0}
+.requestWizard .requestSelectedService input{width:100%;min-width:0;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172238;font:inherit}
+.requestWizard .requestRemoveService{min-height:44px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#943a32;font:inherit;cursor:pointer}
+@media(max-width:760px){.requestWizard .requestSelectedServices>.requestSelectedService{grid-template-columns:minmax(0,1fr) auto}.requestWizard .requestSelectedService label{max-width:100px}.requestWizard .requestServicePickerControls{grid-template-columns:minmax(0,1fr)}.requestWizard .requestServicePickerControls .button{width:100%}}
