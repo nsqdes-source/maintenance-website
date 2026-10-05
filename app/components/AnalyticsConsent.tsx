@@ -117,16 +117,15 @@ export default function AnalyticsConsent({
   return (
     <>
       {open ? (
-        <section className="cookieConsent" role="dialog" aria-modal="false" aria-labelledby="cookie-consent-title">
+        <section className={`cookieConsent ${locale === "ar" ? "cookieConsentAr" : "cookieConsentEn"} ${customizing ? "cookieConsentCustomizing" : ""}`} role="dialog" aria-modal="false" aria-labelledby="cookie-consent-title">
           <div className="cookieConsentMain">
             <div>
-              <strong id="cookie-consent-title">{t("نستخدم ملفات تعريف الارتباط", "We use cookies")}</strong>
-              <p>{t("نستخدم الملفات الضرورية لتشغيل الموقع. ويمكنك السماح بملفات التحليلات والإعلانات لقياس الأداء والتحويلات وتحسين الحملات. يمكنك تغيير اختيارك لاحقًا.", "We use necessary cookies to run the site. You can also allow analytics and advertising cookies to measure performance and conversions and improve campaigns. You can change your choice later.")}</p>
+              <strong id="cookie-consent-title">{t("ملفات الارتباط", "Cookies")}</strong>
+              <p>{t("نستخدم الملفات الضرورية لتشغيل الموقع. ويمكنك السماح بالملفات الإضافية. يمكنك التغيير لاحقًا.", "We use necessary cookies to run the site. You can allow additional cookies. You can change this later.")}</p>
               <div className="cookieConsentLinks"><Link href="/privacy">{t("سياسة الخصوصية", "Privacy policy")}</Link></div>
             </div>
             <div className="cookieConsentActions">
-              <button type="button" className="button primary" onClick={() => choose({ analytics: true, advertising: true })}>{t("قبول الكل", "Accept all")}</button>
-              <button type="button" className="button secondary" onClick={() => choose({ analytics: false, advertising: false })}>{t("رفض غير الضروري", "Reject non-essential")}</button>
+              <button type="button" className="button primary" onClick={() => choose({ analytics: true, advertising: true })}>{t("قبول", "Accept")}</button>
               <button type="button" className="cookieCustomizeButton" onClick={() => setCustomizing((value) => !value)}>{t("تخصيص", "Customize")}</button>
             </div>
           </div>
