@@ -1,3 +1,4 @@
+import { sanitizeStyle } from "@/app/components/site-blocks/model";
 import type { Metadata } from "next";
 import RequestFunnel from "./RequestFunnel";
 import { getLocale, text } from "@/lib/locale";
@@ -16,7 +17,7 @@ export default async function RequestPage() {
 
   const supabase = await createClient();
 
-  const [{ data: categories }, { data: services }] = await Promise.all([
+  const [{ data: categories }, { data: services }, { data: imageSections }] = await Promise.all([
     supabase
       .from("service_catalog_items")
       .select("id,name,service_key,sort_order")
@@ -31,7 +32,18 @@ export default async function RequestPage() {
       )
       .eq("is_active", true)
       .order("sort_order"),
+
+    supabase
+      .from("site_sections")
+      .select("slug,style_config")
+      .in("slug", ["hero", "services"])
+      .eq("is_visible", true),
   ]);
+
+  const sectionImages = (slug: string) =>
+    (sanitizeStyle(imageSections?.find((section) => section.slug === slug)?.style_config)
+      .catalog_images ?? {}) as Record<string, string>;
+  const categoryImages = { ...sectionImages("services"), ...sectionImages("hero") };
 
   return (
     <main className="request-page">
@@ -53,6 +65,7 @@ export default async function RequestPage() {
           <RequestFunnel
             initialCategories={categories ?? []}
             initialServices={services ?? []}
+            categoryImages={categoryImages}
           />
         </div>
       </section>

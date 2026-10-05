@@ -45,6 +45,7 @@ type CatalogService = {
 type Props = {
   initialCategories: CatalogCategory[];
   initialServices: CatalogService[];
+  categoryImages?: Record<string, string>;
 };
 
 const phonePattern = /^0\d{9}$/;
@@ -84,6 +85,7 @@ function todayValue() {
 export default function RequestFunnel({
   initialCategories,
   initialServices,
+  categoryImages = {},
 }: Props) {
   const locale = useLocale();
   const router = useRouter();
@@ -615,7 +617,7 @@ export default function RequestFunnel({
           )}
         </p>
 
-        <div className="serviceChoiceGrid">
+        <div className="serviceChoiceGrid requestCategoryGrid">
           {initialCategories.map((category) => (
             <button
               key={category.id}
@@ -628,6 +630,11 @@ export default function RequestFunnel({
               aria-pressed={categoryId === category.id}
               onClick={() => chooseCategory(category.id)}
             >
+              <span className="requestCategoryImage" aria-hidden="true">
+                {categoryImages[category.id] ? (
+                  <img src={categoryImages[category.id]} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                ) : null}
+              </span>
               <strong>{category.name}</strong>
             </button>
           ))}
