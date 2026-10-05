@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Script from "next/script";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/locale";
 
@@ -73,6 +72,16 @@ export default function AnalyticsConsent({
       setAnalyticsEnabled(saved.analytics);
       setAdvertisingEnabled(saved.advertising);
       setOpen(false);
+
+      window.__mueenAnalyticsEnabled = saved.analytics;
+      window.__mueenAdvertisingEnabled = saved.advertising;
+      window.__mueenGoogleAdsDestination = googleAdsDestination || "";
+      window.gtag?.("consent", "update", {
+        analytics_storage: saved.analytics ? "granted" : "denied",
+        ad_storage: saved.advertising ? "granted" : "denied",
+        ad_user_data: saved.advertising ? "granted" : "denied",
+        ad_personalization: saved.advertising ? "granted" : "denied",
+      });
     } else {
       const legacy = window.localStorage.getItem(legacyStorageKey);
       setAnalyticsEnabled(legacy === "granted");
@@ -81,7 +90,7 @@ export default function AnalyticsConsent({
     }
 
     setReady(true);
-  }, []);
+  }, [googleAdsDestination]);
 
   function choose(next: ConsentPreferences) {
     window.localStorage.setItem(storageKey, JSON.stringify(next));
@@ -107,43 +116,8 @@ export default function AnalyticsConsent({
 
   if (!ready) return null;
 
-  const adsBaseId = googleAdsDestination?.split("/")[0];
-  const shouldLoadGoogleTag = Boolean(
-    (preferences?.analytics && gaMeasurementId) ||
-    (preferences?.advertising && adsBaseId)
-  );
-  const loaderId =
-    preferences?.analytics && gaMeasurementId
-      ? gaMeasurementId
-      : preferences?.advertising
-        ? adsBaseId
-        : undefined;
-
   return (
     <>
-      {shouldLoadGoogleTag && loaderId ? (
-        <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${loaderId}`} strategy="afterInteractive" />
-          <Script id="google-measurement-consented" strategy="afterInteractive">{`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            window.gtag = gtag;
-            window.__mueenAnalyticsEnabled = ${preferences?.analytics ? "true" : "false"};
-            window.__mueenAdvertisingEnabled = ${preferences?.advertising ? "true" : "false"};
-            window.__mueenGoogleAdsDestination = ${JSON.stringify(googleAdsDestination || "")};
-            gtag("consent", "default", {
-              analytics_storage: "${preferences?.analytics ? "granted" : "denied"}",
-              ad_storage: "${preferences?.advertising ? "granted" : "denied"}",
-              ad_user_data: "${preferences?.advertising ? "granted" : "denied"}",
-              ad_personalization: "${preferences?.advertising ? "granted" : "denied"}"
-            });
-            gtag("js", new Date());
-            ${preferences?.analytics && gaMeasurementId ? `gtag("config", "${gaMeasurementId}", { send_page_view: true });` : ""}
-            ${preferences?.advertising && adsBaseId ? `gtag("config", "${adsBaseId}", { send_page_view: false });` : ""}
-          `}</Script>
-        </>
-      ) : null}
-
       {open ? (
         <section className="cookieConsent" role="dialog" aria-modal="false" aria-labelledby="cookie-consent-title">
           <div className="cookieConsentMain">
