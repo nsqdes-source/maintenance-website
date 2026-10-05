@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { trackFunnelEvent } from "@/lib/attribution";
 import LocationPicker from "./LocationPicker";
 import { useLocale } from "@/app/components/LocaleContext";
 
@@ -116,6 +117,7 @@ export default function RequestForm() {
       input_latitude: latitude, input_longitude: longitude,
     }).single();
     if (error || !submitted) { console.error("Service request error:", error); setStatus({ success: false, message: t("تعذر إرسال الطلب حاليًا. يرجى المحاولة مرة أخرى.", "We could not submit your request. Please try again.") }); setPending(false); return; }
+    trackFunnelEvent("generate_lead");
     const submission = submitted as { request_id: string; request_upload_token: string };
     let uploaded = 0;
     for (const file of photos) {
