@@ -22,8 +22,8 @@ export default async function MarketingSettingsPage() {
   const adPixelsConfigured = Boolean(values.marketing_meta_pixel_id || values.marketing_tiktok_pixel_id || values.marketing_snap_pixel_id || values.marketing_x_pixel_id);
 
   const items = [
-    { title: "قياس الزيارات", detail: "Google Analytics يعمل فقط عند حفظ معرّف GA4 من لوحة التكاملات وبعد موافقة المستخدم على ملفات التحليلات.", state: gaConfigured ? "مهيأ" : "غير مهيأ", tone: gaConfigured ? "ready" : "off" },
-    { title: "Google Tag Manager", detail: "يمكن حفظ المعرّف من لوحة التكاملات، لكن حقن GTM غير مفعّل حاليًا.", state: gtmConfigured ? "محفوظ فقط" : "غير مهيأ", tone: gtmConfigured ? "pending" : "off" },
+    { title: "قياس الزيارات", detail: "عند حفظ معرّف GA4، يُحمّل Google tag مع Consent Mode افتراضي denied، ثم تُفعّل ملفات التحليلات وفق اختيار المستخدم.", state: gaConfigured ? "مهيأ" : "غير مهيأ", tone: gaConfigured ? "ready" : "off" },
+    { title: "Google Tag Manager", detail: "عند حفظ Container ID صحيح بصيغة GTM-... يتم تحميل الحاوية فعليًا مع بقاء Consent Mode الافتراضي على denied حتى اختيار المستخدم.", state: gtmConfigured ? "مفعّل" : "غير مهيأ", tone: gtmConfigured ? "ready" : "off" },
     { title: "Google Ads", detail: "عند حفظ وجهة التحويل الكاملة، يرسل الموقع conversion بعد نجاح generate_lead فقط وبعد موافقة المستخدم على ملفات الإعلانات.", state: adsConfigured ? "مفعّل" : "غير مهيأ", tone: adsConfigured ? "ready" : "off" },
     { title: "Pixels الإعلانية", detail: "Meta وTikTok وSnap وX لا تعمل بعد حتى لو حُفظت معرفاتها.", state: adPixelsConfigured ? "محفوظة فقط" : "غير مهيأة", tone: adPixelsConfigured ? "pending" : "off" },
     { title: "الإسناد التسويقي First-touch", detail: "يحفظ الموقع UTM وgclid وwbraid وgbraid لأول زيارة داخل sessionStorage ثم يرفقها بطلب الخدمة عند الإرسال.", state: "مفعّل", tone: "ready" },
@@ -56,7 +56,7 @@ export default async function MarketingSettingsPage() {
 
         <section className={styles.panel}>
           <h2>الموافقة والخصوصية</h2>
-          <p className={styles.muted}>الموقع لديه إشعار ملفات ارتباط بالشكل المعتاد، مع قبول الكل ورفض غير الضروري والتخصيص. ملفات التحليلات لا تُحمّل قبل الموافقة، ويمكن تغيير القرار لاحقًا من إعدادات ملفات الارتباط.</p>
+          <p className={styles.muted}>الموقع لديه إشعار ملفات ارتباط مع قبول الكل ورفض غير الضروري والتخصيص. وسوم Google الأساسية يمكن تحميلها مبكرًا مع Consent Mode افتراضي denied، ثم تتغير صلاحيات التحليلات والإعلانات وفق اختيار المستخدم، ويمكن تغيير القرار لاحقًا من إعدادات ملفات الارتباط.</p>
           <div className={styles.actions}>
             <Link className="button secondary" href="/privacy" target="_blank">فتح سياسة الخصوصية</Link>
             <Link className="button secondary" href="/admin/marketing/integrations">إدارة التكاملات</Link>
