@@ -49,11 +49,9 @@ function parseSavedPreferences(value: string | null): ConsentPreferences | null 
 
 export default function AnalyticsConsent({
   locale,
-  gaMeasurementId,
   googleAdsDestination,
 }: {
   locale: Locale;
-  gaMeasurementId?: string;
   googleAdsDestination?: string;
 }) {
   const [preferences, setPreferences] = useState<ConsentPreferences | null>(null);
