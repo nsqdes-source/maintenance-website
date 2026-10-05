@@ -103,7 +103,7 @@ export default async function RootLayout({
           </>
         ) : null}
         <AnalyticsBootstrap />
-        <AnalyticsConsent locale={locale} gaMeasurementId={gaMeasurementId} googleAdsDestination={googleAdsDestination} />
+        <AnalyticsConsent locale={locale} googleAdsDestination={googleAdsDestination} />
         <LocaleProvider locale={locale}>
           <SiteHeader logoText={locale === "en" ? theme.logo_text_en || theme.logo_text || "Mueen" : theme.logo_text || "معين"} logoImage={theme.logo_image_url || "/mueen-logo.png"} ctaText={locale === "en" ? theme.header_cta_text_en || "Sign in" : theme.header_cta_text || "تسجيل الدخول"} requestCtaText={locale === "en" ? theme.request_cta_text_en || "Request service" : theme.request_cta_text || "اطلب خدمة"} showRequestCta={theme.header_request_cta_visible !== "false"} locale={locale} />
           {children}
