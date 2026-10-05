@@ -65,6 +65,9 @@ export default async function RootLayout({
   const googleAdsDestination = theme.marketing_google_ads_id || undefined;
   const googleAdsBaseId = googleAdsDestination?.split("/")[0];
   const googleTagLoaderId = gaMeasurementId || googleAdsBaseId;
+  const rawGtmId = theme.marketing_gtm_id || "";
+  const gtmId = /^GTM-[A-Z0-9]+$/i.test(rawGtmId) ? rawGtmId : undefined;
+  const hasGoogleIntegration = Boolean(googleTagLoaderId || gtmId);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -79,27 +82,35 @@ export default async function RootLayout({
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body className={tajawal.variable} style={{ "--brand-primary": theme.primary_color || "#0f172a", "--brand-accent": theme.accent_color || "#f59e0b", "--site-background": theme.background_color || "#f8fafc" } as React.CSSProperties}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-        {googleTagLoaderId ? (
+        {hasGoogleIntegration ? (
+          <Script id="google-consent-default" strategy="beforeInteractive">{`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            window.__mueenAnalyticsEnabled = false;
+            window.__mueenAdvertisingEnabled = false;
+            window.__mueenGoogleAdsDestination = ${JSON.stringify(googleAdsDestination || "")};
+            gtag("consent", "default", {
+              analytics_storage: "denied",
+              ad_storage: "denied",
+              ad_user_data: "denied",
+              ad_personalization: "denied",
+              wait_for_update: 500
+            });
+            gtag("js", new Date());
+            ${gaMeasurementId ? `gtag("config", "${gaMeasurementId}", { send_page_view: true });` : ""}
+            ${googleAdsBaseId ? `gtag("config", "${googleAdsBaseId}", { send_page_view: false });` : ""}
+          `}</Script>
+        ) : null}
+        {googleTagLoaderId ? <Script src={`https://www.googletagmanager.com/gtag/js?id=${googleTagLoaderId}`} strategy="afterInteractive" /> : null}
+        {gtmId ? (
           <>
-            <Script id="google-consent-default" strategy="beforeInteractive">{`
+            <Script id="google-tag-manager" strategy="afterInteractive">{`
               window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              window.gtag = gtag;
-              window.__mueenAnalyticsEnabled = false;
-              window.__mueenAdvertisingEnabled = false;
-              window.__mueenGoogleAdsDestination = ${JSON.stringify(googleAdsDestination || "")};
-              gtag("consent", "default", {
-                analytics_storage: "denied",
-                ad_storage: "denied",
-                ad_user_data: "denied",
-                ad_personalization: "denied",
-                wait_for_update: 500
-              });
-              gtag("js", new Date());
-              ${gaMeasurementId ? `gtag("config", "${gaMeasurementId}", { send_page_view: true });` : ""}
-              ${googleAdsBaseId ? `gtag("config", "${googleAdsBaseId}", { send_page_view: false });` : ""}
+              window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
             `}</Script>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${googleTagLoaderId}`} strategy="afterInteractive" />
+            <Script src={`https://www.googletagmanager.com/gtm.js?id=${gtmId}`} strategy="afterInteractive" />
+            <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`} height="0" width="0" style={{ display: "none", visibility: "hidden" }} /></noscript>
           </>
         ) : null}
         <AnalyticsBootstrap />
