@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Tajawal } from "next/font/google";
 import { getLocale, text, type Locale } from "@/lib/locale";
 import { LocaleProvider, LanguageSwitcher } from "./components/LocaleContext";
@@ -62,6 +63,8 @@ export default async function RootLayout({
   const theme = Object.fromEntries((settings ?? []).map(item => [item.key, item.value]));
   const gaMeasurementId = theme.marketing_ga_measurement_id || undefined;
   const googleAdsDestination = theme.marketing_google_ads_id || undefined;
+  const googleAdsBaseId = googleAdsDestination?.split("/")[0];
+  const googleTagLoaderId = gaMeasurementId || googleAdsBaseId;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -76,6 +79,29 @@ export default async function RootLayout({
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body className={tajawal.variable} style={{ "--brand-primary": theme.primary_color || "#0f172a", "--brand-accent": theme.accent_color || "#f59e0b", "--site-background": theme.background_color || "#f8fafc" } as React.CSSProperties}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+        {googleTagLoaderId ? (
+          <>
+            <Script id="google-consent-default" strategy="beforeInteractive">{`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+              window.__mueenAnalyticsEnabled = false;
+              window.__mueenAdvertisingEnabled = false;
+              window.__mueenGoogleAdsDestination = ${JSON.stringify(googleAdsDestination || "")};
+              gtag("consent", "default", {
+                analytics_storage: "denied",
+                ad_storage: "denied",
+                ad_user_data: "denied",
+                ad_personalization: "denied",
+                wait_for_update: 500
+              });
+              gtag("js", new Date());
+              ${gaMeasurementId ? `gtag("config", "${gaMeasurementId}", { send_page_view: true });` : ""}
+              ${googleAdsBaseId ? `gtag("config", "${googleAdsBaseId}", { send_page_view: false });` : ""}
+            `}</Script>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${googleTagLoaderId}`} strategy="afterInteractive" />
+          </>
+        ) : null}
         <AnalyticsBootstrap />
         <AnalyticsConsent locale={locale} gaMeasurementId={gaMeasurementId} googleAdsDestination={googleAdsDestination} />
         <LocaleProvider locale={locale}>
