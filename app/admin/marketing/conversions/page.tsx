@@ -7,10 +7,13 @@ export const dynamic = "force-dynamic";
 export default async function MarketingConversionsPage() {
   const supabase = await createClient();
   const from = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const { data, error } = await supabase.from("service_requests").select("utm_source,utm_medium,utm_campaign,gclid,wbraid,gbraid").gte("created_at", from);
+  const [{ data, error }, { data: settingsRows }] = await Promise.all([
+    supabase.from("service_requests").select("utm_source,utm_medium,utm_campaign,gclid,wbraid,gbraid").gte("created_at", from),
+    supabase.from("site_settings").select("key,value").in("key", ["marketing_ga_measurement_id"]),
+  ]);
   const rows = data ?? [];
   const attributedLeads = rows.filter((row) => Boolean(row.utm_source || row.utm_medium || row.utm_campaign || row.gclid || row.wbraid || row.gbraid)).length;
-  const gaConfigured = Boolean(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
+  const gaConfigured = Boolean(settingsRows?.find((row) => row.key === "marketing_ga_measurement_id")?.value?.trim());
 
   return (
     <main className="adminPage">
