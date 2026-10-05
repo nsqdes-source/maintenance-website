@@ -42,6 +42,20 @@ export default function HeaderAccountControl({ ctaText = "تسجيل الدخو�
   useEffect(() => {
     const supabase = createClient();
     let mounted = true;
+    let profileLoadTimer: number | null = null;
+
+    async function loadProfile(userId: string) {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name, phone, role")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (mounted) {
+        setProfile(profileData);
+        setReady(true);
+      }
+    }
 
     async function loadAuthState() {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -52,18 +66,7 @@ export default function HeaderAccountControl({ ctaText = "تسجيل الدخو�
       if (user) {
         setAuthenticated(true);
         setEmail(user.email ?? "");
-
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("full_name, phone, role")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (mounted) {
-          setProfile(profileData);
-          setReady(true);
-        }
-
+        await loadProfile(user.id);
         return;
       }
 
@@ -74,21 +77,13 @@ export default function HeaderAccountControl({ ctaText = "تسجيل الدخو�
       if (userData.user) {
         setAuthenticated(true);
         setEmail(userData.user.email ?? "");
-
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("full_name, phone, role")
-          .eq("id", userData.user.id)
-          .maybeSingle();
-
-        if (mounted) setProfile(profileData);
+        await loadProfile(userData.user.id);
       } else {
         setAuthenticated(false);
         setProfile(null);
         setEmail("");
+        setReady(true);
       }
-
-      setReady(true);
     }
 
     loadAuthState();
@@ -96,14 +91,37 @@ export default function HeaderAccountControl({ ctaText = "تسجيل الدخو�
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
 
-      setAuthenticated(Boolean(session?.user));
-      setEmail(session?.user?.email ?? "");
+      const user = session?.user;
 
-      if (!session?.user) setProfile(null);
+      setAuthenticated(Boolean(user));
+      setEmail(user?.email ?? "");
+
+      if (!user) {
+        setProfile(null);
+        setReady(true);
+        return;
+      }
+
+      setProfile(null);
+      setReady(false);
+
+      if (profileLoadTimer !== null) {
+        window.clearTimeout(profileLoadTimer);
+      }
+
+      profileLoadTimer = window.setTimeout(() => {
+        profileLoadTimer = null;
+        void loadProfile(user.id);
+      }, 0);
     });
 
     return () => {
       mounted = false;
+
+      if (profileLoadTimer !== null) {
+        window.clearTimeout(profileLoadTimer);
+      }
+
       listener.subscription.unsubscribe();
     };
   }, []);
