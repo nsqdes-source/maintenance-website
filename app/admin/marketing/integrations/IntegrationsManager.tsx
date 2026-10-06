@@ -208,7 +208,7 @@ export default function IntegrationsManager({ initialValues, canEdit }: { initia
                   </div>
                   <p>{item.note}</p>
                   <label className={styles.integrationField}>
-                    <span>{item.key === "marketing_google_ads_id" ? "وجهة التحويل" : "المعرّف العام"}</span>
+                    <span>المعرّف العام</span>
                     <input
                       dir="ltr"
                       autoComplete="off"
