@@ -10,6 +10,7 @@ export default async function MarketingSettingsPage() {
     "marketing_ga_measurement_id",
     "marketing_gtm_id",
     "marketing_google_ads_id",
+    "marketing_google_ads_conversion_label",
     "marketing_meta_pixel_id",
     "marketing_tiktok_pixel_id",
     "marketing_snap_pixel_id",
@@ -18,13 +19,20 @@ export default async function MarketingSettingsPage() {
   const values = Object.fromEntries((rows ?? []).map((row) => [row.key, row.value]));
   const gaConfigured = Boolean(values.marketing_ga_measurement_id);
   const gtmConfigured = Boolean(values.marketing_gtm_id);
-  const adsConfigured = /^AW-[0-9]+\/[A-Z0-9_-]+$/i.test(values.marketing_google_ads_id || "");
+  const rawGoogleAdsId = values.marketing_google_ads_id || "";
+  const [legacyGoogleAdsId, legacyConversionLabel = ""] = rawGoogleAdsId.split("/", 2);
+  const googleAdsId = legacyGoogleAdsId;
+  const googleAdsConversionLabel =
+    values.marketing_google_ads_conversion_label || legacyConversionLabel;
+  const adsConfigured =
+    /^AW-[0-9]+$/i.test(googleAdsId) &&
+    /^[A-Z0-9_-]+$/i.test(googleAdsConversionLabel);
   const adPixelsConfigured = Boolean(values.marketing_meta_pixel_id || values.marketing_tiktok_pixel_id || values.marketing_snap_pixel_id || values.marketing_x_pixel_id);
 
   const items = [
     { title: "قياس الزيارات", detail: "عند حفظ معرّف GA4، يُحمّل Google tag مع Consent Mode افتراضي denied، ثم تُفعّل ملفات التحليلات وفق اختيار المستخدم.", state: gaConfigured ? "مهيأ" : "غير مهيأ", tone: gaConfigured ? "ready" : "off" },
     { title: "Google Tag Manager", detail: "عند حفظ Container ID صحيح بصيغة GTM-... يتم تحميل الحاوية فعليًا مع بقاء Consent Mode الافتراضي على denied حتى اختيار المستخدم.", state: gtmConfigured ? "مفعّل" : "غير مهيأ", tone: gtmConfigured ? "ready" : "off" },
-    { title: "Google Ads", detail: "عند حفظ وجهة التحويل الكاملة، يرسل الموقع conversion بعد نجاح generate_lead فقط وبعد موافقة المستخدم على ملفات الإعلانات.", state: adsConfigured ? "مفعّل" : "غير مهيأ", tone: adsConfigured ? "ready" : "off" },
+    { title: "Google Ads", detail: "يُحفظ Google Ads ID وConversion Label كلٌ في حقل مستقل، ثم يبني الموقع وجهة التحويل داخليًا ويرسل conversion بعد نجاح generate_lead وبعد موافقة المستخدم على ملفات الإعلانات.", state: adsConfigured ? "مفعّل" : "غير مهيأ", tone: adsConfigured ? "ready" : "off" },
     { title: "Pixels الإعلانية", detail: "Meta وTikTok وSnap وX لا تعمل بعد حتى لو حُفظت معرفاتها.", state: adPixelsConfigured ? "محفوظة فقط" : "غير مهيأة", tone: adPixelsConfigured ? "pending" : "off" },
     { title: "الإسناد التسويقي First-touch", detail: "يحفظ الموقع UTM وgclid وwbraid وgbraid لأول زيارة داخل sessionStorage ثم يرفقها بطلب الخدمة عند الإرسال.", state: "مفعّل", tone: "ready" },
     { title: "JavaScript خام من لوحة الإدارة", detail: "لا توجد خانة لإدخال سكربتات أو أكواد تنفيذية من لوحة الإدارة أو قاعدة البيانات.", state: "محظور", tone: "ready" },
