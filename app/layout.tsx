@@ -9,6 +9,7 @@ import "./admin/admin.css";
 import HeaderAccountControl from "./components/HeaderAccountControl";
 import AnalyticsBootstrap from "./components/AnalyticsBootstrap";
 import AnalyticsConsent from "./components/AnalyticsConsent";
+import MetaPixel from "./components/MetaPixel";
 import MobileHeaderMenu from "./components/MobileHeaderMenu";
 import { createClient } from "@/lib/supabase/server";
 
@@ -75,6 +76,8 @@ export default async function RootLayout({
   const rawGtmId = theme.marketing_gtm_id || "";
   const gtmId = /^GTM-[A-Z0-9]+$/i.test(rawGtmId) ? rawGtmId : undefined;
   const hasGoogleIntegration = Boolean(googleTagLoaderId || gtmId);
+  const rawMetaPixelId = theme.marketing_meta_pixel_id || "";
+  const metaPixelId = /^[0-9]+$/.test(rawMetaPixelId) ? rawMetaPixelId : undefined;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -122,6 +125,7 @@ export default async function RootLayout({
         ) : null}
         <AnalyticsBootstrap />
         <AnalyticsConsent locale={locale} googleAdsDestination={googleAdsDestination} />
+        <MetaPixel pixelId={metaPixelId} />
         <LocaleProvider locale={locale}>
           <SiteHeader logoText={locale === "en" ? theme.logo_text_en || theme.logo_text || "Mueen" : theme.logo_text || "معين"} logoImage={theme.logo_image_url || "/mueen-logo.png"} ctaText={locale === "en" ? theme.header_cta_text_en || "Sign in" : theme.header_cta_text || "تسجيل الدخول"} requestCtaText={locale === "en" ? theme.request_cta_text_en || "Request service" : theme.request_cta_text || "اطلب خدمة"} showRequestCta={theme.header_request_cta_visible !== "false"} locale={locale} />
           {children}

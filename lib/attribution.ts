@@ -22,6 +22,7 @@ const trackedParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content"
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
     __mueenAnalyticsEnabled?: boolean;
     __mueenAdvertisingEnabled?: boolean;
     __mueenGoogleAdsDestination?: string;
@@ -65,6 +66,13 @@ export function trackFunnelEvent(eventName: MarketingFunnelEventName, parameters
     window.gtag?.("event", "conversion", {
       send_to: window.__mueenGoogleAdsDestination,
     });
+  }
+
+  if (
+    eventName === "generate_lead" &&
+    window.__mueenAdvertisingEnabled
+  ) {
+    window.fbq?.("track", "Lead");
   }
 }
 

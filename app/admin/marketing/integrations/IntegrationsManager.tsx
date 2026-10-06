@@ -9,7 +9,7 @@ type Values = Record<string, string>;
 const integrations = [
   { key: "marketing_ga_measurement_id", name: "Google Analytics 4", category: "التحليلات", placeholder: "G-XXXXXXXXXX", pattern: /^G-[A-Z0-9]+$/i, active: true, note: "يُحمّل Google tag مع Consent Mode افتراضي denied، وتُفعّل ملفات التحليلات فقط وفق اختيار المستخدم." },
   { key: "marketing_gtm_id", name: "Google Tag Manager", category: "إدارة الوسوم", placeholder: "GTM-XXXXXXX", pattern: /^GTM-[A-Z0-9]+$/i, active: true, note: "يحمّل الموقع حاوية GTM عند حفظ معرّف صحيح، مع إبقاء Consent Mode الافتراضي على denied حتى يختار المستخدم." },
-  { key: "marketing_meta_pixel_id", name: "Meta Pixel", category: "الإعلانات", placeholder: "رقم Pixel", pattern: /^[0-9]+$/, active: false, note: "لن يتم تشغيله قبل ربطه بطبقة الموافقة." },
+  { key: "marketing_meta_pixel_id", name: "Meta Pixel", category: "الإعلانات", placeholder: "رقم Pixel", pattern: /^[0-9]+$/, active: true, note: "يعمل بعد موافقة المستخدم على ملفات الإعلانات، ويرسل PageView وLead دون بيانات العميل الشخصية." },
   { key: "marketing_tiktok_pixel_id", name: "TikTok Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
   { key: "marketing_snap_pixel_id", name: "Snap Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
   { key: "marketing_x_pixel_id", name: "X Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },

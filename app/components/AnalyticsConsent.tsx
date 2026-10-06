@@ -34,6 +34,27 @@ function clearMeasurementCookies() {
   }
 }
 
+function clearMetaCookies() {
+  const names = document.cookie.split(";").map((part) => part.split("=")[0]?.trim()).filter(Boolean);
+  const hostname = window.location.hostname;
+
+  for (const name of names) {
+    if (name !== "_fbp" && name !== "_fbc") continue;
+    document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax`;
+    document.cookie = `${name}=; Max-Age=0; path=/; domain=${hostname}; SameSite=Lax`;
+    document.cookie = `${name}=; Max-Age=0; path=/; domain=.${hostname}; SameSite=Lax`;
+  }
+}
+
+function setAdvertisingConsent(enabled: boolean) {
+  window.__mueenAdvertisingEnabled = enabled;
+  window.dispatchEvent(
+    new CustomEvent("mueen:advertising-consent-changed", {
+      detail: { enabled },
+    })
+  );
+}
+
 function parseSavedPreferences(value: string | null): ConsentPreferences | null {
   if (!value) return null;
   try {
@@ -72,7 +93,7 @@ export default function AnalyticsConsent({
       setOpen(false);
 
       window.__mueenAnalyticsEnabled = saved.analytics;
-      window.__mueenAdvertisingEnabled = saved.advertising;
+      setAdvertisingConsent(saved.advertising);
       window.__mueenGoogleAdsDestination = googleAdsDestination || "";
       window.gtag?.("consent", "update", {
         analytics_storage: saved.analytics ? "granted" : "denied",
@@ -84,6 +105,7 @@ export default function AnalyticsConsent({
       const legacy = window.localStorage.getItem(legacyStorageKey);
       setAnalyticsEnabled(legacy === "granted");
       setAdvertisingEnabled(false);
+      setAdvertisingConsent(false);
       setOpen(true);
     }
 
@@ -100,7 +122,7 @@ export default function AnalyticsConsent({
     setCustomizing(false);
 
     window.__mueenAnalyticsEnabled = next.analytics;
-    window.__mueenAdvertisingEnabled = next.advertising;
+    setAdvertisingConsent(next.advertising);
 
     window.gtag?.("consent", "update", {
       analytics_storage: next.analytics ? "granted" : "denied",
@@ -110,6 +132,7 @@ export default function AnalyticsConsent({
     });
 
     if (!next.analytics || !next.advertising) clearMeasurementCookies();
+    if (!next.advertising) clearMetaCookies();
   }
 
   if (!ready) return null;
