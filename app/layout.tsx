@@ -62,8 +62,15 @@ export default async function RootLayout({
   const { data: settings } = await supabase.from("site_settings").select("key,value");
   const theme = Object.fromEntries((settings ?? []).map(item => [item.key, item.value]));
   const gaMeasurementId = theme.marketing_ga_measurement_id || undefined;
-  const googleAdsDestination = theme.marketing_google_ads_id || undefined;
-  const googleAdsBaseId = googleAdsDestination?.split("/")[0];
+  const rawGoogleAdsId = theme.marketing_google_ads_id || "";
+  const [legacyGoogleAdsId, legacyConversionLabel = ""] = rawGoogleAdsId.split("/", 2);
+  const googleAdsBaseId = /^AW-[0-9]+$/i.test(legacyGoogleAdsId) ? legacyGoogleAdsId : undefined;
+  const googleAdsConversionLabel =
+    theme.marketing_google_ads_conversion_label || legacyConversionLabel || undefined;
+  const googleAdsDestination =
+    googleAdsBaseId && googleAdsConversionLabel
+      ? `${googleAdsBaseId}/${googleAdsConversionLabel}`
+      : undefined;
   const googleTagLoaderId = gaMeasurementId || googleAdsBaseId;
   const rawGtmId = theme.marketing_gtm_id || "";
   const gtmId = /^GTM-[A-Z0-9]+$/i.test(rawGtmId) ? rawGtmId : undefined;
