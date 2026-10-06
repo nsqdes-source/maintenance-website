@@ -9,7 +9,6 @@ type Values = Record<string, string>;
 const integrations = [
   { key: "marketing_ga_measurement_id", name: "Google Analytics 4", category: "التحليلات", placeholder: "G-XXXXXXXXXX", pattern: /^G-[A-Z0-9]+$/i, active: true, note: "يُحمّل Google tag مع Consent Mode افتراضي denied، وتُفعّل ملفات التحليلات فقط وفق اختيار المستخدم." },
   { key: "marketing_gtm_id", name: "Google Tag Manager", category: "إدارة الوسوم", placeholder: "GTM-XXXXXXX", pattern: /^GTM-[A-Z0-9]+$/i, active: true, note: "يحمّل الموقع حاوية GTM عند حفظ معرّف صحيح، مع إبقاء Consent Mode الافتراضي على denied حتى يختار المستخدم." },
-  { key: "marketing_google_ads_id", name: "Google Ads", category: "الإعلانات والتحويلات", placeholder: "AW-123456789/AbCdEfGhIj", pattern: /^AW-[0-9]+\/[A-Z0-9_-]+$/i, active: true, note: "أدخل وجهة التحويل الكاملة من Google Ads بصيغة AW-.../ConversionLabel. سيتم إرسال conversion عند نجاح طلب الخدمة وبعد موافقة المستخدم على ملفات الإعلانات." },
   { key: "marketing_meta_pixel_id", name: "Meta Pixel", category: "الإعلانات", placeholder: "رقم Pixel", pattern: /^[0-9]+$/, active: false, note: "لن يتم تشغيله قبل ربطه بطبقة الموافقة." },
   { key: "marketing_tiktok_pixel_id", name: "TikTok Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
   { key: "marketing_snap_pixel_id", name: "Snap Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
@@ -22,8 +21,69 @@ export default function IntegrationsManager({ initialValues, canEdit }: { initia
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
-  const configuredCount = useMemo(() => integrations.filter((item) => Boolean(savedValues[item.key]?.trim())).length, [savedValues]);
-  const activeCount = useMemo(() => integrations.filter((item) => item.active && Boolean(savedValues[item.key]?.trim())).length, [savedValues]);
+  const googleAdsConfigured = Boolean(
+    savedValues.marketing_google_ads_id?.trim() &&
+    savedValues.marketing_google_ads_conversion_label?.trim()
+  );
+  const configuredCount = useMemo(
+    () => integrations.filter((item) => Boolean(savedValues[item.key]?.trim())).length + (googleAdsConfigured ? 1 : 0),
+    [savedValues, googleAdsConfigured]
+  );
+  const activeCount = useMemo(
+    () => integrations.filter((item) => item.active && Boolean(savedValues[item.key]?.trim())).length + (googleAdsConfigured ? 1 : 0),
+    [savedValues, googleAdsConfigured]
+  );
+
+  async function saveGoogleAds() {
+    if (!canEdit) return;
+
+    const adsId = (values.marketing_google_ads_id || "").trim();
+    const conversionLabel = (values.marketing_google_ads_conversion_label || "").trim();
+
+    if (adsId && !/^AW-[0-9]+$/i.test(adsId)) {
+      setMessage("صيغة Google Ads ID غير صحيحة. استخدم الصيغة AW-123456789.");
+      return;
+    }
+
+    if (conversionLabel && !/^[A-Z0-9_-]+$/i.test(conversionLabel)) {
+      setMessage("صيغة Conversion Label غير صحيحة.");
+      return;
+    }
+
+    if ((adsId && !conversionLabel) || (!adsId && conversionLabel)) {
+      setMessage("يلزم حفظ Google Ads ID وConversion Label معًا.");
+      return;
+    }
+
+    setBusyKey("marketing_google_ads");
+    setMessage("");
+    const supabase = createClient();
+    const { error } = await supabase.from("site_settings").upsert(
+      [
+        { key: "marketing_google_ads_id", value: adsId },
+        { key: "marketing_google_ads_conversion_label", value: conversionLabel },
+      ],
+      { onConflict: "key" }
+    );
+    setBusyKey(null);
+
+    if (error) {
+      setMessage("تعذر حفظ إعداد Google Ads. لم يتم تغيير التكامل.");
+      return;
+    }
+
+    setSavedValues((current) => ({
+      ...current,
+      marketing_google_ads_id: adsId,
+      marketing_google_ads_conversion_label: conversionLabel,
+    }));
+    setValues((current) => ({
+      ...current,
+      marketing_google_ads_id: adsId,
+      marketing_google_ads_conversion_label: conversionLabel,
+    }));
+    setMessage(adsId ? "تم حفظ إعداد Google Ads." : "تم مسح إعداد Google Ads.");
+  }
 
   async function save(item: typeof integrations[number]) {
     if (!canEdit) return;
@@ -56,7 +116,7 @@ export default function IntegrationsManager({ initialValues, canEdit }: { initia
         <div className="adminTopbar"><div><p className="eyebrow">التسويق</p><h1>التكاملات</h1></div></div>
 
         <div className={styles.summaryGrid}>
-          <div className={styles.summaryCard}><span>التكاملات المعرفة</span><strong>{integrations.length}</strong></div>
+          <div className={styles.summaryCard}><span>التكاملات المعرفة</span><strong>{integrations.length + 1}</strong></div>
           <div className={styles.summaryCard}><span>معرّفات محفوظة</span><strong>{configuredCount}</strong></div>
           <div className={styles.summaryCard}><span>مفعلة فعليًا في الموقع</span><strong>{activeCount}</strong></div>
           <div className={styles.summaryCard}><span>JavaScript خام</span><strong className={styles.statusText}>محظور</strong></div>
@@ -69,6 +129,72 @@ export default function IntegrationsManager({ initialValues, canEdit }: { initia
           {message ? <p className={styles.integrationMessage} role="status">{message}</p> : null}
 
           <div className={styles.integrationGrid}>
+            <article className={styles.integrationCard}>
+              <div className={styles.integrationHeader}>
+                <div><span>الإعلانات والتحويلات</span><h3>Google Ads</h3></div>
+                <span className={googleAdsConfigured ? styles.readyBadge : styles.offBadge}>
+                  {googleAdsConfigured ? "مفعّل" : "غير مهيأ"}
+                </span>
+              </div>
+              <p>احفظ Google Ads ID وConversion Label كلًا في حقل مستقل. يرسل الموقع conversion بعد نجاح طلب الخدمة وبعد موافقة المستخدم على ملفات الإعلانات.</p>
+              <label className={styles.integrationField}>
+                <span>Google Ads ID</span>
+                <input
+                  dir="ltr"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="AW-123456789"
+                  value={values.marketing_google_ads_id || ""}
+                  disabled={!canEdit || busyKey === "marketing_google_ads"}
+                  onChange={(event) => setValues((current) => ({ ...current, marketing_google_ads_id: event.target.value }))}
+                />
+              </label>
+              <label className={styles.integrationField}>
+                <span>Conversion Label</span>
+                <input
+                  dir="ltr"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="AbCdEfGhIj"
+                  value={values.marketing_google_ads_conversion_label || ""}
+                  disabled={!canEdit || busyKey === "marketing_google_ads"}
+                  onChange={(event) => setValues((current) => ({ ...current, marketing_google_ads_conversion_label: event.target.value }))}
+                />
+              </label>
+              {canEdit ? (
+                <div className={styles.integrationActions}>
+                  <button
+                    className="button primary"
+                    type="button"
+                    disabled={
+                      busyKey === "marketing_google_ads" ||
+                      (
+                        values.marketing_google_ads_id === savedValues.marketing_google_ads_id &&
+                        values.marketing_google_ads_conversion_label === savedValues.marketing_google_ads_conversion_label
+                      )
+                    }
+                    onClick={saveGoogleAds}
+                  >
+                    {busyKey === "marketing_google_ads" ? "جارٍ الحفظ..." : "حفظ"}
+                  </button>
+                  {googleAdsConfigured ? (
+                    <button
+                      className="button secondary"
+                      type="button"
+                      disabled={busyKey === "marketing_google_ads"}
+                      onClick={() => setValues((current) => ({
+                        ...current,
+                        marketing_google_ads_id: "",
+                        marketing_google_ads_conversion_label: "",
+                      }))}
+                    >
+                      مسح
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+            </article>
+
             {integrations.map((item) => {
               const configured = Boolean(savedValues[item.key]?.trim());
               const active = item.active && configured;
