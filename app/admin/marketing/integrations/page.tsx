@@ -8,6 +8,7 @@ const MARKETING_KEYS = [
   "marketing_ga_measurement_id",
   "marketing_gtm_id",
   "marketing_google_ads_id",
+  "marketing_google_ads_conversion_label",
   "marketing_meta_pixel_id",
   "marketing_tiktok_pixel_id",
   "marketing_snap_pixel_id",
@@ -27,6 +28,12 @@ export default async function MarketingIntegrationsPage() {
   const initialValues = Object.fromEntries(
     MARKETING_KEYS.map((key) => [key, rows?.find((row) => row.key === key)?.value ?? ""])
   );
+
+  const legacyGoogleAdsValue = initialValues.marketing_google_ads_id || "";
+  const [legacyGoogleAdsId, legacyConversionLabel = ""] = legacyGoogleAdsValue.split("/", 2);
+  initialValues.marketing_google_ads_id = legacyGoogleAdsId;
+  initialValues.marketing_google_ads_conversion_label =
+    initialValues.marketing_google_ads_conversion_label || legacyConversionLabel;
 
   return (
     <IntegrationsManager
