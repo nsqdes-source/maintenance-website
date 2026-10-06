@@ -13,15 +13,15 @@ type Fbq = ((...args: unknown[]) => void) & {
 
 declare global {
   interface Window {
-    fbq?: Fbq;
-    _fbq?: Fbq;
+    fbq?: (...args: unknown[]) => void;
+    _fbq?: (...args: unknown[]) => void;
     __mueenAdvertisingEnabled?: boolean;
     __mueenMetaPixelId?: string;
   }
 }
 
 function ensureFbq() {
-  if (window.fbq) return window.fbq;
+  if (window.fbq) return window.fbq as Fbq;
 
   const fbq = ((...args: unknown[]) => {
     if (fbq.callMethod) {
