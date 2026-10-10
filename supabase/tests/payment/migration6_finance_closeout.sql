@@ -1,0 +1,104 @@
+-- Synthetic fixtures only, target wsjmaojgjzxkmxywvcfy. Every fixture rolls back.
+BEGIN;
+SET LOCAL search_path=public,extensions;
+CREATE TEMP TABLE m6_results(name text primary key,result text);
+CREATE FUNCTION pg_temp.assert_state(p_request uuid,p_expected jsonb,p_name text) RETURNS void LANGUAGE plpgsql AS $$
+DECLARE actual jsonb;
+BEGIN actual:=private.payment_financial_state(p_request);IF NOT actual @> p_expected THEN RAISE EXCEPTION '% expected %, got %',p_name,p_expected,actual; END IF;INSERT INTO m6_results VALUES(p_name,'PASS');END $$;
+CREATE FUNCTION pg_temp.reject(p_sql text,p_error text DEFAULT NULL) RETURNS void LANGUAGE plpgsql AS $$
+DECLARE denied boolean:=false;
+BEGIN BEGIN EXECUTE p_sql;EXCEPTION WHEN OTHERS THEN IF p_error IS NULL OR SQLERRM=p_error OR SQLSTATE=p_error THEN denied:=true;ELSE RAISE;END IF;END;IF NOT denied THEN RAISE EXCEPTION 'rejection_missing: %',p_sql;END IF;END $$;
+DO $test$
+DECLARE a uuid:='66000000-0000-4000-8000-000000000001';c uuid:='66000000-0000-4000-8000-000000000002';t uuid:='66000000-0000-4000-8000-000000000003';
+ cat uuid:=gen_random_uuid();svc uuid:=gen_random_uuid();tech uuid;r uuid;rp uuid;rf uuid;bill uuid;rev bigint;old_receipt jsonb;attempt uuid;cash uuid;noncash uuid;receipt uuid;q uuid;cr uuid;cr2 uuid;r2 uuid;v jsonb;ts timestamptz;
+BEGIN
+ INSERT INTO auth.users(id,aud,role,email,raw_user_meta_data,raw_app_meta_data) SELECT u,'authenticated','authenticated','test-m6-'||u::text||'@example.invalid','{"full_name":"TEST M6"}','{}' FROM unnest(ARRAY[a,c,t]) u;
+ UPDATE profiles SET role='admin_manager' WHERE id=a; UPDATE profiles SET role='technician' WHERE id=t;
+ INSERT INTO technicians(profile_id,notes) VALUES(t,'TEST M6') RETURNING id INTO tech;
+ INSERT INTO business_finance_settings(id,legal_name,vat_registered,tax_rate) VALUES(true,'TEST M6',false,0);
+ INSERT INTO service_catalog_items(id,service_key,name) VALUES(cat,'test-m6','TEST M6');
+ INSERT INTO service_catalog_services(id,service_catalog_item_id,name,net_price,tax_rate,is_visit_service) VALUES(svc,cat,'TEST M6 regular',100,0,false);
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);
+ INSERT INTO service_requests(customer_id,customer_name,phone,service_type,problem_description,city,address,payment_choice_timing) VALUES(c,'TEST M6','0500000000','TEST','TEST','مكة المكرمة','TEST','prepay') RETURNING id INTO r;
+ INSERT INTO service_request_items(service_request_id,catalog_service_id,service_name,quantity,net_unit_price,tax_rate,gross_unit_price) VALUES(r,svc,'TEST M6',1,100,0,100);
+ PERFORM pg_temp.assert_state(r,'{"authoritative_charge":100,"gross_receipts":0,"succeeded_refunds":0,"net_receipts":0,"technician_cash_custody":0,"reserved_amount":0,"remaining_contractual":100,"institution_outstanding":100,"payable_cap":100,"payable_now":100,"derived_payment_state":"unpaid","financial_closure_state":"open"}','UNPAID');
+ rp:=finance_record_service_request_payment(r,40,'advance','card');
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":40,"net_receipts":40,"remaining_contractual":60,"derived_payment_state":"partially_paid"}','PARTIAL');
+ PERFORM finance_record_service_request_payment(r,60,'advance','cash');
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":100,"remaining_contractual":0,"derived_payment_state":"paid","financial_closure_state":"ready_to_close"}','PAID');
+ -- Latest commercial exception takes priority and advances context once.
+ cr:=finance_propose_charge_review(r,30,'TEST reduced obligation');SELECT payment_revision INTO rev FROM service_requests WHERE id=r;
+ PERFORM finance_decide_charge_review(cr,true);
+ IF (SELECT payment_revision FROM service_requests WHERE id=r)<>rev+1 THEN RAISE EXCEPTION 'review_revision_missing';END IF;
+ PERFORM pg_temp.reject(format('SELECT public.finance_decide_charge_review(%L,true)',cr),'charge_review_not_proposed');
+ PERFORM pg_temp.assert_state(r,'{"authoritative_charge":30,"charge_source":"charge_review","excess_refund_liability":70,"derived_payment_state":"excess_refund_due"}','REVIEW_HIERARCHY');
+ cr2:=finance_propose_charge_review(r,100,'TEST supersession','',cr);PERFORM finance_decide_charge_review(cr2,true);
+ IF (SELECT payment_revision FROM service_requests WHERE id=r)<>rev+2 THEN RAISE EXCEPTION 'supersession_revision_missing';END IF;
+ cr:=finance_propose_charge_review(r,0,'TEST reject','',cr2);PERFORM finance_decide_charge_review(cr,false);
+ IF (SELECT payment_revision FROM service_requests WHERE id=r)<>rev+2 THEN RAISE EXCEPTION 'reject_changed_revision';END IF;
+ INSERT INTO m6_results VALUES('CHARGE_REVIEW_REVISION_SYNC','PASS');
+ -- Exact 50 -> 30: source snapshots are 30; gross advance remains 50.
+ INSERT INTO service_requests(customer_id,customer_name,phone,service_type,problem_description,city,address) VALUES(c,'TEST M6 excess','0500000000','TEST','TEST','مكة المكرمة','TEST') RETURNING id INTO r2;
+ INSERT INTO service_request_items(service_request_id,catalog_service_id,service_name,quantity,net_unit_price,tax_rate,gross_unit_price) VALUES(r2,svc,'TEST final 30',1,30,0,30);
+ rp:=finance_record_service_request_payment(r2,50,'advance','card');SELECT to_jsonb(p) INTO old_receipt FROM service_request_payments p WHERE id=rp;
+ UPDATE service_requests SET workflow_stage='completed' WHERE id=r2;bill:=finance_ensure_invoice_draft(r2);
+ IF NOT (SELECT financial_basis_type='original_request' AND financial_basis_revision=0 FROM invoices WHERE id=bill) THEN RAISE EXCEPTION 'original_basis_missing';END IF;
+ PERFORM pg_temp.assert_state(r2,'{"authoritative_charge":30,"gross_receipts":50,"net_receipts":50,"excess_refund_liability":20}','OVERPAID');
+ PERFORM pg_temp.reject(format('SELECT public.finance_set_invoice_status(%L,''issued'')',bill),'preinvoice_payments_exceed_invoice_total');
+ rf:=finance_request_refund(r2,rp,NULL,20,'TEST excess','TEST_M6_EXCESS');PERFORM finance_decide_refund(rf,'approved');
+ PERFORM pg_temp.assert_state(r2,'{"succeeded_refunds":0,"net_receipts":50,"financial_closure_state":"open"}','APPROVED_REFUND_NOT_MONEY');
+ PERFORM pg_temp.reject(format('SELECT public.finance_set_invoice_status(%L,''issued'')',bill),'preinvoice_payments_exceed_invoice_total');
+ PERFORM pg_temp.reject(format('SELECT public.finance_request_refund(%L,%L,NULL,31,''TEST excess'',''TEST_M6_OVER'')',r2,rp),'refund_reservation_exceeds_original_payment');
+ PERFORM private.payment_transition_refund(rf,'pending');PERFORM pg_temp.reject(format('SELECT public.finance_set_invoice_status(%L,''issued'')',bill),'preinvoice_payments_exceed_invoice_total');
+ PERFORM private.payment_transition_refund(rf,'succeeded');
+ PERFORM pg_temp.assert_state(r2,'{"gross_receipts":50,"succeeded_refunds":20,"net_receipts":30,"remaining_contractual":0,"excess_refund_liability":0,"derived_payment_state":"paid"}','REFUND_50_TO_30_RESOLUTION');
+ attempt:=private.payment_create_attempt(r2,1,'TEST_PROVIDER','test','TEST_M6_RESERVED');
+ PERFORM pg_temp.reject(format('SELECT public.finance_set_invoice_status(%L,''issued'')',bill),'preinvoice_payments_exceed_invoice_total');
+ PERFORM private.payment_transition_attempt(attempt,'cancelled');
+ EXECUTE 'SET LOCAL ROLE authenticated';PERFORM finance_set_invoice_status(bill,'issued');EXECUTE 'RESET ROLE';
+ IF (SELECT to_jsonb(p) FROM service_request_payments p WHERE id=rp) IS DISTINCT FROM old_receipt THEN RAISE EXCEPTION 'original_payment_changed';END IF;
+ IF EXISTS(SELECT 1 FROM invoice_payments WHERE invoice_id=bill) OR NOT (SELECT status='issued' AND paid_at IS NULL FROM invoices WHERE id=bill) THEN RAISE EXCEPTION 'synthetic_alias_or_paid_at_changed';END IF;
+ IF (SELECT count(*) FROM private.payment_audit_events WHERE event_type='invoice_issued_with_untransferred_canonical_receipts' AND entity_id=bill)<>1 THEN RAISE EXCEPTION 'issuance_audit_missing';END IF;
+ PERFORM pg_temp.reject(format('SELECT public.finance_set_invoice_status(%L,''issued'')',bill),'invoice_not_draft');
+ PERFORM pg_temp.reject(format('SELECT private.finance_transfer_request_payments_to_invoice(%L,%L)',bill,r2),'preinvoice_payments_exceed_invoice_total');
+ PERFORM pg_temp.assert_state(r2,'{"charge_source":"issued_invoice","net_receipts":30,"financial_closure_state":"ready_to_close"}','REFUND_RESOLVED_ISSUANCE');
+ IF NOT (SELECT issued_total>=30 AND outstanding_total>=30 FROM finance_get_summary()) THEN RAISE EXCEPTION 'legacy_limitation_not_demonstrated';END IF;
+ INSERT INTO m6_results VALUES('LEGACY_FINANCE_REPORTING_COMPATIBILITY','DEFERRED_TO_APPLICATION_INTEGRATION');
+ -- Cash custody transfers H -> P, never changes customer money.
+ INSERT INTO service_requests(customer_id,customer_name,phone,service_type,problem_description,city,address) VALUES(c,'TEST M6 cash','0500000000','TEST','TEST','مكة المكرمة','TEST') RETURNING id INTO r;
+ INSERT INTO service_request_items(service_request_id,catalog_service_id,service_name,quantity,net_unit_price,tax_rate,gross_unit_price) VALUES(r,svc,'TEST cash',1,100,0,100);
+ INSERT INTO service_request_assignments(service_request_id,technician_id,assigned_by,status,responded_at) VALUES(r,tech,a,'accepted',now());
+ PERFORM set_config('request.jwt.claim.sub',t::text,true);cash:=technician_record_collection(r,'cash',40,'TEST_M6_CASH');
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":0,"technician_cash_custody":40,"customer_net_paid":40,"remaining_contractual":60,"institution_outstanding":100}','CASH_CUSTODY');
+ EXECUTE 'SET LOCAL ROLE authenticated';PERFORM pg_temp.reject(format('SELECT public.finance_settle_technician_cash_collection(%L,''TEST'')',cash),'42501');EXECUTE 'RESET ROLE';
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);EXECUTE 'SET LOCAL ROLE authenticated';receipt:=finance_settle_technician_cash_collection(cash,'TEST_CASH_SETTLE');EXECUTE 'RESET ROLE';
+ IF NOT (SELECT technician_collection_id=cash AND method='cash' AND amount=40 FROM service_request_payments WHERE id=receipt) OR NOT (SELECT status='settled' AND settled_by=a AND settled_at IS NOT NULL FROM technician_collections WHERE id=cash) THEN RAISE EXCEPTION 'cash_settlement_provenance_invalid';END IF;
+ IF finance_settle_technician_cash_collection(cash,'TEST_CASH_SETTLE')<>receipt THEN RAISE EXCEPTION 'settlement_retry_duplicate';END IF;
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":40,"technician_cash_custody":0,"customer_net_paid":40,"remaining_contractual":60,"institution_outstanding":60}','H_TO_P_INVARIANT');
+ PERFORM set_config('request.jwt.claim.sub',t::text,true);noncash:=technician_record_collection(r,'bank_transfer',10,'TEST_M6_NONCASH');
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":40,"reserved_amount":10,"payable_cap":50}','NONCASH_RESERVATION');
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);PERFORM finance_verify_technician_collection(noncash,true);
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":40,"reconciliation_required":true,"financial_closure_state":"open"}','VERIFIED_NOT_RECEIPT');
+ receipt:=finance_post_verified_technician_collection(noncash,'TEST_NONCASH_POST');
+ PERFORM pg_temp.assert_state(r,'{"gross_receipts":50,"reconciliation_required":false}','NONCASH_POSTING');
+ IF finance_post_verified_technician_collection(noncash,'TEST_NONCASH_POST')<>receipt THEN RAISE EXCEPTION 'noncash_retry_duplicate';END IF;
+ attempt:=private.payment_create_attempt(r,30,'TEST_PROVIDER','test','TEST_M6_ATTEMPT');
+ PERFORM pg_temp.assert_state(r,'{"reserved_amount":30,"payable_cap":20}','ACTIVE_RESERVATION');
+ PERFORM private.payment_transition_attempt(attempt,'pending');PERFORM private.payment_transition_attempt(attempt,'requires_reconciliation','TEST_M6_TX',30,'SAR');
+ PERFORM pg_temp.assert_state(r,'{"reserved_amount":30,"reconciliation_required":true,"financial_closure_state":"open"}','RECONCILIATION_RESERVATION');
+ receipt:=private.payment_post_verified_attempt(attempt,'TEST_M6_POST');
+ PERFORM finance_void_service_request_payment(receipt);
+ IF NOT (SELECT status='succeeded' FROM payment_attempts WHERE id=attempt) THEN RAISE EXCEPTION 'void_rewrote_external_history';END IF;
+ PERFORM pg_temp.assert_state(r,'{"reconciliation_required":true,"financial_closure_state":"open"}','VOIDED_ATTEMPT_RECONCILIATION');
+ -- Source provenance invalidation on permitted draft editing.
+ UPDATE service_requests SET workflow_stage='completed' WHERE id=r;bill:=finance_ensure_invoice_draft(r);
+ IF NOT (SELECT financial_basis_type='original_request' FROM invoices WHERE id=bill) THEN RAISE EXCEPTION 'basis_before_invalidation_missing';END IF;
+ PERFORM finance_update_invoice_draft(bill,'TEST edited', '[{"description":"TEST edited line","quantity":1,"unit_price":100,"warranty_days":30,"warranty_terms":"TEST synthetic warranty"}]');
+ IF EXISTS(SELECT 1 FROM invoices WHERE id=bill AND (financial_basis_type IS NOT NULL OR financial_basis_revision IS NOT NULL OR financial_basis_quote_id IS NOT NULL OR financial_basis_charge_review_id IS NOT NULL)) THEN RAISE EXCEPTION 'provenance_survived_manual_edit';END IF;
+ IF private.payment_invoice_basis_matches(bill) THEN RAISE EXCEPTION 'equal_total_false_match';END IF;
+ INSERT INTO m6_results VALUES('PROVENANCE_INVALIDATION','PASS'),('EQUAL_TOTAL_FALSE_MATCH','PASS');
+ IF EXISTS(SELECT 1 FROM business_finance_settings WHERE payment_domain_enabled OR gateway_enabled) THEN RAISE EXCEPTION 'feature_enabled';END IF;
+END $test$;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT jsonb_object_agg(name,result) AS results FROM m6_results;
+ROLLBACK;

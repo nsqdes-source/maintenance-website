@@ -1,6 +1,7 @@
 import { sanitizeStyle } from "@/app/components/site-blocks/model";
 import type { Metadata } from "next";
 import RequestFunnel from "./RequestFunnel";
+import { disabledRequestPaymentPolicy } from "@/lib/request-payment-policy";
 import { getLocale, text } from "@/lib/locale";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,7 +18,7 @@ export default async function RequestPage() {
 
   const supabase = await createClient();
 
-  const [{ data: categories }, { data: services }, { data: imageSections }] = await Promise.all([
+  const [{ data: categories }, { data: services }, { data: imageSections }, { data: paymentPolicy }] = await Promise.all([
     supabase
       .from("service_catalog_items")
       .select("id,name,service_key,sort_order")
@@ -38,6 +39,8 @@ export default async function RequestPage() {
       .select("slug,style_config")
       .in("slug", ["hero", "services"])
       .eq("is_visible", true),
+
+    supabase.rpc("get_request_payment_policy"),
   ]);
 
   const sectionImages = (slug: string) =>
@@ -66,6 +69,7 @@ export default async function RequestPage() {
             initialCategories={categories ?? []}
             initialServices={services ?? []}
             categoryImages={categoryImages}
+            paymentPolicy={paymentPolicy ?? disabledRequestPaymentPolicy}
           />
         </div>
       </section>
