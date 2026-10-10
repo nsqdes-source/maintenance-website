@@ -1,3 +1,4 @@
+import TechnicianCollectionControl from "./TechnicianCollectionControl";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AssignmentResponseControl from "./AssignmentResponseControl";
@@ -678,6 +679,7 @@ export default async function TechnicianPage() {
                         </td>
 
                         <td>
+                          {assignment.status === "accepted" ? <TechnicianCollectionControl requestId={assignment.service_request_id} /> : null}
                           {new Date(
                             assignment.assigned_at
                           ).toLocaleString(

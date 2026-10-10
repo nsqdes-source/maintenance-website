@@ -43,6 +43,7 @@ export const adminNavigationSections: readonly AdminNavigationSection[] = [
       { href: "/admin/finance/reports", label: "التقارير" },
       { href: "/admin/finance/settings", label: "الإعدادات" },
       { href: "/admin/finance/payment-settings", label: "إعدادات الدفع" },
+      { href: "/admin/finance/payment-operations", label: "عمليات التحصيل" },
     ],
   },
   {
