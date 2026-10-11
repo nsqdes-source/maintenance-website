@@ -89,3 +89,59 @@ export async function postVerifiedAttempt(input: {
   if (error) throw new Error(error.message);
   return data as string;
 }
+
+export async function getProviderRefundContext(refundId: string) {
+  const db = createServiceRoleClient();
+  const { data, error } = await db.rpc("gateway_get_refund_context", {
+    p_refund_id: refundId,
+  });
+
+  if (error) throw new Error(error.message);
+  return data as {
+    refund_id: string;
+    service_request_id: string;
+    amount: number;
+    currency: string;
+    status: "approved" | "pending";
+    provider: string;
+    environment: "test" | "live";
+    provider_refund_id: string | null;
+    payment_attempt_id: string;
+    origin_provider_transaction_id: string;
+  };
+}
+
+export async function startProviderRefund(input: {
+  refundId: string;
+  providerRefundId: string;
+}) {
+  const db = createServiceRoleClient();
+  const { data, error } = await db.rpc("gateway_start_refund", {
+    p_refund_id: input.refundId,
+    p_provider_refund_id: input.providerRefundId,
+  });
+
+  if (error) throw new Error(error.message);
+  return data as "pending";
+}
+
+export async function applyVerifiedRefundResult(input: {
+  refundId: string;
+  providerRefundId: string;
+  result: "succeeded" | "failed";
+  failureCode?: string | null;
+}) {
+  const db = createServiceRoleClient();
+  const { data, error } = await db.rpc(
+    "gateway_apply_verified_refund_result",
+    {
+      p_refund_id: input.refundId,
+      p_provider_refund_id: input.providerRefundId,
+      p_result: input.result,
+      p_failure_code: input.failureCode ?? null,
+    },
+  );
+
+  if (error) throw new Error(error.message);
+  return data as "succeeded" | "failed";
+}
