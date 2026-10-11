@@ -2,13 +2,13 @@
 
 import { useEffect } from "react";
 
-type Snaptr = ((...args: unknown[]) => void) & {
+type SnaptrWithHandleRequest = ((...args: unknown[]) => void) & {
   handleRequest?: (...args: unknown[]) => void;
 };
 
 declare global {
   interface Window {
-    snaptr?: Snaptr;
+    snaptr?: (...args: unknown[]) => void;
     __mueenAdvertisingEnabled?: boolean;
   }
 }
@@ -24,14 +24,16 @@ export default function SnapLeadConversion({ requestId }: { requestId: string })
     function track() {
       if (window.sessionStorage.getItem(storageKey) === "sent") return true;
 
+      const snaptr = window.snaptr as SnaptrWithHandleRequest | undefined;
+
       if (
         window.__mueenAdvertisingEnabled !== true ||
-        typeof window.snaptr?.handleRequest !== "function"
+        typeof snaptr?.handleRequest !== "function"
       ) {
         return false;
       }
 
-      window.snaptr("track", "SIGN_UP");
+      snaptr("track", "SIGN_UP");
       window.sessionStorage.setItem(storageKey, "sent");
       return true;
     }
