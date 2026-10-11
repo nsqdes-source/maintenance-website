@@ -51,6 +51,12 @@ export async function processProviderWebhook(
   }
 
   const event = verified.event;
+  const paymentAttemptId = event.paymentAttemptId;
+
+  if (!paymentAttemptId) {
+    throw new Error("invalid_normalized_provider_event");
+  }
+
   const payloadHash = createHash("sha256")
     .update(input.rawBody)
     .digest("hex");
@@ -59,7 +65,7 @@ export async function processProviderWebhook(
     providerEventId: event.providerEventId,
     eventType: event.eventType,
     payloadHash,
-    paymentAttemptId: event.paymentAttemptId,
+    paymentAttemptId,
     providerTransactionId: event.providerTransactionId ?? null,
     safeMetadata: event.safeMetadata ?? {},
   });
@@ -80,7 +86,7 @@ export async function processProviderWebhook(
     processingStatus === "ready_for_posting"
   ) {
     receiptId = await postVerifiedAttempt({
-      attemptId: event.paymentAttemptId,
+      attemptId: paymentAttemptId,
       idempotencyKey: `provider-event:${event.providerEventId}`,
     });
   }
