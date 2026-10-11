@@ -696,3 +696,44 @@
   .adminShell .adminContextTopbar { display: none; }
   .adminShell.adminSharedLayout { padding-right: 0; }
 }
+
+
+/* Finance refund operations */
+.refundOperations { display: grid; gap: 16px; }
+.refundReadOnlyNotice { padding: 13px 15px; border: 1px solid #fde68a; border-radius: 12px; background: #fffbeb; color: #92400e; font-weight: 800; }
+.refundFilters { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 4px; }
+.refundFilters button { flex: 0 0 auto; min-height: 36px; padding: 6px 12px; border: 1px solid #d6e0e7; border-radius: 999px; background: #f8fafc; color: #526472; font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
+.refundFilters button.active { border-color: #0d2e4f; background: #0d2e4f; color: #fff; }
+.refundOperationsList { display: grid; gap: 14px; }
+.refundOperationCard { display: grid; gap: 15px; }
+.refundOperationHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.refundOperationHeader h2 { margin: 3px 0 0; }
+.refundStatus { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+.refundStatus-requested { background: #fef3c7; color: #92400e; }
+.refundStatus-approved { background: #dbeafe; color: #1d4ed8; }
+.refundStatus-pending { background: #ede9fe; color: #6d28d9; }
+.refundStatus-succeeded { background: #dcfce7; color: #166534; }
+.refundStatus-failed, .refundStatus-rejected { background: #fee2e2; color: #991b1b; }
+.refundStatus-cancelled { background: #e5e7eb; color: #4b5563; }
+.refundOperationGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.refundOperationGrid > div { display: grid; gap: 4px; min-width: 0; padding: 11px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
+.refundOperationGrid span { color: #64748b; font-size: .76rem; font-weight: 800; }
+.refundOperationGrid strong, .refundOperationGrid bdi { overflow-wrap: anywhere; }
+.refundReason { padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px; }
+.refundReason p { margin: 6px 0 0; }
+.refundReason small { display: block; margin-top: 6px; color: #64748b; }
+.refundProviderState { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: #526472; font-size: .82rem; }
+.refundProviderState > span { padding: 5px 9px; border-radius: 999px; background: #eef2f7; font-weight: 800; }
+.refundActions, .refundPagination { display: flex; gap: 8px; flex-wrap: wrap; }
+.refundPagination { justify-content: space-between; }
+.refundPagination button { min-height: 38px; padding: 7px 14px; border: 1px solid #cbd5e1; border-radius: 9px; background: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.refundPagination button:disabled { opacity: .55; cursor: not-allowed; }
+.refundMessage { min-height: 1.4em; margin: 0; color: #526472; font-weight: 700; }
+@media (max-width: 760px) {
+  .refundOperationGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 460px) {
+  .refundOperationHeader { align-items: stretch; flex-direction: column; }
+  .refundOperationGrid { grid-template-columns: 1fr; }
+  .refundActions .button { flex: 1 1 120px; }
+}
