@@ -46,6 +46,18 @@ function clearMetaCookies() {
   }
 }
 
+function clearSnapCookies() {
+  const names = document.cookie.split(";").map((part) => part.split("=")[0]?.trim()).filter(Boolean);
+  const hostname = window.location.hostname;
+
+  for (const name of names) {
+    if (!name.startsWith("_sc")) continue;
+    document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax`;
+    document.cookie = `${name}=; Max-Age=0; path=/; domain=${hostname}; SameSite=Lax`;
+    document.cookie = `${name}=; Max-Age=0; path=/; domain=.${hostname}; SameSite=Lax`;
+  }
+}
+
 function setAdvertisingConsent(enabled: boolean) {
   window.__mueenAdvertisingEnabled = enabled;
   window.dispatchEvent(
@@ -132,7 +144,10 @@ export default function AnalyticsConsent({
     });
 
     if (!next.analytics || !next.advertising) clearMeasurementCookies();
-    if (!next.advertising) clearMetaCookies();
+    if (!next.advertising) {
+      clearMetaCookies();
+      clearSnapCookies();
+    }
   }
 
   if (!ready) return null;

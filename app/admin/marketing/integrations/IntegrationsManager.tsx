@@ -11,7 +11,7 @@ const integrations = [
   { key: "marketing_gtm_id", name: "Google Tag Manager", category: "إدارة الوسوم", placeholder: "GTM-XXXXXXX", pattern: /^GTM-[A-Z0-9]+$/i, active: true, note: "يحمّل الموقع حاوية GTM عند حفظ معرّف صحيح، مع إبقاء Consent Mode الافتراضي على denied حتى يختار المستخدم." },
   { key: "marketing_meta_pixel_id", name: "Meta Pixel", category: "الإعلانات", placeholder: "رقم Pixel", pattern: /^[0-9]+$/, active: true, note: "يعمل بعد موافقة المستخدم على ملفات الإعلانات، ويرسل PageView وLead دون بيانات العميل الشخصية." },
   { key: "marketing_tiktok_pixel_id", name: "TikTok Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
-  { key: "marketing_snap_pixel_id", name: "Snap Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
+  { key: "marketing_snap_pixel_id", name: "Snap Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[0-9A-F-]+$/i, active: true, note: "يعمل بعد موافقة المستخدم على ملفات الإعلانات، ويرسل PAGE_VIEW وSIGN_UP دون بيانات العميل الشخصية." },
   { key: "marketing_x_pixel_id", name: "X Pixel", category: "الإعلانات", placeholder: "Pixel ID", pattern: /^[A-Z0-9_-]+$/i, active: false, note: "معرّف عام فقط؛ لا يقبل JavaScript." },
 ] as const;
 

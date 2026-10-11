@@ -23,6 +23,7 @@ declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
     fbq?: (...args: unknown[]) => void;
+    snaptr?: (...args: unknown[]) => void;
     __mueenAnalyticsEnabled?: boolean;
     __mueenAdvertisingEnabled?: boolean;
     __mueenGoogleAdsDestination?: string;
@@ -73,6 +74,7 @@ export function trackFunnelEvent(eventName: MarketingFunnelEventName, parameters
     window.__mueenAdvertisingEnabled
   ) {
     window.fbq?.("track", "Lead");
+    window.snaptr?.("track", "SIGN_UP");
   }
 }
 
