@@ -56,6 +56,7 @@ export default async function FinanceInvoicesPage() {
   const [
     { data: invoices },
     { data: payments },
+    { data: refunds },
     { data: summaryRows },
   ] = await Promise.all([
     supabase
@@ -172,8 +173,24 @@ export default async function FinanceInvoicesPage() {
   const totalInvoiceCount = Number(summary.total_invoice_count ?? 0);
   const issuedInvoiceCount = Number(summary.issued_invoice_count ?? 0);
   const issuedTotal = Number(summary.issued_total ?? 0);
-  const collectedTotal = Number(summary.issued_collected_total ?? 0);
-  const outstandingTotal = Number(summary.issued_outstanding_total ?? 0);
+  const issuedRows = invoiceRows.filter(
+    (invoice) => invoice.status === "issued"
+  );
+  const collectedTotal = issuedRows.reduce(
+    (sum, invoice) =>
+      sum + Math.max(0, paidByInvoice.get(invoice.id) ?? 0),
+    0
+  );
+  const outstandingTotal = issuedRows.reduce(
+    (sum, invoice) =>
+      sum +
+      Math.max(
+        0,
+        Number(invoice.total) -
+          Math.max(0, paidByInvoice.get(invoice.id) ?? 0)
+      ),
+    0
+  );
   const fullyPaidDraftCount = Number(summary.fully_paid_draft_count ?? 0);
 
   const preparedInvoices =
