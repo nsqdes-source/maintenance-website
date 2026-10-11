@@ -47,6 +47,11 @@ function boundedText(
   return value === value.trim() && value.length > 0 && value.length <= max;
 }
 
+function hasAtMostTwoDecimals(value: number) {
+  const scaled = value * 100;
+  return Math.abs(scaled - Math.round(scaled)) <= 1e-9;
+}
+
 export function validateNormalizedProviderEvent(
   event: NormalizedProviderEvent,
 ) {
@@ -58,8 +63,10 @@ export function validateNormalizedProviderEvent(
     return false;
   }
 
+  // This processor only handles events already correlated to one internal attempt.
+  // Provider-specific adapters must reject/ignore unrelated or uncorrelated events.
   if (
-    event.paymentAttemptId != null &&
+    !event.paymentAttemptId ||
     !uuidPattern.test(event.paymentAttemptId)
   ) {
     return false;
@@ -72,7 +79,7 @@ export function validateNormalizedProviderEvent(
     if (
       !Number.isFinite(event.confirmedAmount) ||
       event.confirmedAmount <= 0 ||
-      Math.round(event.confirmedAmount * 100) !== event.confirmedAmount * 100
+      !hasAtMostTwoDecimals(event.confirmedAmount)
     ) {
       return false;
     }

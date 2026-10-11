@@ -21,6 +21,7 @@ new Function("require", "module", "exports", output)(
 );
 
 const { validateNormalizedProviderEvent } = module.exports;
+const attemptId = "00000000-0000-4000-8000-000000000001";
 
 test("accepts a complete normalized success event", () => {
   assert.equal(
@@ -28,7 +29,7 @@ test("accepts a complete normalized success event", () => {
       providerEventId: "evt-1",
       eventType: "payment.succeeded",
       result: "succeeded",
-      paymentAttemptId: "00000000-0000-4000-8000-000000000001",
+      paymentAttemptId: attemptId,
       providerTransactionId: "txn-1",
       confirmedAmount: 25,
       confirmedCurrency: "SAR",
@@ -38,15 +39,44 @@ test("accepts a complete normalized success event", () => {
   );
 });
 
+test("requires attempt correlation before any event enters the processor", () => {
+  assert.equal(
+    validateNormalizedProviderEvent({
+      providerEventId: "evt-1",
+      eventType: "payment.pending",
+      result: "pending",
+    }),
+    false,
+  );
+});
+
 test("rejects success without authoritative confirmation fields", () => {
   assert.equal(
     validateNormalizedProviderEvent({
       providerEventId: "evt-1",
       eventType: "payment.succeeded",
       result: "succeeded",
+      paymentAttemptId: attemptId,
     }),
     false,
   );
+});
+
+test("accepts ordinary two-decimal monetary values", () => {
+  for (const amount of [25, 25.1, 0.29, 57.5, 100.01]) {
+    assert.equal(
+      validateNormalizedProviderEvent({
+        providerEventId: `evt-${amount}`,
+        eventType: "payment.succeeded",
+        result: "succeeded",
+        paymentAttemptId: attemptId,
+        providerTransactionId: `txn-${amount}`,
+        confirmedAmount: amount,
+        confirmedCurrency: "SAR",
+      }),
+      true,
+    );
+  }
 });
 
 test("rejects malformed currency, amount and attempt identity", () => {
@@ -55,6 +85,7 @@ test("rejects malformed currency, amount and attempt identity", () => {
       providerEventId: "evt",
       eventType: "payment.succeeded",
       result: "succeeded",
+      paymentAttemptId: attemptId,
       providerTransactionId: "txn",
       confirmedAmount: 25,
       confirmedCurrency: "usd",
@@ -63,8 +94,18 @@ test("rejects malformed currency, amount and attempt identity", () => {
       providerEventId: "evt",
       eventType: "payment.succeeded",
       result: "succeeded",
+      paymentAttemptId: attemptId,
       providerTransactionId: "txn",
       confirmedAmount: -1,
+      confirmedCurrency: "SAR",
+    },
+    {
+      providerEventId: "evt",
+      eventType: "payment.succeeded",
+      result: "succeeded",
+      paymentAttemptId: attemptId,
+      providerTransactionId: "txn",
+      confirmedAmount: 25.123,
       confirmedCurrency: "SAR",
     },
     {
@@ -84,6 +125,7 @@ test("rejects oversized or non-object safe metadata", () => {
       providerEventId: "evt",
       eventType: "payment.pending",
       result: "pending",
+      paymentAttemptId: attemptId,
       safeMetadata: { value: "x".repeat(5000) },
     }),
     false,
@@ -94,6 +136,7 @@ test("rejects oversized or non-object safe metadata", () => {
       providerEventId: "evt",
       eventType: "payment.pending",
       result: "pending",
+      paymentAttemptId: attemptId,
       safeMetadata: [],
     }),
     false,

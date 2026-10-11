@@ -12,10 +12,19 @@ import {
   validateNormalizedProviderEvent,
 } from "@/lib/payments/provider-adapter";
 
+export const MAX_PROVIDER_WEBHOOK_BYTES = 1024 * 1024;
+
 export async function processProviderWebhook(
   adapter: PaymentProviderAdapter,
   input: ProviderWebhookInput,
 ) {
+  if (
+    input.rawBody.byteLength === 0 ||
+    input.rawBody.byteLength > MAX_PROVIDER_WEBHOOK_BYTES
+  ) {
+    throw new Error("provider_webhook_body_size_invalid");
+  }
+
   const config = await getGatewayRuntimeConfig();
 
   if (!config.paymentDomainEnabled || !config.gatewayEnabled) {
@@ -50,7 +59,7 @@ export async function processProviderWebhook(
     providerEventId: event.providerEventId,
     eventType: event.eventType,
     payloadHash,
-    paymentAttemptId: event.paymentAttemptId ?? null,
+    paymentAttemptId: event.paymentAttemptId,
     providerTransactionId: event.providerTransactionId ?? null,
     safeMetadata: event.safeMetadata ?? {},
   });
@@ -68,8 +77,7 @@ export async function processProviderWebhook(
 
   if (
     event.result === "succeeded" &&
-    processingStatus === "ready_for_posting" &&
-    event.paymentAttemptId
+    processingStatus === "ready_for_posting"
   ) {
     receiptId = await postVerifiedAttempt({
       attemptId: event.paymentAttemptId,
