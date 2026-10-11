@@ -1,10 +1,27 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import type { VerifiedProviderResult } from "@/lib/payments/provider-adapter";
 
-export type VerifiedProviderResult =
-  | "pending"
-  | "succeeded"
-  | "failed"
-  | "cancelled";
+export type { VerifiedProviderResult };
+
+export async function getGatewayRuntimeConfig() {
+  const db = createServiceRoleClient();
+  const { data, error } = await db.rpc("gateway_get_runtime_config");
+
+  if (error) throw new Error(error.message);
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) throw new Error("gateway_settings_not_initialized");
+
+  return {
+    paymentDomainEnabled: Boolean(row.payment_domain_enabled),
+    gatewayEnabled: Boolean(row.gateway_enabled),
+    provider: typeof row.provider === "string" ? row.provider : null,
+    environment:
+      row.environment === "live" || row.environment === "test"
+        ? row.environment
+        : null,
+  } as const;
+}
 
 export async function recordVerifiedProviderEvent(input: {
   providerEventId: string;
