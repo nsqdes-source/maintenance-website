@@ -1,5 +1,3 @@
-import "server-only";
-
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 export type VerifiedProviderResult =
