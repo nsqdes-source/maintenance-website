@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, text } from "@/lib/locale";
 import { requestReference } from "@/lib/request-reference";
+import SnapLeadConversion from "./SnapLeadConversion";
 
 export const metadata: Metadata = {
   title: "تم استلام الطلب | معين لخدمات الصيانة",
@@ -16,7 +17,7 @@ export default async function RequestSuccessPage({ searchParams }: { searchParam
   const requestId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rawId) ? rawId : "";
   const partialUpload = query.upload === "partial";
 
-  return <main className="request-page requestSuccessPage"><section className="request-success">
+  return <main className="request-page requestSuccessPage"><SnapLeadConversion requestId={requestId} /><section className="request-success">
     <div className="successIcon" aria-hidden>✓</div>
     <p className="eyebrow">{t("تم استلام طلبك", "Request received")}</p>
     <h1>{t("شكرًا، طلبك الآن لدى فريق معين", "Thank you, your request is now with Mueen")}</h1>

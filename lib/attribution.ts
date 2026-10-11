@@ -74,7 +74,6 @@ export function trackFunnelEvent(eventName: MarketingFunnelEventName, parameters
     window.__mueenAdvertisingEnabled
   ) {
     window.fbq?.("track", "Lead");
-    window.snaptr?.("track", "SIGN_UP");
   }
 }
 
