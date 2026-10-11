@@ -2,9 +2,13 @@
 
 import { useEffect } from "react";
 
+type Snaptr = ((...args: unknown[]) => void) & {
+  handleRequest?: (...args: unknown[]) => void;
+};
+
 declare global {
   interface Window {
-    snaptr?: (...args: unknown[]) => void;
+    snaptr?: Snaptr;
     __mueenAdvertisingEnabled?: boolean;
   }
 }
@@ -19,7 +23,13 @@ export default function SnapLeadConversion({ requestId }: { requestId: string })
 
     function track() {
       if (window.sessionStorage.getItem(storageKey) === "sent") return true;
-      if (window.__mueenAdvertisingEnabled !== true || !window.snaptr) return false;
+
+      if (
+        window.__mueenAdvertisingEnabled !== true ||
+        typeof window.snaptr?.handleRequest !== "function"
+      ) {
+        return false;
+      }
 
       window.snaptr("track", "SIGN_UP");
       window.sessionStorage.setItem(storageKey, "sent");
