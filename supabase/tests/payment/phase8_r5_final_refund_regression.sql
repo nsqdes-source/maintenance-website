@@ -376,7 +376,7 @@ select set_config(
 select public.finance_update_invoice_draft(
   current_setting('qa.r5.invoice_transfer')::uuid,
   'QA R5 final work',
-  '[{"description":"QA R5 final work","quantity":1,"unit_price":50,"warranty_days":0}]'::jsonb
+  '[{"description":"QA R5 final work","quantity":1,"unit_price":50,"warranty_days":1,"warranty_terms":"QA regression warranty"}]'::jsonb
 );
 
 select public.finance_set_invoice_status(
