@@ -7,6 +7,17 @@ export const dynamic = "force-dynamic";
 
 const roles = new Set(["admin_manager", "super_admin"]);
 
+type InvoiceCoverage = {
+  invoice_id: string;
+  invoice_status: string;
+  invoice_total: number;
+  gross_received: number;
+  succeeded_refunds: number;
+  net_received: number;
+  remaining: number;
+  is_fully_covered: boolean;
+};
+
 type CanonicalReport = {
   currency: string | null;
   period: {
@@ -54,9 +65,7 @@ export default async function FinancePage() {
   const [
     { data: invoices },
     { data: reportData, error: reportError },
-    { data: issuedInvoices },
-    { data: payments },
-    { data: refunds },
+    { data: coverageRows, error: coverageError },
   ] = await Promise.all([
     supabase
       .from("invoices")
@@ -71,20 +80,7 @@ export default async function FinancePage() {
       p_to: null,
     }),
 
-    supabase
-      .from("invoices")
-      .select("id,total")
-      .eq("status", "issued"),
-
-    supabase
-      .from("invoice_payments")
-      .select("invoice_id,amount,voided_at"),
-
-    supabase
-      .from("payment_refunds")
-      .select("invoice_id,amount,status")
-      .eq("status", "succeeded")
-      .not("invoice_id", "is", null),
+    supabase.rpc("finance_get_invoice_financial_coverage"),
   ]);
 
   if (reportError) {
@@ -93,35 +89,25 @@ export default async function FinancePage() {
 
   const report = reportData as CanonicalReport;
 
-  const netPaidByInvoice = new Map<string, number>();
-
-  for (const payment of payments ?? []) {
-    if (payment.voided_at) continue;
-
-    netPaidByInvoice.set(
-      payment.invoice_id,
-      (netPaidByInvoice.get(payment.invoice_id) ?? 0) + Number(payment.amount)
-    );
+  if (coverageError) {
+    throw new Error("finance_invoice_coverage_unavailable");
   }
 
-  for (const refund of refunds ?? []) {
-    if (!refund.invoice_id) continue;
+  const coverage = (coverageRows ?? []) as InvoiceCoverage[];
+  const coverageByInvoice = new Map(
+    coverage.map((row) => [row.invoice_id, row])
+  );
 
-    netPaidByInvoice.set(
-      refund.invoice_id,
-      (netPaidByInvoice.get(refund.invoice_id) ?? 0) - Number(refund.amount)
-    );
-  }
-
-  const collectedIssuedCount = (issuedInvoices ?? []).filter((invoice) => {
-    const netPaid = Math.max(0, netPaidByInvoice.get(invoice.id) ?? 0);
-
-    return Number(invoice.total) > 0 && netPaid >= Number(invoice.total);
-  }).length;
+  const collectedIssuedCount = coverage.filter(
+    (row) => row.invoice_status === "issued" && row.is_fully_covered
+  ).length;
 
   const latestInvoices = (invoices ?? []).map((invoice) => ({
     ...invoice,
-    paid: Math.max(0, netPaidByInvoice.get(invoice.id) ?? 0),
+    paid: Math.max(
+      0,
+      Number(coverageByInvoice.get(invoice.id)?.net_received ?? 0)
+    ),
   }));
 
   return (

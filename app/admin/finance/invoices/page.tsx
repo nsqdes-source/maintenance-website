@@ -23,15 +23,15 @@ type Invoice = {
   emailed_at: string | null;
 };
 
-type Payment = {
+type InvoiceCoverage = {
   invoice_id: string;
-  amount: number;
-  voided_at: string | null;
-};
-
-type Refund = {
-  invoice_id: string | null;
-  amount: number;
+  invoice_status: string;
+  invoice_total: number;
+  gross_received: number;
+  succeeded_refunds: number;
+  net_received: number;
+  remaining: number;
+  is_fully_covered: boolean;
 };
 
 export default async function FinanceInvoicesPage() {
@@ -55,8 +55,7 @@ export default async function FinanceInvoicesPage() {
 
   const [
     { data: invoices },
-    { data: payments },
-    { data: refunds },
+    { data: coverageRows, error: coverageError },
     { data: summaryRows },
   ] = await Promise.all([
     supabase
@@ -67,42 +66,20 @@ export default async function FinanceInvoicesPage() {
       .order("created_at", { ascending: false })
       .limit(200),
 
-    supabase
-      .from("invoice_payments")
-      .select("invoice_id,amount,voided_at"),
-
-    supabase
-      .from("payment_refunds")
-      .select("invoice_id,amount")
-      .eq("status", "succeeded")
-      .not("invoice_id", "is", null),
+    supabase.rpc("finance_get_invoice_financial_coverage"),
 
     supabase.rpc("finance_get_invoice_list_summary"),
   ]);
 
+  if (coverageError) {
+    throw new Error("finance_invoice_coverage_unavailable");
+  }
+
   const invoiceRows = (invoices ?? []) as Invoice[];
-  const paymentRows = (payments ?? []) as Payment[];
-  const refundRows = (refunds ?? []) as Refund[];
-
-  const paidByInvoice = new Map<string, number>();
-
-  for (const payment of paymentRows) {
-    if (payment.voided_at) continue;
-
-    paidByInvoice.set(
-      payment.invoice_id,
-      (paidByInvoice.get(payment.invoice_id) ?? 0) + Number(payment.amount)
-    );
-  }
-
-  for (const refund of refundRows) {
-    if (!refund.invoice_id) continue;
-
-    paidByInvoice.set(
-      refund.invoice_id,
-      (paidByInvoice.get(refund.invoice_id) ?? 0) - Number(refund.amount)
-    );
-  }
+  const coverage = (coverageRows ?? []) as InvoiceCoverage[];
+  const coverageByInvoice = new Map(
+    coverage.map((row) => [row.invoice_id, row])
+  );
 
   const money = (value: number) =>
     new Intl.NumberFormat("ar-SA", {
@@ -115,7 +92,10 @@ export default async function FinanceInvoicesPage() {
       return { key: "void" as const, label: "ملغاة" };
     }
 
-    const received = Math.max(0, paidByInvoice.get(invoice.id) ?? 0);
+    const received = Math.max(
+      0,
+      Number(coverageByInvoice.get(invoice.id)?.net_received ?? 0)
+    );
     const total = Number(invoice.total);
 
     if (invoice.status === "draft") {
@@ -158,7 +138,10 @@ export default async function FinanceInvoicesPage() {
 
   const collectedTotal = issuedRows.reduce(
     (sum, invoice) =>
-      sum + Math.max(0, paidByInvoice.get(invoice.id) ?? 0),
+      sum + Math.max(
+      0,
+      Number(coverageByInvoice.get(invoice.id)?.net_received ?? 0)
+    ),
     0
   );
 
@@ -168,7 +151,10 @@ export default async function FinanceInvoicesPage() {
       Math.max(
         0,
         Number(invoice.total) -
-          Math.max(0, paidByInvoice.get(invoice.id) ?? 0)
+          Math.max(
+      0,
+      Number(coverageByInvoice.get(invoice.id)?.net_received ?? 0)
+    )
       ),
     0
   );
@@ -177,12 +163,18 @@ export default async function FinanceInvoicesPage() {
     if (invoice.status !== "draft" || Number(invoice.total) <= 0) return false;
 
     return (
-      Math.max(0, paidByInvoice.get(invoice.id) ?? 0) >= Number(invoice.total)
+      Math.max(
+      0,
+      Number(coverageByInvoice.get(invoice.id)?.net_received ?? 0)
+    ) >= Number(invoice.total)
     );
   }).length;
 
   const preparedInvoices = invoiceRows.map((invoice) => {
-    const paid = Math.max(0, paidByInvoice.get(invoice.id) ?? 0);
+    const paid = Math.max(
+      0,
+      Number(coverageByInvoice.get(invoice.id)?.net_received ?? 0)
+    );
     const remaining =
       invoice.status === "void"
         ? 0
