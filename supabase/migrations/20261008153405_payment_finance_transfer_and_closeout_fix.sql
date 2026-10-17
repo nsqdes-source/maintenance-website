@@ -1,0 +1,252 @@
+CREATE OR REPLACE FUNCTION private.finance_seed_invoice_from_approved_quote(p_invoice_id uuid, p_request_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  quote_record public.service_request_quotes%rowtype;
+  invoice_record public.invoices%rowtype;
+  gross_total numeric(12,2);
+  net_total numeric(12,2);
+  vat_amount numeric(12,2);
+  effective_tax_rate numeric(5,2);
+  newly_seeded boolean; context_revision bigint; basis_type text;
+begin
+  SELECT payment_revision INTO context_revision FROM public.service_requests WHERE id=p_request_id FOR UPDATE;
+  if not found then raise exception 'service_request_not_found'; end if;
+  select *
+  into invoice_record
+  from public.invoices
+  where id = p_invoice_id
+  for update;
+
+  if not found then
+    raise exception 'invoice_not_found';
+  end if;
+
+  IF invoice_record.service_request_id IS DISTINCT FROM p_request_id THEN RAISE EXCEPTION 'invoice_request_mismatch'; END IF;
+  newly_seeded:=NOT EXISTS(SELECT 1 FROM public.invoice_line_items WHERE invoice_id=p_invoice_id);
+  -- Seed lines only when the draft has no lines yet.
+  if not exists (
+    select 1
+    from public.invoice_line_items
+    where invoice_id = p_invoice_id
+  ) then
+
+    select *
+    into quote_record
+    from public.service_request_quotes
+    where service_request_id = p_request_id
+      and status = 'approved'
+    order by decided_at desc nulls last, created_at desc
+    limit 1;
+
+    ----------------------------------------------------------------
+    -- Path A: approved quote exists.
+    ----------------------------------------------------------------
+    if quote_record.id is not null then
+
+      if jsonb_array_length(
+        coalesce(quote_record.line_items, '[]'::jsonb)
+      ) > 0 then
+
+        insert into public.invoice_line_items (
+          invoice_id,
+          description,
+          quantity,
+          unit_price,
+          sort_order
+        )
+        select
+          p_invoice_id,
+          trim(value->>'description'),
+          (value->>'quantity')::numeric,
+          (value->>'unit_price')::numeric,
+          ordinality - 1
+        from jsonb_array_elements(quote_record.line_items)
+        with ordinality
+        where (quote_record.quote_basis = 'full_final_work'
+          and value->'excluded_from_final' = 'false'::jsonb)
+        or (quote_record.quote_basis = 'legacy_as_approved' and not exists (
+          select 1
+          from public.service_catalog_services catalog_service
+          where catalog_service.id::text = value->>'catalog_service_id'
+            and catalog_service.is_visit_service = true
+        ));
+
+      else
+
+        insert into public.invoice_line_items (
+          invoice_id,
+          description,
+          quantity,
+          unit_price,
+          sort_order
+        )
+        select
+          p_invoice_id,
+          description,
+          1,
+          amount,
+          sort_order
+        from (
+          values
+            (
+              coalesce(
+                nullif(quote_record.parts_description, ''),
+                'قطع وتعديلات'
+              ),
+              quote_record.parts_cost,
+              0
+            ),
+            (
+              'أجرة العمل',
+              quote_record.labor_cost,
+              1
+            )
+        ) as legacy_lines(
+          description,
+          amount,
+          sort_order
+        )
+        where amount > 0;
+
+      end if;
+
+      -- Preserve old quote behavior if the approved quote has
+      -- no priced lines.
+      if not exists (
+        select 1
+        from public.invoice_line_items
+        where invoice_id = p_invoice_id
+      ) then
+        insert into public.invoice_line_items (
+          invoice_id,
+          description,
+          quantity,
+          unit_price,
+          sort_order
+        )
+        values (
+          p_invoice_id,
+          quote_record.description,
+          1,
+          0,
+          0
+        );
+      end if;
+
+      update public.invoices
+      set
+        work_summary = quote_record.description,
+        description = quote_record.description
+      where id = p_invoice_id
+        and status = 'draft';
+
+    ----------------------------------------------------------------
+    -- Path B: no approved quote.
+    -- Invoice from the customer's original selected services.
+    ----------------------------------------------------------------
+    else
+
+      insert into public.invoice_line_items (
+        invoice_id,
+        description,
+        quantity,
+        unit_price,
+        sort_order
+      )
+      select
+        p_invoice_id,
+        sri.service_name,
+        sri.quantity,
+        sri.gross_unit_price,
+        row_number() over (
+          order by sri.created_at, sri.id
+        ) - 1
+      from public.service_request_items sri
+      where sri.service_request_id = p_request_id
+        and sri.item_source = 'customer_request'
+      order by sri.created_at, sri.id;
+
+      if not exists (
+        select 1
+        from public.invoice_line_items
+        where invoice_id = p_invoice_id
+      ) then
+        raise exception 'invoice_source_items_required';
+      end if;
+
+    end if;
+  end if;
+
+  ----------------------------------------------------------------
+  -- Calculate invoice totals from VAT-inclusive line prices.
+  ----------------------------------------------------------------
+  select round(
+    coalesce(sum(quantity * unit_price), 0),
+    2
+  )
+  into gross_total
+  from public.invoice_line_items
+  where invoice_id = p_invoice_id;
+
+  effective_tax_rate := invoice_record.tax_rate;
+
+  -- Legacy drafts may have tax_rate = 0.
+  if invoice_record.vat_registered
+     and coalesce(effective_tax_rate, 0) <= 0 then
+
+    select tax_rate
+    into effective_tax_rate
+    from public.business_finance_settings
+    where id = true;
+
+  end if;
+
+  effective_tax_rate :=
+    coalesce(effective_tax_rate, 0);
+
+  if invoice_record.vat_registered
+     and effective_tax_rate > 0 then
+
+    net_total := round(
+      gross_total / (1 + effective_tax_rate / 100),
+      2
+    );
+
+    vat_amount := round(
+      gross_total - net_total,
+      2
+    );
+
+  else
+
+    effective_tax_rate := 0;
+    net_total := gross_total;
+    vat_amount := 0;
+
+  end if;
+
+  update public.invoices
+  set
+    subtotal = net_total,
+    tax_rate = effective_tax_rate,
+    tax_amount = vat_amount,
+    total = gross_total,
+    updated_at = now()
+  where id = p_invoice_id
+    and status = 'draft';
+
+IF newly_seeded AND invoice_record.status='draft' THEN
+    IF quote_record.id IS NOT NULL AND quote_record.quote_basis='full_final_work' THEN basis_type:='full_final_work_quote'; context_revision:=quote_record.financial_revision;
+    ELSIF quote_record.id IS NULL AND EXISTS(SELECT 1 FROM public.service_request_items WHERE service_request_id=p_request_id AND item_source='customer_request') AND NOT EXISTS(SELECT 1 FROM public.service_request_items sri WHERE sri.service_request_id=p_request_id AND sri.item_source='customer_request' AND (sri.is_visit_service_snapshot IS NULL OR sri.gross_total::text IN ('NaN','Infinity','-Infinity'))) THEN basis_type:='original_request'; END IF;
+    IF basis_type IS NOT NULL THEN
+      PERFORM private.payment_write_audit_event('invoice_financial_basis_seeded','invoice',p_invoice_id,p_request_id,p_invoice_id,jsonb_build_object('basis_type',basis_type,'revision',context_revision,'quote_id',CASE WHEN basis_type='full_final_work_quote' THEN quote_record.id END,'lines',private.payment_invoice_line_signature(p_invoice_id),'total',gross_total));
+      UPDATE public.invoices SET financial_basis_type=basis_type,financial_basis_revision=context_revision,financial_basis_quote_id=CASE WHEN basis_type='full_final_work_quote' THEN quote_record.id END WHERE id=p_invoice_id;
+    END IF;
+  END IF;
+end;
+$function$
+;
