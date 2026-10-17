@@ -1,0 +1,10 @@
+REVOKE MAINTAIN ON TABLE public.business_finance_settings FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.finance_expenses FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.invoice_line_items FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.invoice_payments FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.invoices FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.service_request_change_items FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.service_request_change_requests FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.service_request_items FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.service_request_payments FROM authenticated;
+REVOKE MAINTAIN ON TABLE public.service_requests FROM authenticated;

@@ -29,6 +29,8 @@ export default function FinanceLayout({
         <Link href="/admin/finance/settings">
         الإعدادات المالية
         </Link>
+        <Link href="/admin/finance/payment-operations">عمليات التحصيل</Link>
+        <Link href="/admin/finance/payment-settings">إعدادات الدفع</Link>
       </nav>
 
       {children}

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/app/components/LocaleContext";
 import LocationPicker from "./LocationPicker";
+import PaymentTimingSection from "./PaymentTimingSection";
+import { disabledRequestPaymentPolicy, paymentChoiceForSubmission, type RequestPaymentPolicy, type PaymentTiming } from "@/lib/request-payment-policy";
 import { getAttribution, trackFunnelEvent } from "@/lib/attribution";
 
 type Option = {
@@ -46,6 +48,7 @@ type Props = {
   initialCategories: CatalogCategory[];
   initialServices: CatalogService[];
   categoryImages?: Record<string, string>;
+  paymentPolicy?: RequestPaymentPolicy;
 };
 
 const phonePattern = /^0\d{9}$/;
@@ -86,6 +89,7 @@ export default function RequestFunnel({
   initialCategories,
   initialServices,
   categoryImages = {},
+  paymentPolicy = disabledRequestPaymentPolicy,
 }: Props) {
   const locale = useLocale();
   const router = useRouter();
@@ -96,6 +100,7 @@ export default function RequestFunnel({
     option ? (locale === "ar" ? option.ar : option.en) : "—";
 
   const [step, setStep] = useState(1);
+  const [paymentChoice, setPaymentChoice] = useState<PaymentTiming | null>(null);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -430,6 +435,11 @@ export default function RequestFunnel({
       return setMessage(invalidPhotos);
     }
 
+    const choice = paymentChoiceForSubmission(paymentPolicy, paymentChoice);
+    if (paymentPolicy.payment_domain_enabled && !choice) {
+      return setMessage(t("اختر توقيت الدفع المتاح قبل إرسال الطلب.", "Choose an available payment timing before submitting."));
+    }
+
     setPending(true);
     setMessage("");
 
@@ -446,7 +456,9 @@ export default function RequestFunnel({
       .join("، ");
 
     const { data, error } = await supabase
-      .rpc("submit_service_request_v4", {
+      .rpc("submit_service_request_with_payment_choice_v1", {
+        p_payment_choice_timing: choice,
+        p_expected_payment_policy_version: paymentPolicy.payment_domain_enabled ? paymentPolicy.payment_policy_version : null,
         input_name: customerName,
         input_phone: customerPhone,
         input_email: customerEmail,
@@ -484,6 +496,13 @@ export default function RequestFunnel({
 
     if (error || !data) {
       console.error("Service request error:", error);
+
+      if (error?.message === "payment_policy_version_conflict") {
+        setMessage(t("تغيرت سياسة الدفع. حدّث الصفحة وراجع اختيارك قبل إعادة الإرسال.", "Payment policy changed. Refresh and review your choice before submitting again."));
+        router.refresh();
+        setPending(false);
+        return;
+      }
 
       setMessage(
         t(
@@ -1116,6 +1135,8 @@ export default function RequestFunnel({
           </div>
         )}
 
+        <PaymentTimingSection policy={paymentPolicy} choice={paymentChoice} onChange={setPaymentChoice} locale={locale} hasVisit={selectedServices.some(service => service.is_visit_service)} />
+
         <div className="reviewSummary">
           <div>
             <span>
@@ -1150,8 +1171,8 @@ export default function RequestFunnel({
           <div>
             <span>
               {t(
-                "الإجمالي شامل الضريبة",
-                "Total including VAT"
+                "إجمالي الطلب التقديري شامل الضريبة",
+                "Estimated request total including VAT"
               )}
             </span>
 
