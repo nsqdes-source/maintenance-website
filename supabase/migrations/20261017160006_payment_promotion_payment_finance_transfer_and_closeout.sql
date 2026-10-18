@@ -1,4 +1,4 @@
--- M6: canonical request-level finance. Test-only apply target wsjmaojgjzxkmxywvcfy.
+-- Payment Foundation promotion migration 6. Canonical request-level finance.
 -- Legacy reporting/application integration remains deferred; feature gates stay false.
 ALTER TABLE public.invoices
  ADD COLUMN financial_basis_type text,
