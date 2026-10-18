@@ -6,21 +6,6 @@ export const dynamic = "force-dynamic";
 
 const roles = new Set(["admin_manager", "super_admin"]);
 
-type Invoice = {
-  id: string;
-  total: number;
-  status: string;
-  issued_at: string | null;
-  created_at: string;
-};
-
-type Payment = {
-  invoice_id: string;
-  amount: number;
-  paid_at: string;
-  voided_at: string | null;
-};
-
 type Expense = {
   amount: number;
   expense_date: string;
@@ -28,13 +13,28 @@ type Expense = {
   voided_at: string | null;
 };
 
-const money = (value: number) =>
-  new Intl.NumberFormat("ar-SA", {
-    style: "currency",
-    currency: "SAR",
-  }).format(Number(value));
-
-const dateKey = (date: string) => date.slice(0, 10);
+type CanonicalReport = {
+  currency: string | null;
+  period: {
+    from: string | null;
+    to: string | null;
+    gross_receipts: number;
+    succeeded_refunds: number;
+    net_receipts: number;
+    expenses: number;
+    net_cash_flow: number;
+    issued_invoice_total: number;
+    issued_invoice_count: number;
+  };
+  current_position: {
+    technician_cash_custody: number;
+    reserved_amount: number;
+    contractual_outstanding: number;
+    excess_refund_liability: number;
+    review_required_count: number;
+    reconciliation_required_count: number;
+  };
+};
 
 export default async function FinanceReportsPage({
   searchParams,
@@ -56,11 +56,6 @@ export default async function FinanceReportsPage({
 
   const invalidRange = Boolean(from && to && from > to);
 
-  const inRange = (date: string) => {
-    const key = dateKey(date);
-    return !invalidRange && (!from || key >= from) && (!to || key <= to);
-  };
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -77,92 +72,40 @@ export default async function FinanceReportsPage({
     redirect("/admin");
   }
 
-  const [
-    { data: invoices },
-    { data: payments },
-    { data: expenses },
-  ] = await Promise.all([
-    supabase
-      .from("invoices")
-      .select("id,total,status,issued_at,created_at"),
+  let report: CanonicalReport | null = null;
+  let reportError = false;
 
-    supabase
-      .from("invoice_payments")
-      .select("invoice_id,amount,paid_at,voided_at"),
+  if (!invalidRange) {
+    const result = await supabase.rpc("finance_get_canonical_report", {
+      p_from: from || null,
+      p_to: to || null,
+    });
 
-    supabase
-      .from("finance_expenses")
-      .select("amount,expense_date,category,voided_at"),
-  ]);
+    report = result.data as CanonicalReport | null;
+    reportError = Boolean(result.error || !result.data);
+  }
 
-  const invoiceRows = (invoices ?? []) as Invoice[];
-  const paymentRows = (payments ?? []) as Payment[];
+  const { data: expenses } = await supabase
+    .from("finance_expenses")
+    .select("amount,expense_date,category,voided_at");
+
   const expenseRows = (expenses ?? []) as Expense[];
 
-  const activePayments = paymentRows.filter(
-    (payment) => !payment.voided_at
+  const inRange = (date: string) =>
+    !invalidRange &&
+    (!from || date >= from) &&
+    (!to || date <= to);
+
+  const periodExpenses = expenseRows.filter(
+    (expense) => !expense.voided_at && inRange(expense.expense_date)
   );
-
-  const activeExpenses = expenseRows.filter(
-    (expense) => !expense.voided_at
-  );
-
-  const issuedInvoices = invoiceRows.filter(
-    (invoice) =>
-      invoice.status === "issued" &&
-      inRange(invoice.issued_at || invoice.created_at)
-  );
-
-  const periodPayments = activePayments.filter(
-    (payment) => inRange(payment.paid_at)
-  );
-
-  const periodExpenses = activeExpenses.filter(
-    (expense) => inRange(expense.expense_date)
-  );
-
-  const issuedInvoiceIds = new Set(
-    issuedInvoices.map((invoice) => invoice.id)
-  );
-
-  const issuedTotal = issuedInvoices.reduce(
-    (sum, invoice) => sum + Number(invoice.total),
-    0
-  );
-
-  const collectedTotal = periodPayments.reduce(
-    (sum, payment) => sum + Number(payment.amount),
-    0
-  );
-
-  const issuedCollectedTotal = activePayments
-    .filter((payment) => issuedInvoiceIds.has(payment.invoice_id))
-    .reduce(
-      (sum, payment) => sum + Number(payment.amount),
-      0
-    );
-
-  const expenseTotal = periodExpenses.reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0
-  );
-
-  const netCashFlow = collectedTotal - expenseTotal;
-
-  const outstandingTotal = Math.max(
-    0,
-    issuedTotal - issuedCollectedTotal
-  );
-
-  const periodCashFlow = collectedTotal - expenseTotal;
 
   const categoryTotals = new Map<string, number>();
 
   for (const expense of periodExpenses) {
     categoryTotals.set(
       expense.category,
-      (categoryTotals.get(expense.category) ?? 0) +
-        Number(expense.amount)
+      (categoryTotals.get(expense.category) ?? 0) + Number(expense.amount)
     );
   }
 
@@ -184,6 +127,13 @@ export default async function FinanceReportsPage({
     }))
     .sort((a, b) => b.amount - a.amount);
 
+  const currency = report?.currency || "SAR";
+  const money = (value: number) =>
+    new Intl.NumberFormat("ar-SA", {
+      style: "currency",
+      currency,
+    }).format(Number(value));
+
   return (
     <main className="adminPage financePortal">
       <div className="container adminContainer">
@@ -193,10 +143,7 @@ export default async function FinanceReportsPage({
             <h1>التقارير المالية</h1>
           </div>
 
-          <Link
-            className="button secondary"
-            href="/admin/finance"
-          >
+          <Link className="button secondary" href="/admin/finance">
             العودة للنظرة العامة
           </Link>
         </div>
@@ -207,29 +154,18 @@ export default async function FinanceReportsPage({
           <form method="get" className="financeFilters">
             <label>
               من
-              <input
-                type="date"
-                name="from"
-                defaultValue={from}
-                max={to || undefined}
-              />
+              <input type="date" name="from" defaultValue={from} max={to || undefined} />
             </label>
 
             <label>
               إلى
-              <input
-                type="date"
-                name="to"
-                defaultValue={to}
-                min={from || undefined}
-              />
+              <input type="date" name="to" defaultValue={to} min={from || undefined} />
             </label>
 
             <div className="filterActions">
               <button className="button primary compactButton" type="submit">
                 تطبيق
               </button>
-
               <Link className="button secondary compactButton" href="/admin/finance/reports">
                 كل الفترات
               </Link>
@@ -237,9 +173,9 @@ export default async function FinanceReportsPage({
           </form>
 
           <p className="detailMuted">
-            التحصيلات حسب تاريخ الدفع، والمصروفات حسب تاريخ المصروف،
-            والفواتير حسب تاريخ الإصدار. رصيد فواتير الفترة يحسب ما تم
-            تحصيله عليها حتى الآن.
+            التحصيلات والاستردادات حسب تاريخها المالي بتوقيت السعودية،
+            والمصروفات حسب تاريخ المصروف. صافي التحصيلات يخصم فقط
+            الاستردادات الناجحة.
           </p>
         </section>
 
@@ -251,106 +187,120 @@ export default async function FinanceReportsPage({
               صحح الفترة ثم اضغط «تطبيق».
             </p>
           </section>
+        ) : reportError || !report ? (
+          <section className="card financePanel" role="alert">
+            <h2>تعذر تحميل التقرير المالي</h2>
+            <p>لم يتم تغيير أي بيانات. أعد المحاولة لاحقًا.</p>
+          </section>
         ) : (
           <>
-        <div className="grid">
-          <section className="card">
-            <p className="eyebrow">تحصيلات الفترة النشطة</p>
-            <h2>{money(collectedTotal)}</h2>
-          </section>
+            <div className="grid">
+              <section className="card">
+                <p className="eyebrow">إجمالي التحصيلات المؤكدة</p>
+                <h2>{money(report.period.gross_receipts)}</h2>
+              </section>
 
-          <section className="card">
-            <p className="eyebrow">مصروفات الفترة</p>
-            <h2>{money(expenseTotal)}</h2>
-          </section>
+              <section className="card">
+                <p className="eyebrow">الاستردادات الناجحة</p>
+                <h2>{money(report.period.succeeded_refunds)}</h2>
+              </section>
 
-          <section className="card">
-            <p className="eyebrow">صافي التدفق النقدي للفترة</p>
-            <h2>{money(netCashFlow)}</h2>
-          </section>
-        </div>
+              <section className="card">
+                <p className="eyebrow">صافي التحصيلات</p>
+                <h2>{money(report.period.net_receipts)}</h2>
+              </section>
 
-        <div className="grid">
-          <section className="card">
-            <p className="eyebrow">فواتير الفترة الصادرة</p>
-            <h2>{money(issuedTotal)}</h2>
-          </section>
+              <section className="card">
+                <p className="eyebrow">مصروفات الفترة</p>
+                <h2>{money(report.period.expenses)}</h2>
+              </section>
 
-          <section className="card">
-            <p className="eyebrow">المحصّل حتى الآن من فواتير الفترة</p>
-            <h2>{money(issuedCollectedTotal)}</h2>
-          </section>
-
-          <section className="card">
-            <p className="eyebrow">غير المحصّل من فواتير الفترة</p>
-            <h2>{money(outstandingTotal)}</h2>
-          </section>
-
-          <section className="card">
-            <p className="eyebrow">عدد فواتير الفترة الصادرة</p>
-            <h2>{issuedInvoices.length}</h2>
-          </section>
-        </div>
-
-        <section className="card financePanel">
-          <h2>ملخص الفترة</h2>
-
-          <div className="financeReportSummary">
-            <div>
-              <span>التحصيلات</span>
-              <strong>{money(collectedTotal)}</strong>
+              <section className="card">
+                <p className="eyebrow">صافي التدفق النقدي</p>
+                <h2>{money(report.period.net_cash_flow)}</h2>
+              </section>
             </div>
 
-            <div>
-              <span>المصروفات</span>
-              <strong>{money(expenseTotal)}</strong>
+            <div className="grid">
+              <section className="card">
+                <p className="eyebrow">فواتير الفترة الصادرة</p>
+                <h2>{money(report.period.issued_invoice_total)}</h2>
+              </section>
+
+              <section className="card">
+                <p className="eyebrow">عدد الفواتير الصادرة</p>
+                <h2>{report.period.issued_invoice_count}</h2>
+              </section>
+
+              <section className="card">
+                <p className="eyebrow">الالتزامات غير المحصلة حاليًا</p>
+                <h2>{money(report.current_position.contractual_outstanding)}</h2>
+              </section>
+
+              <section className="card">
+                <p className="eyebrow">عهدة نقدية لدى الفنيين</p>
+                <h2>{money(report.current_position.technician_cash_custody)}</h2>
+              </section>
             </div>
 
-            <div>
-              <span>صافي التدفق النقدي</span>
-              <strong>{money(periodCashFlow)}</strong>
-            </div>
-          </div>
-        </section>
+            <section className="card financePanel">
+              <h2>الموقف المالي الحالي</h2>
 
-        <section className="card financePanel">
-          <h2>المصروفات حسب التصنيف</h2>
+              <div className="financeReportSummary">
+                <div>
+                  <span>مبالغ محجوزة/قيد المطابقة</span>
+                  <strong>{money(report.current_position.reserved_amount)}</strong>
+                </div>
+                <div>
+                  <span>التزام استرداد فائض</span>
+                  <strong>{money(report.current_position.excess_refund_liability)}</strong>
+                </div>
+                <div>
+                  <span>طلبات تتطلب مراجعة</span>
+                  <strong>{report.current_position.review_required_count}</strong>
+                </div>
+                <div>
+                  <span>طلبات تتطلب مطابقة</span>
+                  <strong>{report.current_position.reconciliation_required_count}</strong>
+                </div>
+              </div>
+            </section>
 
-          {categories.length ? (
-            <div className="financeTableWrap">
-              <table className="financeTable">
-                <thead>
-                  <tr>
-                    <th>التصنيف</th>
-                    <th>الإجمالي</th>
-                    <th>النسبة من المصروفات</th>
-                  </tr>
-                </thead>
+            <section className="card financePanel">
+              <h2>المصروفات حسب التصنيف</h2>
 
-                <tbody>
-                  {categories.map((item) => {
-                    const percentage =
-                      expenseTotal > 0
-                        ? (item.amount / expenseTotal) * 100
-                        : 0;
-
-                    return (
-                      <tr key={item.category}>
-                        <td>{item.label}</td>
-                        <td>{money(item.amount)}</td>
-                        <td>
-                          {percentage.toFixed(1)}%
-                        </td>
+              {categories.length ? (
+                <div className="financeTableWrap">
+                  <table className="financeTable">
+                    <thead>
+                      <tr>
+                        <th>التصنيف</th>
+                        <th>الإجمالي</th>
+                        <th>النسبة من المصروفات</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p>لا توجد مصروفات مسجلة بعد.</p>
-          )}
-        </section>
+                    </thead>
+                    <tbody>
+                      {categories.map((item) => {
+                        const percentage =
+                          report.period.expenses > 0
+                            ? (item.amount / report.period.expenses) * 100
+                            : 0;
+
+                        return (
+                          <tr key={item.category}>
+                            <td>{item.label}</td>
+                            <td>{money(item.amount)}</td>
+                            <td>{percentage.toFixed(1)}%</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p>لا توجد مصروفات مسجلة في الفترة.</p>
+              )}
+            </section>
           </>
         )}
       </div>
