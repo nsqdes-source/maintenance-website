@@ -1,4 +1,4 @@
--- Payment Migration 1. Test apply authorized ONLY on wsjmaojgjzxkmxywvcfy.
+-- Payment Foundation promotion migration 1. Controlled production promotion artifact.
 -- No historical backfill, payment posting, gateway activation or workflow changes.
 BEGIN;
 
